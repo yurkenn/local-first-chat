@@ -1,14 +1,22 @@
 import { useState } from "react";
 import { useCoState } from "jazz-tools/react";
-import { ChatAccount } from "../schema";
+import { ChatAccount } from "@/schema";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Check, Shield } from "lucide-react";
 
 interface UserSettingsModalProps {
     onClose: () => void;
 }
 
-/**
- * UserSettingsModal — Edit display name and view account info.
- */
 export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
     const me = useCoState(ChatAccount, "me", {
         resolve: { profile: true },
@@ -22,7 +30,6 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
     const handleSave = () => {
         if (!name.trim()) return;
         try {
-            // Update Jazz profile name
             (account.profile as any).$jazz.set("name", name.trim());
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
@@ -32,59 +39,83 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
-                <h2 className="modal-title">User Settings</h2>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="glass-strong border-[var(--glass-border)] sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-lg font-heading">User Settings</DialogTitle>
+                </DialogHeader>
 
-                <div className="settings-section">
-                    <h3 className="settings-section-title">Profile</h3>
+                <div className="space-y-6 py-2">
+                    {/* Profile section */}
+                    <div className="space-y-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            Profile
+                        </h3>
 
-                    <div className="settings-avatar-row">
-                        <div className="settings-avatar">
-                            {(currentName || "U").charAt(0).toUpperCase()}
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center text-lg font-bold text-white shrink-0">
+                                {(currentName || "U").charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div className="text-sm font-semibold">{currentName}</div>
+                                <div className="text-xs text-[var(--neon-green)] flex items-center gap-1">
+                                    <div className="neon-dot" style={{ width: 6, height: 6 }} />
+                                    Online
+                                </div>
+                            </div>
                         </div>
-                        <div className="settings-avatar-info">
-                            <div className="settings-avatar-name">{currentName}</div>
-                            <div className="settings-avatar-status">Online</div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                                Display Name
+                            </label>
+                            <Input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Your display name"
+                                className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                            />
                         </div>
+
+                        {saved && (
+                            <div className="flex items-center gap-1.5 text-sm text-[var(--neon-green)] animate-fade-in">
+                                <Check className="h-4 w-4" /> Name updated!
+                            </div>
+                        )}
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">Display Name</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Your display name"
-                        />
-                    </div>
+                    <Separator />
 
-                    {saved && (
-                        <div className="settings-saved">✅ Name updated!</div>
-                    )}
+                    {/* Account section */}
+                    <div className="space-y-3">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            Account
+                        </h3>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-[hsl(var(--muted-foreground))]">Auth Method</span>
+                            <span className="flex items-center gap-1.5">
+                                <Shield className="h-3.5 w-3.5 text-[var(--neon-cyan)]" />
+                                Passphrase (BIP39)
+                            </span>
+                        </div>
+                        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                            Your account is secured with a passphrase. Keep it safe — it's the only way to recover your account.
+                        </p>
+                    </div>
                 </div>
 
-                <div className="settings-section">
-                    <h3 className="settings-section-title">Account</h3>
-                    <div className="settings-info-row">
-                        <span className="settings-info-label">Auth Method</span>
-                        <span className="settings-info-value">Passphrase (BIP39)</span>
-                    </div>
-                    <p className="settings-hint">
-                        Your account is secured with a passphrase. Keep it safe — it's the only way to recover your account.
-                    </p>
-                </div>
-
-                <div className="modal-actions">
-                    <button className="modal-cancel" onClick={onClose}>
-                        Close
-                    </button>
-                    <button className="modal-confirm" onClick={handleSave} disabled={!name.trim()}>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={onClose}>Close</Button>
+                    <Button
+                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
+                        onClick={handleSave}
+                        disabled={!name.trim()}
+                    >
                         Save Changes
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

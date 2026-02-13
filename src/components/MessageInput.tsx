@@ -1,23 +1,13 @@
 import { useState, useCallback, KeyboardEvent } from "react";
-import { Group } from "jazz-tools";
-import { ChatMessage, MessageList } from "../schema";
+import { ChatMessage, MessageList } from "@/schema";
+import { Button } from "@/components/ui/button";
+import { Send } from "lucide-react";
 
 interface MessageInputProps {
     channel: any;
     userName: string;
 }
 
-/**
- * MessageInput — Controlled input for sending messages.
- *
- * Optimistic CoValue creation:
- *   1. Creates a ChatMessage CoValue immediately on send.
- *   2. Pushes it into the channel's MessageList.
- *   3. Jazz syncs the CoValue to all peers in the background.
- *
- * This ensures the message appears instantly in the sender's UI
- * before the network round-trip completes.
- */
 export function MessageInput({ channel, userName }: MessageInputProps) {
     const [text, setText] = useState("");
 
@@ -26,11 +16,8 @@ export function MessageInput({ channel, userName }: MessageInputProps) {
         if (!trimmed || !channel) return;
 
         try {
-            // Determine owner group — use the channel's existing group or create one
-            const ownerGroup = Group.create();
-            ownerGroup.addMember("everyone", "writer");
+            const ownerGroup = (channel as any)._owner;
 
-            // Create message CoValue (optimistic — instant local appearance)
             const message = ChatMessage.create(
                 {
                     content: trimmed,
@@ -40,11 +27,9 @@ export function MessageInput({ channel, userName }: MessageInputProps) {
                 { owner: ownerGroup }
             );
 
-            // Push into the channel's message list using Jazz's .$jazz.push()
             if (channel.messages) {
                 (channel.messages as any).$jazz.push(message);
             } else {
-                // Initialize messages list if not present
                 const newList = MessageList.create([message], { owner: ownerGroup });
                 (channel as any).$jazz.set("messages", newList);
             }
@@ -63,10 +48,10 @@ export function MessageInput({ channel, userName }: MessageInputProps) {
     };
 
     return (
-        <div className="chat-input-container">
-            <div className="chat-input-wrapper">
+        <div className="px-4 pb-4 pt-1">
+            <div className="flex items-end gap-2 rounded-xl glass-strong p-1.5">
                 <textarea
-                    className="chat-input"
+                    className="flex-1 min-h-[36px] max-h-[120px] bg-transparent border-none outline-none resize-none text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] px-3 py-2"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -74,14 +59,15 @@ export function MessageInput({ channel, userName }: MessageInputProps) {
                     rows={1}
                     aria-label="Message input"
                 />
-                <button
-                    className="chat-input-send"
+                <Button
+                    size="icon"
+                    className="h-8 w-8 rounded-lg bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))/0.8] shrink-0 disabled:opacity-30 transition-all"
                     onClick={handleSend}
                     disabled={!text.trim()}
                     aria-label="Send message"
                 >
-                    ➤
-                </button>
+                    <Send className="h-4 w-4" />
+                </Button>
             </div>
         </div>
     );

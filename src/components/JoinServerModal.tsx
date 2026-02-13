@@ -1,29 +1,33 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { useCoState } from "jazz-tools/react";
-import { ChatServer, ChatAccount } from "../schema";
+import { ChatServer, ChatAccount } from "@/schema";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2, Hash } from "lucide-react";
 
 interface JoinServerModalProps {
     onClose: () => void;
     onJoined: (serverId: string) => void;
 }
 
-/**
- * JoinServerModal — Paste an invite code to join an existing server.
- *
- * The invite code is a Jazz CoValue ID (e.g., "co_z...").
- * We use useCoState to load the server, then push it into the user's server list.
- */
 export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
     const [inviteCode, setInviteCode] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [joining, setJoining] = useState(false);
 
-    // Load the current user's account to push server to their list
     const me = useCoState(ChatAccount, "me", {
         resolve: { root: { servers: true } },
     });
 
-    // Try to load the server by the invite code (CoValue ID)
     const serverPreview = useCoState(
         ChatServer,
         inviteCode.trim().startsWith("co_") ? (inviteCode.trim() as any) : undefined,
@@ -52,7 +56,6 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
             return;
         }
 
-        // Check if already joined
         const servers = Array.from(account.root.servers).filter(Boolean);
         const alreadyJoined = servers.some(
             (s: any) => s?.$jazz?.id === inviteCode.trim()
@@ -64,9 +67,9 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
 
         setJoining(true);
         try {
-            // Push the loaded server reference into the user's server list
             (account.root.servers as any).$jazz.push(serverPreview);
             const serverId = (serverPreview as any)?.$jazz?.id;
+            toast.success(`Joined "${(serverPreview as any)?.name || 'server'}"`);
             onJoined(serverId);
         } catch (err) {
             console.error("[JoinServer] Failed to join:", err);
@@ -75,7 +78,6 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
         }
     };
 
-    // Server preview info
     const isLoaded = serverPreview && (serverPreview as any).$isLoaded;
     const serverName = isLoaded ? (serverPreview as any).name : null;
     const serverEmoji = isLoaded ? (serverPreview as any).iconEmoji : null;
@@ -84,64 +86,79 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
         : 0;
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h2 className="modal-title">Join a Server</h2>
-                <p className="modal-description">
-                    Paste an invite code to join an existing server.
-                </p>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="glass-strong border-[var(--glass-border)] sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-lg font-heading">Join a Server</DialogTitle>
+                    <DialogDescription>
+                        Paste an invite code to join an existing server.
+                    </DialogDescription>
+                </DialogHeader>
 
-                <div className="form-group">
-                    <label className="form-label">Invite Code</label>
-                    <input
-                        type="text"
-                        className="form-input"
-                        value={inviteCode}
-                        onChange={(e) => {
-                            setInviteCode(e.target.value);
-                            setError(null);
-                        }}
-                        placeholder="co_zQZKpq..."
-                        autoFocus
-                    />
-                </div>
+                <div className="space-y-4 py-2">
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            Invite Code
+                        </label>
+                        <Input
+                            type="text"
+                            value={inviteCode}
+                            onChange={(e) => {
+                                setInviteCode(e.target.value);
+                                setError(null);
+                            }}
+                            placeholder="co_zQZKpq..."
+                            autoFocus
+                            className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))] font-mono"
+                        />
+                    </div>
 
-                {/* Server preview card */}
-                {isLoaded && serverName && (
-                    <div className="join-server-preview">
-                        <div className="join-server-icon">{serverEmoji || "💬"}</div>
-                        <div className="join-server-info">
-                            <div className="join-server-name">{serverName}</div>
-                            <div className="join-server-channels">
-                                {channelCount} channel{channelCount !== 1 ? "s" : ""}
+                    {/* Server preview card */}
+                    {isLoaded && serverName && (
+                        <div className="flex items-center gap-3 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] p-3 animate-fade-in">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center text-lg shrink-0">
+                                {serverEmoji || "💬"}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-sm font-semibold truncate">{serverName}</div>
+                                <div className="text-xs text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                                    <Hash className="h-3 w-3" />
+                                    {channelCount} channel{channelCount !== 1 ? "s" : ""}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Loading indicator when code is valid but not yet loaded */}
-                {inviteCode.trim().startsWith("co_") && !isLoaded && (
-                    <div className="join-server-loading">
-                        <span className="loading-spinner">⟳</span>
-                        <span>Looking for server...</span>
-                    </div>
-                )}
+                    {/* Loading */}
+                    {inviteCode.trim().startsWith("co_") && !isLoaded && (
+                        <div className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))]">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Looking for server...
+                        </div>
+                    )}
 
-                {error && <div className="form-error">{error}</div>}
+                    {error && (
+                        <div className="bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.3] text-[hsl(var(--destructive))] text-sm rounded-lg px-3 py-2">
+                            {error}
+                        </div>
+                    )}
+                </div>
 
-                <div className="modal-actions">
-                    <button className="modal-cancel" onClick={onClose}>
-                        Cancel
-                    </button>
-                    <button
-                        className="modal-confirm"
+                <DialogFooter>
+                    <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                    <Button
+                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
                         onClick={handleJoin}
                         disabled={joining || !isLoaded}
                     >
-                        {joining ? "Joining..." : "Join Server"}
-                    </button>
-                </div>
-            </div>
-        </div>
+                        {joining ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Joining...</>
+                        ) : (
+                            "Join Server"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

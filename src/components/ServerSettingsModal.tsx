@@ -1,4 +1,16 @@
 import { useState } from "react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Check, Trash2, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ServerSettingsModalProps {
     server: any;
@@ -6,12 +18,8 @@ interface ServerSettingsModalProps {
     onDeleteServer: () => void;
 }
 
-/** Common server emojis for picker */
 const SERVER_EMOJIS = ["🎮", "💻", "🎵", "📚", "🎨", "🏠", "🚀", "⚡", "🌟", "🔥", "💬", "🤖"];
 
-/**
- * ServerSettingsModal — Edit server name/icon or delete the server.
- */
 export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerSettingsModalProps) {
     const [name, setName] = useState(server?.name || "");
     const [emoji, setEmoji] = useState(server?.iconEmoji || "📁");
@@ -36,79 +44,103 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
-                <h2 className="modal-title">Server Settings</h2>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="glass-strong border-[var(--glass-border)] sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-lg font-heading">Server Settings</DialogTitle>
+                </DialogHeader>
 
-                <div className="settings-section">
-                    <h3 className="settings-section-title">Server Info</h3>
+                <div className="space-y-6 py-2">
+                    {/* Server Info */}
+                    <div className="space-y-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            Server Info
+                        </h3>
 
-                    <div className="form-group">
-                        <label className="form-label">Server Name</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Server name"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Server Icon</label>
-                        <div className="emoji-selector">
-                            {SERVER_EMOJIS.map((e) => (
-                                <button
-                                    key={e}
-                                    className={`emoji-select-btn ${emoji === e ? "selected" : ""}`}
-                                    onClick={() => setEmoji(e)}
-                                >
-                                    {e}
-                                </button>
-                            ))}
+                        <div className="space-y-2">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                                Server Name
+                            </label>
+                            <Input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Server name"
+                                className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                            />
                         </div>
-                    </div>
 
-                    {saved && (
-                        <div className="settings-saved">✅ Server updated!</div>
-                    )}
-                </div>
-
-                <div className="settings-section settings-danger">
-                    <h3 className="settings-section-title danger-title">Danger Zone</h3>
-                    {!confirmDelete ? (
-                        <button
-                            className="settings-delete-btn"
-                            onClick={() => setConfirmDelete(true)}
-                        >
-                            🗑️ Delete Server
-                        </button>
-                    ) : (
-                        <div className="settings-confirm-delete">
-                            <p className="settings-warning">
-                                Are you sure? This will remove the server from your list. Other members may still have access.
-                            </p>
-                            <div className="settings-confirm-actions">
-                                <button className="modal-cancel" onClick={() => setConfirmDelete(false)}>
-                                    Cancel
-                                </button>
-                                <button className="settings-confirm-delete-btn" onClick={handleDelete}>
-                                    Yes, Delete
-                                </button>
+                        <div className="space-y-2">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                                Server Icon
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                                {SERVER_EMOJIS.map((e) => (
+                                    <button
+                                        key={e}
+                                        className={cn(
+                                            "w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all cursor-pointer",
+                                            emoji === e
+                                                ? "bg-[hsl(var(--primary))/0.2] ring-2 ring-[hsl(var(--primary))] scale-110"
+                                                : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))/0.8]"
+                                        )}
+                                        onClick={() => setEmoji(e)}
+                                    >
+                                        {e}
+                                    </button>
+                                ))}
                             </div>
                         </div>
-                    )}
+
+                        {saved && (
+                            <div className="flex items-center gap-1.5 text-sm text-[var(--neon-green)] animate-fade-in">
+                                <Check className="h-4 w-4" /> Server updated!
+                            </div>
+                        )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Danger Zone */}
+                    <div className="space-y-3">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--destructive))]">
+                            Danger Zone
+                        </h3>
+                        {!confirmDelete ? (
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setConfirmDelete(true)}
+                                className="gap-2"
+                            >
+                                <Trash2 className="h-4 w-4" /> Delete Server
+                            </Button>
+                        ) : (
+                            <div className="rounded-lg bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.3] p-3 space-y-3 animate-fade-in">
+                                <p className="text-sm text-[hsl(var(--destructive))] flex items-start gap-2">
+                                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                                    Are you sure? This will remove the server from your list. Other members may still have access.
+                                </p>
+                                <div className="flex gap-2">
+                                    <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(false)}>Cancel</Button>
+                                    <Button variant="destructive" size="sm" onClick={handleDelete}>Yes, Delete</Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <div className="modal-actions">
-                    <button className="modal-cancel" onClick={onClose}>
-                        Close
-                    </button>
-                    <button className="modal-confirm" onClick={handleSave} disabled={!name.trim()}>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={onClose}>Close</Button>
+                    <Button
+                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
+                        onClick={handleSave}
+                        disabled={!name.trim()}
+                    >
                         Save Changes
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

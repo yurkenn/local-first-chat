@@ -1,4 +1,15 @@
 import { useState } from "react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface CreateServerModalProps {
     onClose: () => void;
@@ -10,11 +21,6 @@ const EMOJI_OPTIONS = [
     "🌍", "☕", "🔥", "❤️", "🌙", "🎯", "🧪", "🛡️",
 ];
 
-/**
- * CreateServerModal — Modal for creating a new server.
- * User picks a name and an emoji icon.
- * On submit, a new Jazz Group (RBAC) is created along with the ChatServer.
- */
 export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps) {
     const [name, setName] = useState("");
     const [emoji, setEmoji] = useState("🎮");
@@ -26,54 +32,67 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <h2 className="modal-title">Create a Server</h2>
-                <p className="modal-subtitle">
-                    Your server is where you and your friends hang out.
-                </p>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="glass-strong border-[var(--glass-border)] sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-lg font-heading">Create a Server</DialogTitle>
+                    <DialogDescription>
+                        Your server is where you and your friends hang out.
+                    </DialogDescription>
+                </DialogHeader>
 
-                <label className="modal-label">Server Name</label>
-                <input
-                    className="modal-input"
-                    type="text"
-                    placeholder="My Awesome Server"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                    autoFocus
-                    maxLength={50}
-                />
+                <div className="space-y-4 py-2">
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            Server Name
+                        </label>
+                        <Input
+                            type="text"
+                            placeholder="My Awesome Server"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                            autoFocus
+                            maxLength={50}
+                            className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                        />
+                    </div>
 
-                <label className="modal-label" style={{ marginTop: 16 }}>
-                    Icon
-                </label>
-                <div className="emoji-picker">
-                    {EMOJI_OPTIONS.map((e) => (
-                        <button
-                            key={e}
-                            className={`emoji-option ${emoji === e ? "selected" : ""}`}
-                            onClick={() => setEmoji(e)}
-                            type="button"
-                        >
-                            {e}
-                        </button>
-                    ))}
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            Icon
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                            {EMOJI_OPTIONS.map((e) => (
+                                <button
+                                    key={e}
+                                    className={cn(
+                                        "w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all cursor-pointer",
+                                        emoji === e
+                                            ? "bg-[hsl(var(--primary))/0.2] ring-2 ring-[hsl(var(--primary))] scale-110"
+                                            : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))/0.8]"
+                                    )}
+                                    onClick={() => setEmoji(e)}
+                                    type="button"
+                                >
+                                    {e}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="modal-actions">
-                    <button className="btn btn-secondary" onClick={onClose}>
-                        Cancel
-                    </button>
-                    <button
-                        className="btn btn-primary"
+                <DialogFooter>
+                    <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                    <Button
+                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
                         onClick={handleSubmit}
                         disabled={!name.trim()}
                     >
                         Create Server
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

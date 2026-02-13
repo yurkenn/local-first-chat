@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Peer from "simple-peer";
-import { Group } from "jazz-tools";
-import { VoicePeer, VoicePeerList, VoiceState } from "../schema";
+import { VoicePeer, VoicePeerList, VoiceState } from "@/schema";
 
 /**
  * useVoiceChat — Manages WebRTC P2P mesh voice connections.
@@ -62,8 +61,7 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // Ensure voice state exists on channel
             if (!channel.voiceState) {
-                const ownerGroup = Group.create();
-                ownerGroup.addMember("everyone", "writer");
+                const ownerGroup = (channel as any)._owner;
                 const voiceState = VoiceState.create(
                     { peers: VoicePeerList.create([], { owner: ownerGroup }) },
                     { owner: ownerGroup }
@@ -78,9 +76,8 @@ export function useVoiceChat(channel: any, userName: string) {
                 return;
             }
 
-            // Create our VoicePeer CoValue
-            const ownerGroup = Group.create();
-            ownerGroup.addMember("everyone", "writer");
+            // Reuse the channel's ownership group
+            const ownerGroup = (channel as any)._owner;
 
             const voicePeer = VoicePeer.create(
                 {
@@ -291,7 +288,7 @@ export function useVoiceChat(channel: any, userName: string) {
                 leave();
             }
         };
-    }, []);
+    }, [isConnected, leave]);
 
     return {
         isConnected,

@@ -1,67 +1,93 @@
 import { useState } from "react";
+import { toast } from "sonner";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Copy, Check } from "lucide-react";
 
 interface InviteModalProps {
     server: any;
     onClose: () => void;
 }
 
-/**
- * InviteModal — Shows the server invite code for sharing.
- * Uses the CoValue ID as a simple invite code mechanism.
- */
 export function InviteModal({ server, onClose }: InviteModalProps) {
     const [copied, setCopied] = useState(false);
 
-    // Use the server's CoValue ID as invite code
     const inviteCode = server?.$jazz?.id || "N/A";
 
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(inviteCode);
             setCopied(true);
+            toast.success("Invite code copied!");
             setTimeout(() => setCopied(false), 2000);
         } catch {
-            // Fallback for environments without clipboard API
-            const textArea = document.createElement("textarea");
-            textArea.value = inviteCode;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            try {
+                const codeElement = document.querySelector("[data-invite-code]");
+                if (codeElement) {
+                    const range = document.createRange();
+                    range.selectNodeContents(codeElement);
+                    const selection = window.getSelection();
+                    selection?.removeAllRanges();
+                    selection?.addRange(range);
+                    setCopied(true);
+                    setTimeout(() => {
+                        setCopied(false);
+                        selection?.removeAllRanges();
+                    }, 2000);
+                }
+            } catch {
+                console.warn("[InviteModal] Clipboard API unavailable");
+            }
         }
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h2 className="modal-title">Invite People</h2>
-                <p className="modal-description">
-                    Share this invite code with friends to let them join{" "}
-                    <strong>{server?.name}</strong>.
-                </p>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="glass-strong border-[var(--glass-border)] sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-lg font-heading">Invite People</DialogTitle>
+                    <DialogDescription>
+                        Share this invite code with friends to let them join{" "}
+                        <strong className="text-[hsl(var(--foreground))]">{server?.name}</strong>.
+                    </DialogDescription>
+                </DialogHeader>
 
-                <div className="invite-code-block">
-                    <code className="invite-code">{inviteCode}</code>
-                    <button className="invite-copy-btn" onClick={handleCopy}>
-                        {copied ? "✓ Copied!" : "Copy"}
-                    </button>
+                <div className="flex items-center gap-2 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] p-3">
+                    <code
+                        className="flex-1 text-sm font-mono text-[var(--neon-cyan)] select-all break-all"
+                        data-invite-code
+                    >
+                        {inviteCode}
+                    </code>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleCopy}
+                        className="shrink-0"
+                    >
+                        {copied ? (
+                            <><Check className="h-4 w-4 mr-1 text-[var(--neon-green)]" /> Copied!</>
+                        ) : (
+                            <><Copy className="h-4 w-4 mr-1" /> Copy</>
+                        )}
+                    </Button>
                 </div>
 
-                <p
-                    className="modal-description"
-                    style={{ fontSize: "0.8rem", marginTop: "12px" }}
-                >
-                    Recipients can join by pasting this code in their LocalChat app.
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    Recipients can join by pasting this code in their Lotus app.
                 </p>
 
-                <div className="modal-actions">
-                    <button className="modal-cancel" onClick={onClose}>
-                        Done
-                    </button>
-                </div>
-            </div>
-        </div>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={onClose}>Done</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

@@ -1,4 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
+import { useModalState } from "@/hooks/useModalState";
+import { useLayoutState } from "@/hooks/useLayoutState";
+import { useVoiceState } from "@/hooks/useVoiceState";
 import { useLogOut } from "jazz-tools/react";
 import { useAccount } from "jazz-tools/react";
 import { Group } from "jazz-tools";
@@ -10,16 +14,20 @@ import {
   VoiceState,
   VoicePeerList,
   ChatAccount,
-} from "./schema";
-import { ServerSidebar } from "./components/ServerSidebar";
-import { ChannelSidebar } from "./components/ChannelSidebar";
-import { ChatArea } from "./components/ChatArea";
-import { CreateServerModal } from "./components/CreateServerModal";
-import { CreateChannelModal } from "./components/CreateChannelModal";
-import { InviteModal } from "./components/InviteModal";
-import { JoinServerModal } from "./components/JoinServerModal";
-import { UserSettingsModal } from "./components/UserSettingsModal";
-import { ServerSettingsModal } from "./components/ServerSettingsModal";
+} from "@/schema";
+import { ServerSidebar } from "@/components/ServerSidebar";
+import { ChannelSidebar } from "@/components/ChannelSidebar";
+import { ChatArea } from "@/components/ChatArea";
+import { MemberPanel } from "@/components/MemberPanel";
+import { CreateServerModal } from "@/components/CreateServerModal";
+import { CreateChannelModal } from "@/components/CreateChannelModal";
+import { InviteModal } from "@/components/InviteModal";
+import { JoinServerModal } from "@/components/JoinServerModal";
+import { UserSettingsModal } from "@/components/UserSettingsModal";
+import { ServerSettingsModal } from "@/components/ServerSettingsModal";
+import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
  * App — Root component.
@@ -29,7 +37,6 @@ import { ServerSettingsModal } from "./components/ServerSettingsModal";
  * ⚠ All hooks MUST be called before any early return (React rules of hooks).
  */
 export default function App() {
-  // useAccount returns MaybeLoaded — check $isLoaded before accessing deeply
   const me = useAccount(ChatAccount, {
     resolve: {
       root: {
@@ -49,16 +56,17 @@ export default function App() {
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const logOut = useLogOut();
 
-  // ── Modal State ──
-  const [showCreateServer, setShowCreateServer] = useState(false);
-  const [showCreateChannel, setShowCreateChannel] = useState(false);
-  const [showInvite, setShowInvite] = useState(false);
-  const [showJoinServer, setShowJoinServer] = useState(false);
-  const [showUserSettings, setShowUserSettings] = useState(false);
-  const [showServerSettings, setShowServerSettings] = useState(false);
+  // ── Layout & Modal State (custom hooks) ──
+  const { layout, toggleSidebar, toggleChannelSidebar, toggleMemberPanel, openChannelSidebar } = useLayoutState();
+  const { modals, openModal, closeModal } = useModalState();
+
+  // ── Profile name (needed by voice state hook) ──
+  const profileName = (me as any)?.profile?.name || "User";
+
+  // ── Voice State (app-level, survives navigation) ──
+  const voice = useVoiceState(profileName);
 
   // ── Server creation handler ──
-  // NOTE: All useCallback hooks must be declared unconditionally before any early return
   const handleCreateServer = useCallback(
     (name: string, emoji: string) => {
       const account = me as any;
@@ -99,7 +107,8 @@ export default function App() {
 
       setActiveServerId((server as any).$jazz.id);
       setActiveChannelId((generalChannel as any).$jazz.id);
-      setShowCreateServer(false);
+      closeModal("createServer");
+      toast.success(`Server "${name}" created`);
     },
     [me]
   );
@@ -110,7 +119,6 @@ export default function App() {
       const account = me as any;
       if (!account?.$isLoaded) return;
 
-      // Find active server from the account's server list
       const servers = account.root?.servers;
       const serverArr = servers ? Array.from(servers).filter(Boolean) : [];
       const server = serverArr.find(
@@ -118,8 +126,7 @@ export default function App() {
       ) as any;
       if (!server?.channels) return;
 
-      const serverGroup = Group.create();
-      serverGroup.addMember("everyone", "writer");
+      const serverGroup = (server as any)._owner;
 
       const messages = MessageList.create([], { owner: serverGroup });
       const voiceState = VoiceState.create(
@@ -139,7 +146,8 @@ export default function App() {
 
       (server.channels as any).$jazz.push(channel);
       setActiveChannelId((channel as any).$jazz.id);
-      setShowCreateChannel(false);
+      closeModal("createChannel");
+      toast.success(`Channel "#${name}" created`);
     },
     [me, activeServerId]
   );
@@ -167,22 +175,24 @@ export default function App() {
     }
   }, [activeServerId, activeChannelId, firstChannelId]);
 
-  // Also set inline for immediate render
   if (!activeChannel && firstChannelId && activeServerId) {
     activeChannel = channelArray[0] as any;
   }
 
-  const profileName = account?.profile?.name || "User";
 
   // ── Loading gate ──
-  if (!isLoaded) {
-    return null;
-  }
+  if (!isLoaded) return null;
 
-  // ── Render ──
+
+
+
   return (
     <>
-      <div className="app-layout">
+      <div className="grid h-screen w-screen overflow-hidden transition-all duration-300"
+        style={{
+          gridTemplateColumns: `${layout.sidebarOpen ? "56px" : "0px"} ${layout.channelSidebarOpen ? "240px" : "0px"} 1fr ${layout.memberPanelOpen ? "240px" : "0px"}`,
+        }}
+      >
         {/* Server list bar */}
         <ServerSidebar
           servers={serverArray as any[]}
@@ -190,9 +200,10 @@ export default function App() {
           onSelectServer={(id) => {
             setActiveServerId(id);
             setActiveChannelId(null);
+            openChannelSidebar();
           }}
-          onCreateServer={() => setShowCreateServer(true)}
-          onJoinServer={() => setShowJoinServer(true)}
+          onCreateServer={() => openModal("createServer")}
+          onJoinServer={() => openModal("joinServer")}
         />
 
         {/* Channel list sidebar */}
@@ -201,90 +212,122 @@ export default function App() {
           channels={channelArray as any[]}
           activeChannelId={activeChannelId}
           onSelectChannel={setActiveChannelId}
-          onCreateChannel={() => setShowCreateChannel(true)}
-          onInvite={() => setShowInvite(true)}
+          onCreateChannel={() => openModal("createChannel")}
+          onInvite={() => openModal("invite")}
           userName={profileName}
           onLogout={logOut}
-          onUserSettings={() => setShowUserSettings(true)}
-          onServerSettings={() => setShowServerSettings(true)}
+          onUserSettings={() => openModal("userSettings")}
+          onServerSettings={() => openModal("serverSettings")}
+          voice={voice}
         />
 
         {/* Main chat area */}
         {activeChannel ? (
-          <ChatArea channel={activeChannel} userName={profileName} />
+          <ChatArea
+            channel={activeChannel}
+            userName={profileName}
+            sidebarOpen={layout.sidebarOpen}
+            channelSidebarOpen={layout.channelSidebarOpen}
+            memberPanelOpen={layout.memberPanelOpen}
+            onToggleSidebar={toggleSidebar}
+            onToggleChannelSidebar={toggleChannelSidebar}
+            onToggleMemberPanel={toggleMemberPanel}
+          />
         ) : (
-          <div className="chat-container">
-            <div className="empty-state">
-              <div className="empty-state-icon">💬</div>
-              <div className="empty-state-title">Welcome to LocalChat</div>
-              <p className="empty-state-text">
-                Select a channel from the sidebar to start chatting,
-                <br />
-                or create a new server to begin.
-              </p>
+          <div className="flex flex-col min-w-0">
+            {/* Navigation header even in empty state */}
+            <div className="flex items-center h-12 px-3 gap-2 glass-strong border-b border-[var(--glass-border)]">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", layout.sidebarOpen && "text-[var(--neon-violet)]")}
+                onClick={toggleSidebar}
+                aria-label="Toggle servers"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+              <div className="flex-1" />
+              <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+                <div className="neon-dot" style={{ width: 6, height: 6 }} />
+                E2EE
+              </div>
+            </div>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-4 animate-fade-in">
+                <div className="text-6xl drop-shadow-[0_0_24px_rgba(168,85,247,0.3)]">🪷</div>
+                <h1 className="text-3xl font-heading font-bold text-gradient">Lotus</h1>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] text-center leading-relaxed">
+                  Select a channel to start chatting,
+                  <br />
+                  or create a new server.
+                </p>
+              </div>
             </div>
           </div>
         )}
+
+        {/* Contextual Member Panel (right sidebar) */}
+        <MemberPanel server={activeServer} userName={profileName} />
       </div>
 
       {/* ── Modals ── */}
-      {showCreateServer && (
+      {modals.createServer && (
         <CreateServerModal
-          onClose={() => setShowCreateServer(false)}
+          onClose={() => closeModal("createServer")}
           onCreate={handleCreateServer}
         />
       )}
 
-      {showCreateChannel && activeServer && (
+      {modals.createChannel && activeServer && (
         <CreateChannelModal
-          onClose={() => setShowCreateChannel(false)}
+          onClose={() => closeModal("createChannel")}
           onCreate={handleCreateChannel}
         />
       )}
 
-      {showInvite && activeServer && (
+      {modals.invite && activeServer && (
         <InviteModal
           server={activeServer}
-          onClose={() => setShowInvite(false)}
+          onClose={() => closeModal("invite")}
         />
       )}
 
-      {showJoinServer && (
+      {modals.joinServer && (
         <JoinServerModal
-          onClose={() => setShowJoinServer(false)}
+          onClose={() => closeModal("joinServer")}
           onJoined={(serverId) => {
-            setShowJoinServer(false);
+            closeModal("joinServer");
             setActiveServerId(serverId);
             setActiveChannelId(null);
           }}
         />
       )}
 
-      {showUserSettings && (
+      {modals.userSettings && (
         <UserSettingsModal
-          onClose={() => setShowUserSettings(false)}
+          onClose={() => closeModal("userSettings")}
         />
       )}
 
-      {showServerSettings && activeServer && (
+      {modals.serverSettings && activeServer && (
         <ServerSettingsModal
           server={activeServer}
-          onClose={() => setShowServerSettings(false)}
+          onClose={() => closeModal("serverSettings")}
           onDeleteServer={() => {
-            // Remove server from user's list by clearing the reference
             const account = me as any;
             const servers = account?.root?.servers;
+            const serverName = (activeServer as any)?.name || "Server";
             if (servers) {
               const idx = Array.from(servers).findIndex(
                 (s: any) => s?.$jazz?.id === activeServerId
               );
               if (idx >= 0) {
-                // Set the slot to null to "remove" the server
                 servers[idx] = null;
               }
             }
             setActiveServerId(null);
             setActiveChannelId(null);
+            toast.success(`"${serverName}" deleted`);
           }}
         />
       )}

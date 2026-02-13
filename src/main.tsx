@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
+import { Toaster } from "@/components/ui/sonner";
+import "./globals.css";
 
 console.log("[LocalChat] Starting application...");
 
@@ -13,46 +14,13 @@ console.log("[LocalChat] Starting application...");
 
 function LoadingScreen() {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        background: "#1a1a2e",
-        color: "#e0e0e0",
-        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-        gap: "16px",
-      }}
-    >
-      <div style={{ fontSize: "3rem" }}>💬</div>
-      <h1
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: 700,
-          margin: 0,
-          background: "linear-gradient(135deg, #7c5ce0, #5eead4)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        }}
-      >
-        LocalChat
-      </h1>
-      <p style={{ color: "#888", fontSize: "0.9rem" }}>
+    <div className="flex flex-col items-center justify-center h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-sans gap-4">
+      <div className="text-5xl">💬</div>
+      <h1 className="text-2xl font-bold text-gradient">LocalChat</h1>
+      <p className="text-sm text-[hsl(var(--muted-foreground))]">
         Connecting to secure network…
       </p>
-      <div
-        style={{
-          width: "40px",
-          height: "40px",
-          border: "3px solid rgba(124, 92, 224, 0.2)",
-          borderTopColor: "#7c5ce0",
-          borderRadius: "50%",
-          animation: "spin 0.8s linear infinite",
-        }}
-      />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="w-10 h-10 border-3 border-[hsl(var(--primary)/0.2)] border-t-[hsl(var(--primary))] rounded-full animate-spin" />
     </div>
   );
 }
@@ -77,41 +45,16 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div
-          style={{
-            padding: "40px",
-            background: "#1a1a2e",
-            color: "#e0e0e0",
-            height: "100vh",
-            fontFamily: "'Inter', system-ui, sans-serif",
-          }}
-        >
-          <h1 style={{ color: "#ff6b6b" }}>Something went wrong</h1>
-          <pre
-            style={{
-              background: "#0d0d1a",
-              padding: "16px",
-              borderRadius: "8px",
-              overflow: "auto",
-              fontSize: "0.85rem",
-              color: "#ff9999",
-            }}
-          >
+        <div className="p-10 bg-[hsl(var(--background))] text-[hsl(var(--foreground))] h-screen font-sans">
+          <h1 className="text-xl font-bold text-red-400">Something went wrong</h1>
+          <pre className="mt-4 p-4 bg-[hsl(var(--card))] rounded-lg overflow-auto text-sm text-red-300 border border-red-500/20">
             {this.state.error?.message}
             {"\n\n"}
             {this.state.error?.stack}
           </pre>
           <button
             onClick={() => window.location.reload()}
-            style={{
-              marginTop: "16px",
-              padding: "8px 20px",
-              background: "#7c5ce0",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
+            className="mt-4 px-5 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-none rounded-md cursor-pointer hover:opacity-90 transition-opacity font-medium"
           >
             Reload
           </button>
@@ -169,6 +112,7 @@ try {
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
           <JazzApp />
+          <Toaster position="bottom-right" richColors />
         </Suspense>
       </ErrorBoundary>
     </React.StrictMode>
@@ -177,5 +121,5 @@ try {
   console.log("[LocalChat] React root rendered");
 } catch (err) {
   console.error("[LocalChat] Failed to mount React:", err);
-  document.body.innerHTML = `<pre style="color:red;padding:20px">${err}</pre>`;
+  document.body.innerHTML = `<pre class="text-red-400 p-5">${err}</pre>`;
 }

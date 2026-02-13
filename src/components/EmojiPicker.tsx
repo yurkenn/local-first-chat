@@ -8,20 +8,16 @@ const REACTION_EMOJIS = [
 ];
 
 interface EmojiPickerProps {
-    /** Called when an emoji is selected */
     onSelect: (emoji: string) => void;
-    /** Called when the picker should close */
     onClose: () => void;
 }
 
 /**
  * EmojiPicker — Compact popup grid of commonly used reaction emojis.
- * Positioned relative to the trigger button.
  */
 export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
     const ref = useRef<HTMLDivElement>(null);
 
-    // Close on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -33,12 +29,15 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
     }, [onClose]);
 
     return (
-        <div className="emoji-picker" ref={ref}>
-            <div className="emoji-grid">
+        <div
+            ref={ref}
+            className="absolute right-0 top-full mt-1 z-20 glass-strong rounded-xl p-2 shadow-xl border border-[var(--glass-border)] animate-fade-in"
+        >
+            <div className="grid grid-cols-6 gap-0.5">
                 {REACTION_EMOJIS.map((emoji) => (
                     <button
                         key={emoji}
-                        className="emoji-btn"
+                        className="w-8 h-8 rounded-md flex items-center justify-center text-base hover:bg-[hsl(var(--secondary))] transition-colors cursor-pointer"
                         onClick={() => {
                             onSelect(emoji);
                             onClose();
