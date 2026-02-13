@@ -12,6 +12,8 @@ interface ChannelSidebarProps {
     onInvite: () => void;
     userName: string;
     onLogout?: () => void;
+    onUserSettings?: () => void;
+    onServerSettings?: () => void;
 }
 
 export function ChannelSidebar({
@@ -23,6 +25,8 @@ export function ChannelSidebar({
     onInvite,
     userName,
     onLogout,
+    onUserSettings,
+    onServerSettings,
 }: ChannelSidebarProps) {
     if (!server) {
         return (
@@ -63,11 +67,20 @@ export function ChannelSidebar({
     return (
         <div className="channel-sidebar">
             {/* Server name header */}
-            <div className="channel-sidebar-header" onClick={onInvite}>
-                <span>{server.name}</span>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+            <div className="channel-sidebar-header">
+                <span onClick={onInvite} style={{ cursor: "pointer", flex: 1 }}>{server.name}</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", cursor: "pointer" }} onClick={onInvite}>
                     ▼
                 </span>
+                {onServerSettings && (
+                    <button
+                        className="channel-header-settings-btn"
+                        onClick={onServerSettings}
+                        title="Server settings"
+                    >
+                        ⚙️
+                    </button>
+                )}
             </div>
 
             {/* Channel list */}
@@ -132,6 +145,15 @@ export function ChannelSidebar({
                         title="Log out"
                     >
                         ⏻
+                    </button>
+                )}
+                {onUserSettings && (
+                    <button
+                        className="user-panel-btn"
+                        onClick={onUserSettings}
+                        title="User settings"
+                    >
+                        ⚙️
                     </button>
                 )}
             </div>

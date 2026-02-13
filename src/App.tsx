@@ -18,6 +18,8 @@ import { CreateServerModal } from "./components/CreateServerModal";
 import { CreateChannelModal } from "./components/CreateChannelModal";
 import { InviteModal } from "./components/InviteModal";
 import { JoinServerModal } from "./components/JoinServerModal";
+import { UserSettingsModal } from "./components/UserSettingsModal";
+import { ServerSettingsModal } from "./components/ServerSettingsModal";
 
 /**
  * App — Root component.
@@ -52,6 +54,8 @@ export default function App() {
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showJoinServer, setShowJoinServer] = useState(false);
+  const [showUserSettings, setShowUserSettings] = useState(false);
+  const [showServerSettings, setShowServerSettings] = useState(false);
 
   // ── Server creation handler ──
   // NOTE: All useCallback hooks must be declared unconditionally before any early return
@@ -201,6 +205,8 @@ export default function App() {
           onInvite={() => setShowInvite(true)}
           userName={profileName}
           onLogout={logOut}
+          onUserSettings={() => setShowUserSettings(true)}
+          onServerSettings={() => setShowServerSettings(true)}
         />
 
         {/* Main chat area */}
@@ -249,6 +255,35 @@ export default function App() {
           onJoined={(serverId) => {
             setShowJoinServer(false);
             setActiveServerId(serverId);
+            setActiveChannelId(null);
+          }}
+        />
+      )}
+
+      {showUserSettings && (
+        <UserSettingsModal
+          onClose={() => setShowUserSettings(false)}
+        />
+      )}
+
+      {showServerSettings && activeServer && (
+        <ServerSettingsModal
+          server={activeServer}
+          onClose={() => setShowServerSettings(false)}
+          onDeleteServer={() => {
+            // Remove server from user's list by clearing the reference
+            const account = me as any;
+            const servers = account?.root?.servers;
+            if (servers) {
+              const idx = Array.from(servers).findIndex(
+                (s: any) => s?.$jazz?.id === activeServerId
+              );
+              if (idx >= 0) {
+                // Set the slot to null to "remove" the server
+                servers[idx] = null;
+              }
+            }
+            setActiveServerId(null);
             setActiveChannelId(null);
           }}
         />

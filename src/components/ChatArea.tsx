@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MessageInput } from "./MessageInput";
 import { VoicePanel } from "./VoicePanel";
+import { EmojiPicker, parseReactions, toggleReaction } from "./EmojiPicker";
 
 interface ChatAreaProps {
     channel: any | null;
@@ -98,6 +99,8 @@ function MessageListView({ channel, userName }: { channel: any; userName: string
     // ── Edit state ──
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editText, setEditText] = useState("");
+    // ── Reaction state ──
+    const [pickerOpenIndex, setPickerOpenIndex] = useState<number | null>(null);
 
     const virtualizer = useVirtualizer({
         count: msgArray.length,
@@ -150,6 +153,17 @@ function MessageListView({ channel, userName }: { channel: any; userName: string
             (msg as any).$jazz.set("content", "[message deleted]");
         } catch (err) {
             console.error("[ChatArea] Delete failed:", err);
+        }
+    };
+
+    // ── Reaction handler ──
+    const handleReaction = (msg: any, emoji: string) => {
+        try {
+            const current = parseReactions(msg.reactions);
+            const updated = toggleReaction(current, emoji, userName);
+            (msg as any).$jazz.set("reactions", JSON.stringify(updated));
+        } catch (err) {
+            console.error("[ChatArea] Reaction failed:", err);
         }
     };
 
@@ -224,11 +238,22 @@ function MessageListView({ channel, userName }: { channel: any; userName: string
                                             <span className="message-edited">(edited)</span>
                                         )}
                                     </div>
-                                    {/* Hover actions for own non-deleted messages */}
-                                    {isOwnMessage && !isDeleted && !isEditing && (
+                                    {/* Reaction pills */}
+                                    <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
+                                    {/* Hover actions */}
+                                    {!isDeleted && !isEditing && (
                                         <MessageActions
                                             onEdit={() => startEdit(virtualItem.index, msg.content)}
                                             onDelete={() => deleteMessage(msg)}
+                                            onReact={() => setPickerOpenIndex(pickerOpenIndex === virtualItem.index ? null : virtualItem.index)}
+                                            isOwn={isOwnMessage}
+                                        />
+                                    )}
+                                    {/* Emoji picker */}
+                                    {pickerOpenIndex === virtualItem.index && (
+                                        <EmojiPicker
+                                            onSelect={(emoji) => handleReaction(msg, emoji)}
+                                            onClose={() => setPickerOpenIndex(null)}
                                         />
                                     )}
                                 </div>
@@ -267,11 +292,22 @@ function MessageListView({ channel, userName }: { channel: any; userName: string
                                             <span className="message-edited">(edited)</span>
                                         )}
                                     </div>
-                                    {/* Hover actions for own non-deleted messages */}
-                                    {isOwnMessage && !isDeleted && !isEditing && (
+                                    {/* Reaction pills */}
+                                    <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
+                                    {/* Hover actions */}
+                                    {!isDeleted && !isEditing && (
                                         <MessageActions
                                             onEdit={() => startEdit(virtualItem.index, msg.content)}
                                             onDelete={() => deleteMessage(msg)}
+                                            onReact={() => setPickerOpenIndex(pickerOpenIndex === virtualItem.index ? null : virtualItem.index)}
+                                            isOwn={isOwnMessage}
+                                        />
+                                    )}
+                                    {/* Emoji picker */}
+                                    {pickerOpenIndex === virtualItem.index && (
+                                        <EmojiPicker
+                                            onSelect={(emoji) => handleReaction(msg, emoji)}
+                                            onClose={() => setPickerOpenIndex(null)}
                                         />
                                     )}
                                 </div>
@@ -284,16 +320,33 @@ function MessageListView({ channel, userName }: { channel: any; userName: string
     );
 }
 
-/** MessageActions — Hover toolbar with edit/delete buttons */
-function MessageActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+/** MessageActions — Hover toolbar with edit/delete/react buttons */
+function MessageActions({
+    onEdit,
+    onDelete,
+    onReact,
+    isOwn,
+}: {
+    onEdit: () => void;
+    onDelete: () => void;
+    onReact: () => void;
+    isOwn: boolean;
+}) {
     return (
         <div className="message-actions">
-            <button className="message-action-btn" onClick={onEdit} title="Edit message">
-                ✏️
+            <button className="message-action-btn" onClick={onReact} title="Add reaction">
+                😀
             </button>
-            <button className="message-action-btn" onClick={onDelete} title="Delete message">
-                🗑️
-            </button>
+            {isOwn && (
+                <>
+                    <button className="message-action-btn" onClick={onEdit} title="Edit message">
+                        ✏️
+                    </button>
+                    <button className="message-action-btn" onClick={onDelete} title="Delete message">
+                        🗑️
+                    </button>
+                </>
+            )}
         </div>
     );
 }
@@ -334,6 +387,40 @@ function EditBox({
                     <button onClick={onSave}>save</button>
                 </span>
             </div>
+        </div>
+    );
+}
+
+/** ReactionPills — Displays emoji reaction counts below a message */
+function ReactionPills({
+    msg,
+    userName,
+    onToggle,
+}: {
+    msg: any;
+    userName: string;
+    onToggle: (emoji: string) => void;
+}) {
+    const reactions = parseReactions(msg.reactions);
+    const entries = Object.entries(reactions);
+    if (entries.length === 0) return null;
+
+    return (
+        <div className="reaction-pills">
+            {entries.map(([emoji, users]) => {
+                const hasReacted = users.includes(userName);
+                return (
+                    <button
+                        key={emoji}
+                        className={`reaction-pill ${hasReacted ? "reacted" : ""}`}
+                        onClick={() => onToggle(emoji)}
+                        title={users.join(", ")}
+                    >
+                        <span className="reaction-emoji">{emoji}</span>
+                        <span className="reaction-count">{users.length}</span>
+                    </button>
+                );
+            })}
         </div>
     );
 }

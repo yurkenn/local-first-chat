@@ -27,6 +27,8 @@ export const ChatMessage = co.map({
   editedAt: z.optional(z.number()),
   /** Soft-delete flag */
   isDeleted: z.optional(z.boolean()),
+  /** JSON-encoded reactions: Record<emoji, senderName[]> */
+  reactions: z.optional(z.string()),
 });
 export type ChatMessage = co.loaded<typeof ChatMessage>;
 
