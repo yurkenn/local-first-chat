@@ -98,7 +98,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
 
         // Check account loaded
         if (!isAccountLoaded(me) || !me) {
-            setError("Account not loaded yet. Please wait...");
+            setError("Still loading your account — please wait a moment and try again.");
             return;
         }
 
@@ -218,7 +218,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
                     <Button
                         className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
                         onClick={handleJoin}
-                        disabled={joining || !isLoaded}
+                        disabled={joining || !isLoaded || !isAccountLoaded(me)}
                     >
                         {joining ? (
                             <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Joining...</>
