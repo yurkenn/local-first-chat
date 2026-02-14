@@ -1,7 +1,7 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { ChatHeader } from "@/components/ChatHeader";
 import { MessageListView } from "@/components/MessageListView";
-import { MessageInput } from "@/components/MessageInput";
+import { MessageInput, ReplyTarget } from "@/components/MessageInput";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 
 interface ChatAreaProps {
@@ -31,6 +31,7 @@ export const ChatArea = memo(function ChatArea({
     onToggleMemberPanel,
 }: ChatAreaProps) {
     const { typingUsers, notifyTyping } = useTypingIndicator(channel, userName);
+    const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
 
     if (!channel) {
         return (
@@ -56,14 +57,24 @@ export const ChatArea = memo(function ChatArea({
                 onToggleChannelSidebar={onToggleChannelSidebar}
                 onToggleMemberPanel={onToggleMemberPanel}
             />
-            <MessageListView channel={channel} userName={userName} />
+            <MessageListView
+                channel={channel}
+                userName={userName}
+                onReply={(msg) => setReplyTarget(msg)}
+            />
 
             {/* Typing indicator */}
             {typingUsers.length > 0 && (
                 <TypingIndicator users={typingUsers} />
             )}
 
-            <MessageInput channel={channel} userName={userName} onTyping={notifyTyping} />
+            <MessageInput
+                channel={channel}
+                userName={userName}
+                onTyping={notifyTyping}
+                replyTarget={replyTarget}
+                onClearReply={() => setReplyTarget(null)}
+            />
         </div>
     );
 });

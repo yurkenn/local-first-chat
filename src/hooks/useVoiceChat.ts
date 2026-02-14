@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Peer from "simple-peer";
 import { VoicePeer, VoicePeerList, VoiceState } from "@/schema";
+import { getOwnerGroup, coSet, coPush, coSplice } from "@/lib/jazz-helpers";
 
 /**
  * useVoiceChat — Manages WebRTC P2P mesh voice connections.
@@ -135,10 +136,11 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // Walk backwards to safely splice multiple matches
             for (let i = items.length - 1; i >= 0; i--) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const p = items[i] as any;
                 if (p?.peerId === peerId) {
                     try {
-                        (peersList as any).$jazz.splice(i, 1);
+                        coSplice(peersList, i, 1);
                     } catch (err) {
                         console.warn("[useVoiceChat] Failed to remove stale peer at index", i, err);
                     }
@@ -178,12 +180,13 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // Ensure voice state exists on channel
             if (!channel.voiceState) {
-                const ownerGroup = (channel as any)._owner;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const ownerGroup = getOwnerGroup(channel) as any;
                 const voiceState = VoiceState.create(
                     { peers: VoicePeerList.create([], { owner: ownerGroup }) },
                     { owner: ownerGroup }
                 );
-                (channel as any).$jazz.set("voiceState", voiceState);
+                coSet(channel, "voiceState", voiceState);
             }
 
             const voiceState = channel.voiceState;
@@ -200,7 +203,8 @@ export function useVoiceChat(channel: any, userName: string) {
             // but this also cleans up ghost entries from other crashed sessions)
             cleanupStalePeerEntries(voiceState, myPeerIdRef.current);
 
-            const ownerGroup = (channel as any)._owner;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const ownerGroup = getOwnerGroup(channel) as any;
 
             const voicePeer = VoicePeer.create(
                 {
@@ -213,7 +217,7 @@ export function useVoiceChat(channel: any, userName: string) {
             );
             myPeerCoValueRef.current = voicePeer;
 
-            (voiceState.peers as any).$jazz.push(voicePeer);
+            coPush(voiceState.peers, voicePeer);
 
             setIsConnected(true);
 
@@ -274,10 +278,11 @@ export function useVoiceChat(channel: any, userName: string) {
 
                 // Walk backwards to safely remove all entries with our peerId
                 for (let i = items.length - 1; i >= 0; i--) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const p = items[i] as any;
                     if (p?.peerId === myPeerIdRef.current) {
                         try {
-                            (peersList as any).$jazz.splice(i, 1);
+                            coSplice(peersList, i, 1);
                         } catch (err) {
                             console.warn("[useVoiceChat] Error removing peer at index", i, err);
                         }
@@ -315,7 +320,7 @@ export function useVoiceChat(channel: any, userName: string) {
         }
 
         if (myPeerCoValueRef.current) {
-            (myPeerCoValueRef.current as any).$jazz.set("isMuted", newMuted);
+            coSet(myPeerCoValueRef.current, "isMuted", newMuted);
         }
     }, [isMuted]);
 
@@ -334,6 +339,7 @@ export function useVoiceChat(channel: any, userName: string) {
             // Update peers list for UI
             const peerInfoList: PeerInfo[] = [];
             for (const vp of items) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const vpAny = vp as any;
                 if (!vpAny || vpAny.peerId === myPeerIdRef.current) continue;
                 // Preserve existing isSpeaking state from audio analyser
@@ -349,6 +355,7 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // Establish WebRTC connections with new peers
             for (const vp of items) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const vpAny = vp as any;
                 if (!vpAny || vpAny.peerId === myPeerIdRef.current) continue;
 
@@ -383,7 +390,7 @@ export function useVoiceChat(channel: any, userName: string) {
 
                 peer.on("signal", (data: Peer.SignalData) => {
                     if (myPeerCoValueRef.current) {
-                        (myPeerCoValueRef.current as any).$jazz.set("signalData", JSON.stringify(data));
+                        coSet(myPeerCoValueRef.current, "signalData", JSON.stringify(data));
                     }
                 });
 

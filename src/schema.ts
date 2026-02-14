@@ -29,6 +29,12 @@ export const ChatMessage = co.map({
   isDeleted: z.optional(z.boolean()),
   /** JSON-encoded reactions: Record<emoji, senderName[]> */
   reactions: z.optional(z.string()),
+  /** Reply-to: quoted message content preview */
+  replyToContent: z.optional(z.string()),
+  /** Reply-to: sender name of the quoted message */
+  replyToSender: z.optional(z.string()),
+  /** Attached image as data URL (base64-encoded, max ~2MB) */
+  imageDataUrl: z.optional(z.string()),
 });
 export type ChatMessage = co.loaded<typeof ChatMessage>;
 
@@ -144,22 +150,108 @@ export const ServerList = co.list(ChatServer);
 export type ServerList = co.loaded<typeof ServerList>;
 
 // ─────────────────────────────────────────────
+// Direct Message Layer
+// ─────────────────────────────────────────────
+
+/**
+ * A direct message between two users.
+ * Structurally identical to ChatMessage but lives in its own Group
+ * with only the two participants — ensures E2EE isolation.
+ */
+export const DirectMessage = co.map({
+  /** Message text content */
+  content: z.string(),
+  /** Unix timestamp of when the message was created */
+  createdAt: z.number(),
+  /** Display name of the sender */
+  senderName: z.string(),
+  /** Unix timestamp of last edit (undefined if never edited) */
+  editedAt: z.optional(z.number()),
+  /** Soft-delete flag */
+  isDeleted: z.optional(z.boolean()),
+  /** JSON-encoded reactions */
+  reactions: z.optional(z.string()),
+  /** Attached image as data URL */
+  imageDataUrl: z.optional(z.string()),
+});
+export type DirectMessage = co.loaded<typeof DirectMessage>;
+
+/** Ordered list of DMs in a thread */
+export const DMMessageList = co.list(DirectMessage);
+export type DMMessageList = co.loaded<typeof DMMessageList>;
+
+/**
+ * A 1-on-1 DM thread between two users.
+ * Each DMThread is owned by a Jazz Group containing only the two participants.
+ * The `peerName` field stores the other user's display name for quick lookup.
+ */
+export const DMThread = co.map({
+  /** Display name of the other participant */
+  peerName: z.string(),
+  /** Unix timestamp of last activity (for sorting) */
+  lastActivityAt: z.number(),
+  /** Messages in this DM thread */
+  messages: DMMessageList,
+});
+export type DMThread = co.loaded<typeof DMThread>;
+
+/** List of DM threads for a user */
+export const DMList = co.list(DMThread);
+export type DMList = co.loaded<typeof DMList>;
+
+// ─────────────────────────────────────────────
+// Read-Tracking Layer
+// ─────────────────────────────────────────────
+
+/**
+ * Tracks the user's last-read position in a channel or DM.
+ * Stored per-user (private) — not shared with other users.
+ *
+ * The `channelId` is the Jazz CoValue ID of the channel.
+ * The `lastReadAt` timestamp is compared against message.createdAt
+ * to determine unread count.
+ */
+export const ReadPosition = co.map({
+  /** CoValue ID of the channel or DMThread */
+  channelId: z.string(),
+  /** Unix timestamp of last-read message */
+  lastReadAt: z.number(),
+});
+export type ReadPosition = co.loaded<typeof ReadPosition>;
+
+/** Map of channel/thread IDs → read positions */
+export const ReadPositionList = co.list(ReadPosition);
+export type ReadPositionList = co.loaded<typeof ReadPositionList>;
+
+// ─────────────────────────────────────────────
 // Account Layer
 // ─────────────────────────────────────────────
 
-/** Root data node for each user account — stores their server list */
+/**
+ * Root data node for each user account.
+ * - `servers`: list of joined servers
+ * - `dmList`: list of DM threads (E2EE, per-pair Groups)
+ * - `readPositions`: per-channel read tracking (private)
+ */
 export const ChatAccountRoot = co.map({
   servers: ServerList,
+  /** Direct message threads */
+  dmList: DMList,
+  /** Per-channel read positions */
+  readPositions: ReadPositionList,
 });
 export type ChatAccountRoot = co.loaded<typeof ChatAccountRoot>;
 
 /**
  * Custom Jazz Account schema with:
- *  - `root`: private per-user data (server list)
+ *  - `root`: private per-user data (server list, DMs, read positions)
  *  - `profile`: public profile (name, avatar — managed by Jazz)
  *
  * The migration runs on every sign-up and log-in.
- * It initializes `root` with an empty server list if it doesn't exist yet.
+ * It initializes `root` with empty lists if they don't exist yet.
+ *
+ * NOTE: Future enhancement — migrate `imageDataUrl` (base64 strings)
+ * to `co.FileStream` for proper binary blob handling and efficient sync.
  */
 export const ChatAccount = co
   .account({
@@ -170,6 +262,8 @@ export const ChatAccount = co
     if (!account.$jazz.has("root")) {
       account.$jazz.set("root", {
         servers: [],
+        dmList: [],
+        readPositions: [],
       });
     }
   });

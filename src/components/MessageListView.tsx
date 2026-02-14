@@ -2,10 +2,13 @@ import { useRef, useEffect, useCallback, useState, useMemo, memo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
 import { EmojiPicker, parseReactions, toggleReaction } from "@/components/EmojiPicker";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Smile, Pencil, Trash2 } from "lucide-react";
+import { Smile, Pencil, Trash2, Reply } from "lucide-react";
+import { isValidImageDataUrl } from "@/lib/validators";
+import { coSet } from "@/lib/jazz-helpers";
 
 /** Format a timestamp with smart relative dates */
 function formatTimestamp(ts: number): string {
@@ -33,9 +36,11 @@ function shouldGroup(prev: any, curr: any): boolean {
 interface MessageListViewProps {
     channel: any;
     userName: string;
+    /** Called when user clicks Reply on a message */
+    onReply?: (msg: { senderName: string; content: string }) => void;
 }
 
-export function MessageListView({ channel, userName }: MessageListViewProps) {
+export const MessageListView = memo(function MessageListView({ channel, userName, onReply }: MessageListViewProps) {
     const messages = channel.messages;
     const parentRef = useRef<HTMLDivElement>(null);
     const msgArray = useMemo(
@@ -52,10 +57,17 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
         getScrollElement: () => parentRef.current,
         estimateSize: (index) => {
             const prev = index > 0 ? msgArray[index - 1] : null;
-            const curr = msgArray[index];
-            return shouldGroup(prev, curr) ? 28 : 52;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const curr = msgArray[index] as any;
+            const isGrouped = shouldGroup(prev, curr);
+            let height = isGrouped ? 28 : 52;
+            // Account for images in messages
+            if (curr?.imageDataUrl) height += 220;
+            // Account for reply quote block
+            if (curr?.replyToContent) height += 40;
+            return height;
         },
-        overscan: 10,
+        overscan: 5,
     });
 
     const scrollToBottom = useCallback(() => {
@@ -76,8 +88,8 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
     const saveEdit = (msg: any) => {
         if (!editText.trim()) return;
         try {
-            (msg as any).$jazz.set("content", editText.trim());
-            (msg as any).$jazz.set("editedAt", Date.now());
+            coSet(msg, "content", editText.trim());
+            coSet(msg, "editedAt", Date.now());
         } catch (err) {
             console.error("[ChatArea] Edit failed:", err);
         }
@@ -92,8 +104,8 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
 
     const deleteMessage = (msg: any) => {
         try {
-            (msg as any).$jazz.set("isDeleted", true);
-            (msg as any).$jazz.set("content", "[message deleted]");
+            coSet(msg, "isDeleted", true);
+            coSet(msg, "content", "[message deleted]");
         } catch (err) {
             console.error("[ChatArea] Delete failed:", err);
         }
@@ -103,7 +115,7 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
         try {
             const current = parseReactions(msg.reactions);
             const updated = toggleReaction(current, emoji, userName);
-            (msg as any).$jazz.set("reactions", JSON.stringify(updated));
+            coSet(msg, "reactions", JSON.stringify(updated));
         } catch (err) {
             console.error("[ChatArea] Reaction failed:", err);
         }
@@ -111,7 +123,7 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
 
     if (msgArray.length === 0) {
         return (
-            <div className="flex-1 flex items-center justify-center overflow-y-auto" ref={parentRef}>
+            <div className="flex-1 flex items-center justify-center overflow-y-auto" ref={parentRef} role="status" aria-label="No messages in channel">
                 <div className="flex flex-col items-center gap-3 animate-fade-in">
                     <div className="text-4xl">✨</div>
                     <h3 className="text-lg font-heading font-semibold text-[hsl(var(--foreground))]">No messages yet</h3>
@@ -124,7 +136,7 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
     }
 
     return (
-        <div className="flex-1 overflow-y-auto px-4 py-2" ref={parentRef}>
+        <div className="flex-1 overflow-y-auto px-4 py-2" ref={parentRef} role="log" aria-live="polite" aria-label="Message history">
             <div
                 style={{
                     height: `${virtualizer.getTotalSize()}px`,
@@ -133,14 +145,28 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
                 }}
             >
                 {virtualizer.getVirtualItems().map((virtualItem) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const msg = msgArray[virtualItem.index] as any;
                     if (!msg) return null;
 
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const prev = virtualItem.index > 0 ? msgArray[virtualItem.index - 1] as any : null;
                     const isGrouped = shouldGroup(prev, msg);
                     const isOwnMessage = msg.senderName === userName;
                     const isEditing = editingIndex === virtualItem.index;
                     const isDeleted = msg.isDeleted;
+                    const showPicker = pickerOpenIndex === virtualItem.index;
+
+                    // Shared actions passed to both grouped and ungrouped renders
+                    const sharedActions = !isDeleted && !isEditing ? (
+                        <MessageActions
+                            onEdit={() => startEdit(virtualItem.index, msg.content)}
+                            onDelete={() => deleteMessage(msg)}
+                            onReact={() => setPickerOpenIndex(showPicker ? null : virtualItem.index)}
+                            onReply={() => onReply?.({ senderName: msg.senderName, content: msg.content })}
+                            isOwn={isOwnMessage}
+                        />
+                    ) : null;
 
                     return (
                         <div
@@ -156,77 +182,94 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
                             data-index={virtualItem.index}
                             className={cn("group relative px-2 py-0.5 rounded-md hover:bg-[hsl(var(--secondary))/0.3] transition-colors", isDeleted && "opacity-50")}
                         >
-                            {isGrouped ? (
-                                <div className="flex gap-3 pl-[44px]">
-                                    <div className="flex-1 min-w-0">
-                                        {isEditing ? (
-                                            <EditBox text={editText} onChange={setEditText} onSave={() => saveEdit(msg)} onCancel={cancelEdit} />
-                                        ) : isDeleted ? (
-                                            <p className="text-sm italic text-[hsl(var(--muted-foreground))]">[message deleted]</p>
-                                        ) : (
-                                            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--organic-sage)]">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                                            </div>
-                                        )}
-                                        {msg.editedAt && !isDeleted && (
-                                            <span className="text-[10px] text-[hsl(var(--muted-foreground))] ml-1">(edited)</span>
-                                        )}
-                                    </div>
-                                    <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
-                                    {!isDeleted && !isEditing && (
-                                        <MessageActions
-                                            onEdit={() => startEdit(virtualItem.index, msg.content)}
-                                            onDelete={() => deleteMessage(msg)}
-                                            onReact={() => setPickerOpenIndex(pickerOpenIndex === virtualItem.index ? null : virtualItem.index)}
-                                            isOwn={isOwnMessage}
-                                        />
-                                    )}
-                                    {pickerOpenIndex === virtualItem.index && (
-                                        <EmojiPicker onSelect={(emoji) => handleReaction(msg, emoji)} onClose={() => setPickerOpenIndex(null)} />
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="flex gap-3">
+                            <div className={cn("flex gap-3", isGrouped && "pl-[44px]")}>
+                                {/* Avatar — only for ungrouped (first message in group) */}
+                                {!isGrouped && (
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5">
                                         {(msg.senderName || "?").charAt(0).toUpperCase()}
                                     </div>
-                                    <div className="flex-1 min-w-0">
+                                )}
+
+                                <div className="flex-1 min-w-0">
+                                    {/* Sender name + timestamp — only for ungrouped */}
+                                    {!isGrouped && (
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-sm font-semibold text-[hsl(var(--foreground))]">{msg.senderName || "Unknown"}</span>
                                             <span className="text-[10px] text-[hsl(var(--muted-foreground))]">{formatTimestamp(msg.createdAt)}</span>
                                         </div>
-                                        {isEditing ? (
-                                            <EditBox text={editText} onChange={setEditText} onSave={() => saveEdit(msg)} onCancel={cancelEdit} />
-                                        ) : isDeleted ? (
-                                            <p className="text-sm italic text-[hsl(var(--muted-foreground))]">[message deleted]</p>
-                                        ) : (
-                                            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--organic-sage)]">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                                            </div>
-                                        )}
-                                        {msg.editedAt && !isDeleted && (
-                                            <span className="text-[10px] text-[hsl(var(--muted-foreground))] ml-1">(edited)</span>
-                                        )}
-                                    </div>
-                                    <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
-                                    {!isDeleted && !isEditing && (
-                                        <MessageActions
-                                            onEdit={() => startEdit(virtualItem.index, msg.content)}
-                                            onDelete={() => deleteMessage(msg)}
-                                            onReact={() => setPickerOpenIndex(pickerOpenIndex === virtualItem.index ? null : virtualItem.index)}
-                                            isOwn={isOwnMessage}
-                                        />
                                     )}
-                                    {pickerOpenIndex === virtualItem.index && (
-                                        <EmojiPicker onSelect={(emoji) => handleReaction(msg, emoji)} onClose={() => setPickerOpenIndex(null)} />
-                                    )}
+
+                                    {/* Message content — shared for both grouped and ungrouped */}
+                                    <MessageContent
+                                        msg={msg}
+                                        isEditing={isEditing}
+                                        isDeleted={isDeleted}
+                                        editText={editText}
+                                        onEditChange={setEditText}
+                                        onSave={() => saveEdit(msg)}
+                                        onCancel={cancelEdit}
+                                    />
                                 </div>
-                            )}
+
+                                <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
+                                {sharedActions}
+                                {showPicker && (
+                                    <EmojiPicker onSelect={(emoji) => handleReaction(msg, emoji)} onClose={() => setPickerOpenIndex(null)} />
+                                )}
+                            </div>
                         </div>
                     );
                 })}
             </div>
         </div>
+    );
+});
+
+/** MessageContent — Shared message body rendering (edit, delete, reply, markdown, image) */
+function MessageContent({
+    msg,
+    isEditing,
+    isDeleted,
+    editText,
+    onEditChange,
+    onSave,
+    onCancel,
+}: {
+    msg: any;
+    isEditing: boolean;
+    isDeleted: boolean;
+    editText: string;
+    onEditChange: (v: string) => void;
+    onSave: () => void;
+    onCancel: () => void;
+}) {
+    if (isEditing) {
+        return <EditBox text={editText} onChange={onEditChange} onSave={onSave} onCancel={onCancel} />;
+    }
+
+    if (isDeleted) {
+        return <p className="text-sm italic text-[hsl(var(--muted-foreground))]">[message deleted]</p>;
+    }
+
+    return (
+        <>
+            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--organic-sage)]">
+                {msg.replyToSender && (
+                    <div className="flex items-center gap-1.5 mb-1 pl-2 border-l-2 border-[var(--organic-sage)] text-xs text-[hsl(var(--muted-foreground))]">
+                        <Reply className="h-3 w-3 shrink-0" />
+                        <span className="font-semibold">{msg.replyToSender}</span>
+                        <span className="truncate">{(msg.replyToContent || '').slice(0, 80)}</span>
+                    </div>
+                )}
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>{msg.content}</ReactMarkdown>
+                {msg.imageDataUrl && isValidImageDataUrl(msg.imageDataUrl) && (
+                    <img src={msg.imageDataUrl} alt="Attachment" className="mt-1 max-w-[300px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => window.open(msg.imageDataUrl, '_blank')} />
+                )}
+            </div>
+            {msg.editedAt && (
+                <span className="text-[10px] text-[hsl(var(--muted-foreground))] ml-1">(edited)</span>
+            )}
+        </>
     );
 }
 
@@ -235,17 +278,22 @@ const MessageActions = memo(function MessageActions({
     onEdit,
     onDelete,
     onReact,
+    onReply,
     isOwn,
 }: {
     onEdit: () => void;
     onDelete: () => void;
     onReact: () => void;
+    onReply?: () => void;
     isOwn: boolean;
 }) {
     return (
         <div className="absolute right-2 top-0 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 rounded-md surface-elevated px-1 py-0.5 shadow-lg z-10">
             <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]" onClick={onReact} title="Add reaction">
                 <Smile className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]" onClick={onReply} title="Reply">
+                <Reply className="h-3.5 w-3.5" />
             </Button>
             {isOwn && (
                 <>

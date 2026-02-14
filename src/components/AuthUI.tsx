@@ -48,7 +48,7 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
         }, CLIPBOARD_CLEAR_DELAY_MS);
     }, [auth.passphrase]);
 
-    // If authenticated, render children
+    // If authenticated and passphrase already saved, render children
     if (auth.state === "signedIn" && !showSavePassphrase) {
         return <>{children}</>;
     }
@@ -56,57 +56,152 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
     // After sign-up: show passphrase to save
     if (auth.state === "signedIn" && showSavePassphrase) {
         return (
-            <div className="flex items-center justify-center min-h-screen p-4">
-                <div className="w-full max-w-md surface-elevated rounded-2xl p-8 animate-fade-in">
-                    <div className="flex flex-col items-center mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-green)] flex items-center justify-center mb-4">
-                            <KeyRound className="h-8 w-8 text-white" />
-                        </div>
-                        <h1 className="text-xl font-heading font-bold text-gradient">Save Your Recovery Key</h1>
-                        <p className="text-sm text-[hsl(var(--muted-foreground))] text-center mt-2">
-                            Copy this passphrase and keep it safe. You'll need it to log back in.
-                        </p>
-                    </div>
-
-                    <textarea
-                        className="w-full bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-4 py-3 text-sm font-mono text-[hsl(var(--foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none mb-4"
-                        readOnly
-                        value={auth.passphrase}
-                        rows={3}
-                        onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                        aria-label="Recovery passphrase"
-                    />
-
-                    <Button
-                        className="w-full bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] transition-opacity"
-                        onClick={async () => {
-                            try {
-                                await navigator.clipboard.writeText(auth.passphrase);
-                                setCopiedPassphrase(true);
-                                scheduleClipboardClear();
-                            } catch {
-                                // fallback: user can manually copy
-                            }
-                            setShowSavePassphrase(false);
-                        }}
-                    >
-                        {copiedPassphrase ? (
-                            <><Check className="h-4 w-4 mr-2" /> Copied — Continue</>
-                        ) : (
-                            <><Copy className="h-4 w-4 mr-2" /> Copy & Continue</>
-                        )}
-                    </Button>
-
-                    <p className="text-[10px] text-[hsl(var(--muted-foreground))] text-center mt-3 flex items-center justify-center gap-1">
-                        <Shield className="h-3 w-3" />
-                        Clipboard will be auto-cleared after 30 seconds for security.
-                    </p>
-                </div>
-            </div>
+            <SavePassphraseView
+                passphrase={auth.passphrase}
+                copied={copiedPassphrase}
+                onCopy={async () => {
+                    try {
+                        await navigator.clipboard.writeText(auth.passphrase);
+                        setCopiedPassphrase(true);
+                        scheduleClipboardClear();
+                    } catch {
+                        // fallback: user can manually copy
+                    }
+                    setShowSavePassphrase(false);
+                }}
+            />
         );
     }
 
     // Login / Sign-up form
+    return (
+        <AuthFormView
+            name={name}
+            onNameChange={setName}
+            passphraseInput={passphraseInput}
+            onPassphraseChange={setPassphraseInput}
+            error={error}
+            isLoggingIn={isLoggingIn}
+            onSignUp={async () => {
+                if (!name.trim()) return;
+                setError("");
+                try {
+                    await auth.signUp(name.trim());
+                    setShowSavePassphrase(true);
+                } catch (err: unknown) {
+                    console.error("[AuthUI] Sign up failed:", err);
+                    setError(err instanceof Error ? err.message : "Sign up failed. Please try again.");
+                }
+            }}
+            onLogIn={async () => {
+                if (!passphraseInput.trim()) return;
+
+                const now = Date.now();
+                if (now < lockoutUntilRef.current) {
+                    const remaining = Math.ceil((lockoutUntilRef.current - now) / 1000);
+                    setError(`Too many attempts. Please wait ${remaining} seconds.`);
+                    return;
+                }
+
+                setError("");
+                setIsLoggingIn(true);
+                try {
+                    await auth.logIn(passphraseInput.trim());
+                    setPassphraseInput("");
+                    failedAttemptsRef.current = 0;
+                } catch (err: unknown) {
+                    console.error("[AuthUI] Log in failed:", err);
+                    failedAttemptsRef.current += 1;
+
+                    if (failedAttemptsRef.current >= MAX_ATTEMPTS_BEFORE_BACKOFF) {
+                        const delay = BASE_DELAY_MS * Math.pow(2, failedAttemptsRef.current - MAX_ATTEMPTS_BEFORE_BACKOFF);
+                        lockoutUntilRef.current = Date.now() + delay;
+                        setError(`Invalid passphrase. Please wait ${Math.ceil(delay / 1000)}s before trying again.`);
+                    } else {
+                        setError("Invalid passphrase. Please check and try again.");
+                    }
+                } finally {
+                    setIsLoggingIn(false);
+                }
+            }}
+        />
+    );
+}
+
+/* ─── Sub-components ─── */
+
+/** Recovery key save screen shown after sign-up */
+function SavePassphraseView({
+    passphrase,
+    copied,
+    onCopy,
+}: {
+    passphrase: string;
+    copied: boolean;
+    onCopy: () => void;
+}) {
+    return (
+        <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="w-full max-w-md surface-elevated rounded-2xl p-8 animate-fade-in">
+                <div className="flex flex-col items-center mb-6">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-green)] flex items-center justify-center mb-4">
+                        <KeyRound className="h-8 w-8 text-white" />
+                    </div>
+                    <h1 className="text-xl font-heading font-bold text-gradient">Save Your Recovery Key</h1>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] text-center mt-2">
+                        Copy this passphrase and keep it safe. You'll need it to log back in.
+                    </p>
+                </div>
+
+                <textarea
+                    className="w-full bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-4 py-3 text-sm font-mono text-[hsl(var(--foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none mb-4"
+                    readOnly
+                    value={passphrase}
+                    rows={3}
+                    onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                    aria-label="Recovery passphrase"
+                />
+
+                <Button
+                    className="w-full bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] transition-opacity"
+                    onClick={onCopy}
+                >
+                    {copied ? (
+                        <><Check className="h-4 w-4 mr-2" /> Copied — Continue</>
+                    ) : (
+                        <><Copy className="h-4 w-4 mr-2" /> Copy & Continue</>
+                    )}
+                </Button>
+
+                <p className="text-[10px] text-[hsl(var(--muted-foreground))] text-center mt-3 flex items-center justify-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    Clipboard will be auto-cleared after 30 seconds for security.
+                </p>
+            </div>
+        </div>
+    );
+}
+
+/** Login / Sign-up form */
+function AuthFormView({
+    name,
+    onNameChange,
+    passphraseInput,
+    onPassphraseChange,
+    error,
+    isLoggingIn,
+    onSignUp,
+    onLogIn,
+}: {
+    name: string;
+    onNameChange: (v: string) => void;
+    passphraseInput: string;
+    onPassphraseChange: (v: string) => void;
+    error: string;
+    isLoggingIn: boolean;
+    onSignUp: () => void;
+    onLogIn: () => void;
+}) {
     return (
         <div className="flex items-center justify-center min-h-screen p-4">
             <div className="w-full max-w-md surface-elevated rounded-2xl p-8 animate-fade-in">
@@ -133,16 +228,16 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
                         type="text"
                         placeholder="Your display name"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => onNameChange(e.target.value)}
                         onKeyDown={(e) => {
-                            if (e.key === "Enter" && name.trim()) handleSignUp();
+                            if (e.key === "Enter" && name.trim()) onSignUp();
                         }}
                         aria-label="Display name"
                         className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
                     />
                     <Button
                         className="w-full bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] transition-opacity"
-                        onClick={handleSignUp}
+                        onClick={onSignUp}
                         disabled={!name.trim()}
                     >
                         Sign Up
@@ -168,14 +263,14 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
                         className="w-full bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-4 py-3 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none"
                         placeholder="Paste your recovery passphrase..."
                         value={passphraseInput}
-                        onChange={(e) => setPassphraseInput(e.target.value)}
+                        onChange={(e) => onPassphraseChange(e.target.value)}
                         rows={3}
                         aria-label="Recovery passphrase"
                     />
                     <Button
                         variant="secondary"
                         className="w-full"
-                        onClick={handleLogIn}
+                        onClick={onLogIn}
                         disabled={!passphraseInput.trim() || isLoggingIn}
                     >
                         {isLoggingIn ? "Logging in…" : "Log In with Passphrase"}
@@ -184,48 +279,4 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
             </div>
         </div>
     );
-
-    async function handleSignUp() {
-        if (!name.trim()) return;
-        setError("");
-        try {
-            await auth.signUp(name.trim());
-            setShowSavePassphrase(true);
-        } catch (err: any) {
-            console.error("[AuthUI] Sign up failed:", err);
-            setError(err?.message || "Sign up failed. Please try again.");
-        }
-    }
-
-    async function handleLogIn() {
-        if (!passphraseInput.trim()) return;
-
-        const now = Date.now();
-        if (now < lockoutUntilRef.current) {
-            const remaining = Math.ceil((lockoutUntilRef.current - now) / 1000);
-            setError(`Too many attempts. Please wait ${remaining} seconds.`);
-            return;
-        }
-
-        setError("");
-        setIsLoggingIn(true);
-        try {
-            await auth.logIn(passphraseInput.trim());
-            setPassphraseInput("");
-            failedAttemptsRef.current = 0;
-        } catch (err: any) {
-            console.error("[AuthUI] Log in failed:", err);
-            failedAttemptsRef.current += 1;
-
-            if (failedAttemptsRef.current >= MAX_ATTEMPTS_BEFORE_BACKOFF) {
-                const delay = BASE_DELAY_MS * Math.pow(2, failedAttemptsRef.current - MAX_ATTEMPTS_BEFORE_BACKOFF);
-                lockoutUntilRef.current = Date.now() + delay;
-                setError(`Invalid passphrase. Please wait ${Math.ceil(delay / 1000)}s before trying again.`);
-            } else {
-                setError("Invalid passphrase. Please check and try again.");
-            }
-        } finally {
-            setIsLoggingIn(false);
-        }
-    }
 }

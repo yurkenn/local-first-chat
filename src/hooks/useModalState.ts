@@ -1,13 +1,14 @@
 import { useState, useCallback } from "react";
 
-type ModalName =
+export type ModalName =
     | "createServer"
     | "createChannel"
     | "invite"
     | "joinServer"
     | "userSettings"
     | "serverSettings"
-    | "audioSettings";
+    | "audioSettings"
+    | "search";
 
 type ModalState = Record<ModalName, boolean>;
 
@@ -19,6 +20,7 @@ const initialState: ModalState = {
     userSettings: false,
     serverSettings: false,
     audioSettings: false,
+    search: false,
 };
 
 /**

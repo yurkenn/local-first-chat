@@ -1,0 +1,28 @@
+{
+    "name": "Lotus — Secure Messaging",
+    "short_name": "Lotus",
+    "description": "Secure, encrypted, local-first messaging. Your data stays yours.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#161a17",
+    "theme_color": "#161a17",
+    "orientation": "any",
+    "categories": [
+        "social",
+        "communication"
+    ],
+    "icons": [
+        {
+            "src": "/lotus-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/lotus-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Hash, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeName } from "@/lib/validators";
 
 interface CreateChannelModalProps {
     onClose: () => void;
@@ -22,9 +23,9 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
     const [type, setType] = useState<"text" | "voice">("text");
 
     const handleSubmit = () => {
-        const trimmed = name.trim().toLowerCase().replace(/\s+/g, "-");
-        if (!trimmed) return;
-        onCreate(trimmed, type);
+        const sanitized = sanitizeName(name.toLowerCase().replace(/\s+/g, "-"), 30);
+        if (!sanitized) return;
+        onCreate(sanitized, type);
     };
 
     return (

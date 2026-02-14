@@ -22,6 +22,8 @@ interface ChannelSidebarProps {
     onAudioSettings?: () => void;
     /** App-level voice state for Discord-like voice UX */
     voice: VoiceStateReturn;
+    /** Get unread count for a channel */
+    getUnreadCount?: (channelId: string) => number;
 }
 
 export const ChannelSidebar = memo(function ChannelSidebar({
@@ -37,6 +39,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
     onServerSettings,
     onAudioSettings,
     voice,
+    getUnreadCount,
 }: ChannelSidebarProps) {
     if (!server) {
         return (
@@ -120,22 +123,14 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     )}
                     {textChannels.map((channel: any) => {
                         if (!channel) return null;
-                        const isActive = channel.$jazz.id === activeChannelId;
                         return (
-                            <button
+                            <TextChannelItem
                                 key={channel.$jazz.id}
-                                className={cn(
-                                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm cursor-pointer transition-all duration-200",
-                                    isActive
-                                        ? "bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] active-channel-bar"
-                                        : "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))/0.5] hover:text-[hsl(var(--foreground))]"
-                                )}
-                                onClick={() => onSelectChannel(channel.$jazz.id)}
-                                aria-label={`Text channel: ${channel.name}`}
-                            >
-                                <Hash className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--organic-sage)] opacity-100" : "opacity-60")} />
-                                <span className="truncate">{channel.name}</span>
-                            </button>
+                                channel={channel}
+                                isActive={channel.$jazz.id === activeChannelId}
+                                unread={getUnreadCount?.(channel.$jazz.id) || 0}
+                                onSelect={() => onSelectChannel(channel.$jazz.id)}
+                            />
                         );
                     })}
 
@@ -150,76 +145,14 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     )}
                     {voiceChannels.map((channel: any) => {
                         if (!channel) return null;
-                        const isConnectedToThis = connectedChannelId === channel.$jazz.id;
                         return (
-                            <div key={channel.$jazz.id}>
-                                {/* Voice channel button */}
-                                <button
-                                    className={cn(
-                                        "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm cursor-pointer transition-all duration-200 group/voice",
-                                        isConnectedToThis
-                                            ? "bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] active-channel-bar"
-                                            : voice.isJoining && voice.connectedChannel?.$jazz?.id === channel.$jazz.id
-                                                ? "bg-[hsl(var(--secondary))/0.5] text-[hsl(var(--muted-foreground))] opacity-70 pointer-events-none"
-                                                : "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))/0.5] hover:text-[hsl(var(--foreground))]"
-                                    )}
-                                    onClick={() => voice.joinVoice(channel)}
-                                    disabled={voice.isJoining}
-                                    aria-label={`Voice channel: ${channel.name} — click to join`}
-                                    title="Click to join voice"
-                                >
-                                    {voice.isJoining && voice.connectedChannel?.$jazz?.id === channel.$jazz.id ? (
-                                        <Loader2 className="h-4 w-4 shrink-0 text-[var(--organic-sage)] animate-spin" />
-                                    ) : (
-                                        <Volume2 className={cn("h-4 w-4 shrink-0", isConnectedToThis ? "text-[var(--organic-green)]" : "opacity-60")} />
-                                    )}
-                                    <span className="truncate flex-1 text-left">{channel.name}</span>
-                                    {voice.isJoining && voice.connectedChannel?.$jazz?.id === channel.$jazz.id ? (
-                                        <span className="text-[10px] text-[var(--organic-sage)]">Joining…</span>
-                                    ) : !isConnectedToThis ? (
-                                        <span className="text-[10px] opacity-0 group-hover/voice:opacity-60 transition-opacity">
-                                            Join
-                                        </span>
-                                    ) : null}
-                                </button>
-
-                                {/* Connected peers list (Discord-style, indented under voice channel) */}
-                                {isConnectedToThis && voice.peers.length > 0 && (
-                                    <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mt-0.5 mb-1 space-y-0.5 animate-fade-in">
-                                        {voice.peers.map((peer) => (
-                                            <div
-                                                key={peer.peerId}
-                                                className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-[hsl(var(--muted-foreground))]"
-                                            >
-                                                <SpeakingAvatar
-                                                    name={peer.peerName || "?"}
-                                                    isSpeaking={peer.isSpeaking}
-                                                    gradientFrom="var(--organic-sage)"
-                                                    gradientTo="var(--organic-blue)"
-                                                />
-                                                <span className="truncate flex-1">{peer.peerName || "Unknown"}</span>
-                                                {peer.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Show self as connected user */}
-                                {isConnectedToThis && voice.isConnected && (
-                                    <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mb-1 space-y-0.5">
-                                        <div className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-[hsl(var(--foreground))]">
-                                            <SpeakingAvatar
-                                                name={userName || "U"}
-                                                isSpeaking={voice.isSpeaking && !voice.isMuted}
-                                                gradientFrom="var(--organic-sage)"
-                                                gradientTo="var(--organic-green)"
-                                            />
-                                            <span className="truncate flex-1">{userName || "You"}</span>
-                                            {voice.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            <VoiceChannelItem
+                                key={channel.$jazz.id}
+                                channel={channel}
+                                isConnected={connectedChannelId === channel.$jazz.id}
+                                voice={voice}
+                                userName={userName}
+                            />
                         );
                     })}
 
@@ -288,6 +221,111 @@ function SpeakingAvatar({
             >
                 {name.charAt(0).toUpperCase()}
             </div>
+        </div>
+    );
+}
+
+/** TextChannelItem — Extracted text channel button */
+function TextChannelItem({
+    channel,
+    isActive,
+    unread,
+    onSelect,
+}: {
+    channel: any;
+    isActive: boolean;
+    unread: number;
+    onSelect: () => void;
+}) {
+    return (
+        <button
+            className={cn(
+                "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm cursor-pointer transition-all duration-200",
+                isActive
+                    ? "bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] active-channel-bar"
+                    : unread > 0
+                        ? "text-[hsl(var(--foreground))] font-semibold hover:bg-[hsl(var(--secondary))/0.5]"
+                        : "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))/0.5] hover:text-[hsl(var(--foreground))]"
+            )}
+            onClick={onSelect}
+            aria-label={`Text channel: ${channel.name}${unread > 0 ? `, ${unread} unread` : ''}`}
+        >
+            <Hash className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--organic-sage)] opacity-100" : "opacity-60")} />
+            <span className="truncate">{channel.name}</span>
+            {unread > 0 && !isActive && (
+                <span className="ml-auto shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[var(--organic-warm)] text-white text-[10px] font-bold px-1">
+                    {unread > 99 ? '99+' : unread}
+                </span>
+            )}
+        </button>
+    );
+}
+
+/** VoiceChannelItem — Extracted voice channel with peers list */
+function VoiceChannelItem({
+    channel,
+    isConnected,
+    voice,
+    userName,
+}: {
+    channel: any;
+    isConnected: boolean;
+    voice: any;
+    userName: string;
+}) {
+    const isJoiningThis = voice.isJoining && voice.connectedChannel?.$jazz?.id === channel.$jazz.id;
+    return (
+        <div>
+            <button
+                className={cn(
+                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm cursor-pointer transition-all duration-200 group/voice",
+                    isConnected
+                        ? "bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] active-channel-bar"
+                        : isJoiningThis
+                            ? "bg-[hsl(var(--secondary))/0.5] text-[hsl(var(--muted-foreground))] opacity-70 pointer-events-none"
+                            : "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))/0.5] hover:text-[hsl(var(--foreground))]"
+                )}
+                onClick={() => voice.joinVoice(channel)}
+                disabled={voice.isJoining}
+                aria-label={`Voice channel: ${channel.name} — click to join`}
+                title="Click to join voice"
+            >
+                {isJoiningThis ? (
+                    <Loader2 className="h-4 w-4 shrink-0 text-[var(--organic-sage)] animate-spin" />
+                ) : (
+                    <Volume2 className={cn("h-4 w-4 shrink-0", isConnected ? "text-[var(--organic-green)]" : "opacity-60")} />
+                )}
+                <span className="truncate flex-1 text-left">{channel.name}</span>
+                {isJoiningThis ? (
+                    <span className="text-[10px] text-[var(--organic-sage)]">Joining…</span>
+                ) : !isConnected ? (
+                    <span className="text-[10px] opacity-0 group-hover/voice:opacity-60 transition-opacity">Join</span>
+                ) : null}
+            </button>
+
+            {/* Connected peers */}
+            {isConnected && voice.peers.length > 0 && (
+                <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mt-0.5 mb-1 space-y-0.5 animate-fade-in">
+                    {voice.peers.map((peer: any) => (
+                        <div key={peer.peerId} className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-[hsl(var(--muted-foreground))]">
+                            <SpeakingAvatar name={peer.peerName || "?"} isSpeaking={peer.isSpeaking} gradientFrom="var(--organic-sage)" gradientTo="var(--organic-blue)" />
+                            <span className="truncate flex-1">{peer.peerName || "Unknown"}</span>
+                            {peer.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Self as connected user */}
+            {isConnected && voice.isConnected && (
+                <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mb-1 space-y-0.5">
+                    <div className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-[hsl(var(--foreground))]">
+                        <SpeakingAvatar name={userName || "U"} isSpeaking={voice.isSpeaking && !voice.isMuted} gradientFrom="var(--organic-sage)" gradientTo="var(--organic-green)" />
+                        <span className="truncate flex-1">{userName || "You"}</span>
+                        {voice.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

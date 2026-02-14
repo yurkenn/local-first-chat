@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { sanitizeName, MAX_NAME_LENGTH } from "@/lib/validators";
 
 interface CreateServerModalProps {
     onClose: () => void;
@@ -26,9 +27,9 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
     const [emoji, setEmoji] = useState("🎮");
 
     const handleSubmit = () => {
-        const trimmed = name.trim();
-        if (!trimmed) return;
-        onCreate(trimmed, emoji);
+        const sanitized = sanitizeName(name, MAX_NAME_LENGTH);
+        if (!sanitized) return;
+        onCreate(sanitized, emoji);
     };
 
     return (

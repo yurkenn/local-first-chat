@@ -15,8 +15,8 @@ console.log("[LocalChat] Starting application...");
 function LoadingScreen() {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-sans gap-4">
-      <div className="text-5xl">💬</div>
-      <h1 className="text-2xl font-bold text-gradient">LocalChat</h1>
+      <div className="brand-logo">🪷</div>
+      <h1 className="brand-title text-2xl">Lotus</h1>
       <p className="text-sm text-[hsl(var(--muted-foreground))]">
         Connecting to secure network…
       </p>
@@ -119,6 +119,14 @@ try {
   );
 
   console.log("[LocalChat] React root rendered");
+
+  // Register Service Worker for offline support (production only)
+  if ("serviceWorker" in navigator && import.meta.env.PROD) {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(() => console.log("[LocalChat] Service Worker registered"))
+      .catch((err) => console.warn("[LocalChat] SW registration failed:", err));
+  }
 } catch (err) {
   console.error("[LocalChat] Failed to mount React:", err);
   document.body.innerHTML = `<pre class="text-red-400 p-5">${err}</pre>`;

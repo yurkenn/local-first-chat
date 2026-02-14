@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { TypingUser, TypingUserList, TypingState } from "@/schema";
+import { getOwnerGroup, coSet, coPush, coSplice } from "@/lib/jazz-helpers";
 
 /**
  * useTypingIndicator — Manages typing state for a text channel.
@@ -32,12 +33,13 @@ export function useTypingIndicator(channel: any, userName: string): TypingInfo {
         if (!channel) return null;
         try {
             if (!channel.typingState) {
-                const ownerGroup = (channel as any)._owner;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const ownerGroup = getOwnerGroup(channel) as any;
                 const typingState = TypingState.create(
                     { typingUsers: TypingUserList.create([], { owner: ownerGroup }) },
                     { owner: ownerGroup }
                 );
-                (channel as any).$jazz.set("typingState", typingState);
+                coSet(channel, "typingState", typingState);
             }
             return channel.typingState;
         } catch {
@@ -57,16 +59,17 @@ export function useTypingIndicator(channel: any, userName: string): TypingInfo {
         try {
             if (myEntryRef.current) {
                 // Update existing entry
-                (myEntryRef.current as any).$jazz.set("lastTypedAt", now);
+                coSet(myEntryRef.current, "lastTypedAt", now);
             } else {
                 // Create new entry
-                const ownerGroup = (channel as any)._owner;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const ownerGroup = getOwnerGroup(channel) as any;
                 const entry = TypingUser.create(
                     { userName, lastTypedAt: now },
                     { owner: ownerGroup }
                 );
                 myEntryRef.current = entry;
-                (typingState.typingUsers as any).$jazz.push(entry);
+                coPush(typingState.typingUsers, entry);
             }
         } catch {
             /* ignore — channel may have been deleted */
@@ -91,7 +94,7 @@ export function useTypingIndicator(channel: any, userName: string): TypingInfo {
                 (item: any) => item?.id === myEntryRef.current?.id
             );
             if (idx >= 0) {
-                (list as any).$jazz.splice(idx, 1);
+                coSplice(list, idx, 1);
             }
         } catch {
             /* ignore */
@@ -111,14 +114,16 @@ export function useTypingIndicator(channel: any, userName: string): TypingInfo {
             }
 
             const now = Date.now();
-            const items = Array.from(typingState.typingUsers).filter(Boolean) as any[];
+            const items = Array.from(typingState.typingUsers).filter(Boolean);
             const active: string[] = [];
 
             for (const item of items) {
-                if (!item?.userName || !item?.lastTypedAt) continue;
-                if (item.userName === userName) continue; // Skip self
-                if (now - item.lastTypedAt < TYPING_TIMEOUT) {
-                    active.push(item.userName);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const ti = item as any;
+                if (!ti?.userName || !ti?.lastTypedAt) continue;
+                if (ti.userName === userName) continue; // Skip self
+                if (now - ti.lastTypedAt < TYPING_TIMEOUT) {
+                    active.push(ti.userName);
                 }
             }
 

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Check, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { coSet } from "@/lib/jazz-helpers";
 
 interface ServerSettingsModalProps {
     server: any;
@@ -29,8 +30,8 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
     const handleSave = () => {
         if (!name.trim()) return;
         try {
-            (server as any).$jazz.set("name", name.trim());
-            (server as any).$jazz.set("iconEmoji", emoji);
+            coSet(server, "name", name.trim());
+            coSet(server, "iconEmoji", emoji);
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (err) {

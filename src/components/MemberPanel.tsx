@@ -48,7 +48,7 @@ export const MemberPanel = memo(function MemberPanel({
                             {userName.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-sm truncate flex-1">{userName}</span>
-                        <div className="status-dot" style={{ width: 7, height: 7 }} />
+                        <div className="status-dot status-dot--sm" />
                     </div>
                 </div>
             </ScrollArea>
