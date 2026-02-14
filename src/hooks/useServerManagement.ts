@@ -18,6 +18,7 @@ import {
     TypingUserList,
 } from "@/schema";
 import { coPush, coToArray, coSplice, getCoId } from "@/lib/jazz-helpers";
+import { handleError } from "@/lib/error-utils";
 
 interface UseServerManagementProps {
     account: any;
@@ -104,8 +105,7 @@ export function useServerManagement({
                 onServerDeleted?.();
                 toast.success(`Server "${serverName}" deleted`);
             } catch (err) {
-                console.error("[useServerManagement] Delete failed:", err);
-                toast.error("Failed to delete server");
+                handleError(err, { context: "useServerManagement", toast: "Failed to delete server" });
             }
         },
         [account, onServerDeleted]

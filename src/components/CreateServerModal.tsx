@@ -34,7 +34,7 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
+            <DialogContent className="dialog-base sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Create a Server</DialogTitle>
                     <DialogDescription>
@@ -44,7 +44,7 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
 
                 <div className="space-y-4 py-2">
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <label className="label-section">
                             Server Name
                         </label>
                         <Input
@@ -55,12 +55,12 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
                             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                             autoFocus
                             maxLength={50}
-                            className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                            className="input-base"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <label className="label-section">
                             Icon
                         </label>
                         <div className="flex flex-wrap gap-1.5">
@@ -71,7 +71,7 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
                                         "w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all cursor-pointer",
                                         emoji === e
                                             ? "bg-[hsl(var(--primary))/0.2] ring-2 ring-[hsl(var(--primary))] scale-110"
-                                            : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))/0.8]"
+                                            : "bg-surface hover:bg-[hsl(var(--secondary))/0.8]"
                                     )}
                                     onClick={() => setEmoji(e)}
                                     type="button"

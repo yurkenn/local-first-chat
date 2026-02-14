@@ -106,7 +106,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
             toast.success(`Joined "${(serverPreview as any)?.name || 'server'}"`);
             onJoined(serverId ?? '');
         } catch (err) {
-            console.error("[JoinServer] Failed to join:", err);
+            handleError(err, { context: "JoinServer" });
             setError("Failed to join server. Please try again.");
             setJoining(false);
         }
@@ -123,7 +123,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
+            <DialogContent className="dialog-base sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Join a Server</DialogTitle>
                     <DialogDescription>
@@ -133,7 +133,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
 
                 <div className="space-y-4 py-2">
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <label className="label-section">
                             Invite Code
                         </label>
                         <Input
@@ -145,19 +145,19 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
                             }}
                             placeholder="co_zQZKpq..."
                             autoFocus
-                            className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))] font-mono"
+                            className="input-base font-mono"
                         />
                     </div>
 
                     {/* Server preview card */}
                     {isLoaded && serverName && (
-                        <div className="flex items-center gap-3 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] p-3 animate-fade-in">
+                        <div className="flex items-center gap-3 rounded-lg bg-surface border border-[hsl(var(--border))] p-3 animate-fade-in">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-green)] flex items-center justify-center text-lg shrink-0">
                                 {serverEmoji || "💬"}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="text-sm font-semibold truncate">{serverName}</div>
-                                <div className="text-xs text-[hsl(var(--muted-foreground))] flex items-center gap-1">
+                                <div className="text-xs text-muted-color flex items-center gap-1">
                                     <Hash className="h-3 w-3" />
                                     {channelCount} channel{channelCount !== 1 ? "s" : ""}
                                 </div>
@@ -167,7 +167,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
 
                     {/* Loading */}
                     {isValidFormat && !isLoaded && (
-                        <div className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))]">
+                        <div className="flex items-center gap-2 text-sm text-muted-color">
                             <Loader2 className="h-4 w-4 animate-spin" />
                             Looking for server...
                         </div>

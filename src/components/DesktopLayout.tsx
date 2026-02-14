@@ -85,7 +85,7 @@ const EmptyState = memo(function EmptyState({
                     variant="ghost"
                     size="icon"
                     className={cn(
-                        "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]",
+                        "h-8 w-8 text-muted-color hover:text-primary-color",
                         sidebarOpen && "text-[var(--organic-sage)]"
                     )}
                     onClick={onToggleSidebar}
@@ -94,7 +94,7 @@ const EmptyState = memo(function EmptyState({
                     <Menu className="h-4 w-4" />
                 </Button>
                 <div className="flex-1" />
-                <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+                <div className="flex items-center gap-1.5 text-xs text-muted-color">
                     <div className="status-dot status-dot--xs" />
                     E2EE
                 </div>
@@ -103,7 +103,7 @@ const EmptyState = memo(function EmptyState({
                 <div className="flex flex-col items-center gap-4 animate-fade-in">
                     <div className="brand-logo brand-logo--lg">🪷</div>
                     <h1 className="text-3xl brand-title">Lotus</h1>
-                    <p className="text-sm text-[hsl(var(--muted-foreground))] text-center leading-relaxed">
+                    <p className="text-sm text-muted-color text-center leading-relaxed">
                         Select a channel to start chatting,
                         <br />
                         or create a new server.

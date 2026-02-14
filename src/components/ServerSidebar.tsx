@@ -3,9 +3,10 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Download } from "lucide-react";
+import type { LoadedServer } from "@/lib/jazz-types";
 
 interface ServerSidebarProps {
-    servers: any[];
+    servers: LoadedServer[];
     activeServerId: string | null;
     onSelectServer: (id: string) => void;
     onCreateServer: () => void;
@@ -29,7 +30,7 @@ export const ServerSidebar = memo(function ServerSidebar({
     return (
         <TooltipProvider delayDuration={200}>
             <nav
-                className="flex flex-col items-center gap-2 py-3 overflow-hidden bg-[hsl(var(--card))] border-r border-[hsl(var(--border))]"
+                className="flex flex-col items-center gap-2 py-3 overflow-hidden bg-card-surface border-r border-[hsl(var(--border))]"
                 aria-label="Servers"
             >
                 {/* Home / DM icon */}
@@ -46,7 +47,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                                     "hover:rounded-xl hover:scale-105 hover:shadow-[var(--shadow-md)]",
                                     !activeServerId
                                         ? "rounded-xl bg-[hsl(var(--primary))] shadow-[var(--shadow-md)]"
-                                        : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--primary))]"
+                                        : "bg-surface hover:bg-[hsl(var(--primary))]"
                                 )}
                                 onClick={() => onSelectServer("")}
                                 onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(""))}
@@ -81,7 +82,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                                             "hover:rounded-xl hover:scale-105 hover:shadow-[var(--shadow-md)]",
                                             isActive
                                                 ? "rounded-xl bg-[hsl(var(--primary))] shadow-[var(--shadow-md)]"
-                                                : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--primary))]"
+                                                : "bg-surface hover:bg-[hsl(var(--primary))]"
                                         )}
                                         onClick={() => onSelectServer(server.$jazz.id)}
                                         onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(server.$jazz.id))}
@@ -104,7 +105,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[var(--organic-green)] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[var(--organic-green)] hover:text-black hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
+                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[var(--organic-green)] bg-surface hover:rounded-xl hover:bg-[var(--organic-green)] hover:text-black hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
                             onClick={onCreateServer}
                             aria-label="Create a server"
                         >
@@ -118,7 +119,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[hsl(var(--muted-foreground))] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
+                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-muted-color bg-surface hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
                             onClick={onJoinServer}
                             aria-label="Join a server"
                         >

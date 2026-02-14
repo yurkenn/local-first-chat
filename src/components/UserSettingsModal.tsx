@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Check, Shield, Sun, Moon, Smartphone } from "lucide-react";
 import type { Theme } from "@/hooks/useTheme";
 import { coSet } from "@/lib/jazz-helpers";
+import { handleError } from "@/lib/error-utils";
 
 interface UserSettingsModalProps {
     onClose: () => void;
@@ -45,13 +46,13 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (err) {
-            console.error("[UserSettings] Save failed:", err);
+            handleError(err, { context: "UserSettings" });
         }
     };
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
+            <DialogContent className="dialog-base sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">User Settings</DialogTitle>
                 </DialogHeader>
@@ -59,7 +60,7 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
                 <div className="space-y-6 py-2">
                     {/* Profile section */}
                     <div className="space-y-4">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <h3 className="label-section">
                             Profile
                         </h3>
 
@@ -77,7 +78,7 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            <label className="label-section">
                                 Display Name
                             </label>
                             <Input
@@ -85,7 +86,7 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Your display name"
-                                className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                                className="input-base"
                             />
                         </div>
 
@@ -100,7 +101,7 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
 
                     {/* Theme section */}
                     <div className="space-y-3">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <h3 className="label-section">
                             Appearance
                         </h3>
                         <div className="grid grid-cols-3 gap-2">
@@ -110,7 +111,7 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
                                     onClick={() => onThemeChange(opt.value)}
                                     className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all duration-200 cursor-pointer ${theme === opt.value
                                         ? "border-[var(--organic-sage)] bg-[var(--organic-sage)]/10 text-[var(--organic-sage)]"
-                                        : "border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                                        : "border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))] text-muted-color hover:text-primary-color"
                                         }`}
                                 >
                                     {opt.icon}
@@ -125,17 +126,17 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
 
                     {/* Account section */}
                     <div className="space-y-3">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <h3 className="label-section">
                             Account
                         </h3>
                         <div className="flex items-center justify-between text-sm">
-                            <span className="text-[hsl(var(--muted-foreground))]">Auth Method</span>
+                            <span className="text-muted-color">Auth Method</span>
                             <span className="flex items-center gap-1.5">
                                 <Shield className="h-3.5 w-3.5 text-[var(--organic-sage)]" />
                                 Passphrase (BIP39)
                             </span>
                         </div>
-                        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                        <p className="text-xs text-muted-color">
                             Your account is secured with a passphrase. Keep it safe — it's the only way to recover your account.
                         </p>
                     </div>

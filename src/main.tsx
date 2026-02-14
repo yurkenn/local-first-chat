@@ -14,10 +14,10 @@ console.log("[LocalChat] Starting application...");
 
 function LoadingScreen() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-sans gap-4">
+    <div className="flex flex-col items-center justify-center h-screen bg-[hsl(var(--background))] text-primary-color font-sans gap-4">
       <div className="brand-logo">🪷</div>
       <h1 className="brand-title text-2xl">Lotus</h1>
-      <p className="text-sm text-[hsl(var(--muted-foreground))]">
+      <p className="text-sm text-muted-color">
         Connecting to secure network…
       </p>
       <div className="w-10 h-10 border-3 border-[hsl(var(--primary)/0.2)] border-t-[hsl(var(--primary))] rounded-full animate-spin" />
@@ -45,9 +45,9 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-10 bg-[hsl(var(--background))] text-[hsl(var(--foreground))] h-screen font-sans">
+        <div className="p-10 bg-[hsl(var(--background))] text-primary-color h-screen font-sans">
           <h1 className="text-xl font-bold text-red-400">Something went wrong</h1>
-          <pre className="mt-4 p-4 bg-[hsl(var(--card))] rounded-lg overflow-auto text-sm text-red-300 border border-red-500/20">
+          <pre className="mt-4 p-4 bg-card-surface rounded-lg overflow-auto text-sm text-red-300 border border-red-500/20">
             {this.state.error?.message}
             {"\n\n"}
             {this.state.error?.stack}

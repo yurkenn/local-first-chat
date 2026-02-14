@@ -1,70 +1,25 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import Peer from "simple-peer";
 import { VoicePeer, VoicePeerList, VoiceState } from "@/schema";
 import { getOwnerGroup, coSet, coPush, coSplice } from "@/lib/jazz-helpers";
+import { useAudioAnalysis } from "./useAudioAnalysis";
+import { usePeerConnections } from "./usePeerConnections";
+import type { PeerInfo } from "./useVoiceChatTypes";
 
 /**
- * useVoiceChat — Manages WebRTC P2P mesh voice connections.
+ * useVoiceChat — Full-mesh voice chat via WebRTC + Jazz state.
  *
  * Architecture:
- *   - Each peer creates a VoicePeer CoValue with their peerId (random UUID)
- *   - Jazz CoValues handle signaling exchange (no external signaling server)
+ *   - Jazz VoiceState CoValue acts as the signaling server (peer list + signal data)
  *   - simple-peer handles WebRTC connection + audio stream piping
  *   - Full mesh: every peer connects to every other peer
  *   - AudioContext AnalyserNode detects speaking activity for visual feedback
+ *
+ * Composed of:
+ *   - useAudioAnalysis: speaking detection for local + remote peers
+ *   - usePeerConnections: WebRTC peer management via simple-peer
  */
 
-interface PeerInfo {
-    peerId: string;
-    peerName: string;
-    isMuted: boolean;
-    isSpeaking: boolean;
-}
-
-/** Threshold for audio level to consider "speaking" (0-255 range) */
-const SPEAKING_THRESHOLD = 25;
-/** How often to check audio levels (ms) */
-const AUDIO_CHECK_INTERVAL = 100;
-
-/**
- * Creates an AnalyserNode for a MediaStream and returns a function
- * that checks whether audio exceeds the speaking threshold.
- */
-function createAudioAnalyser(stream: MediaStream) {
-    try {
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.5;
-        source.connect(analyser);
-
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-        return {
-            isSpeaking: () => {
-                analyser.getByteFrequencyData(dataArray);
-                // Average of frequency magnitudes
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) {
-                    sum += dataArray[i];
-                }
-                const average = sum / dataArray.length;
-                return average > SPEAKING_THRESHOLD;
-            },
-            cleanup: () => {
-                source.disconnect();
-                audioContext.close().catch(() => { });
-            },
-        };
-    } catch {
-        return {
-            isSpeaking: () => false,
-            cleanup: () => { },
-        };
-    }
-}
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useVoiceChat(channel: any, userName: string) {
     const [isConnected, setIsConnected] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
@@ -73,68 +28,26 @@ export function useVoiceChat(channel: any, userName: string) {
 
     // Refs for stable references across renders
     const localStreamRef = useRef<MediaStream | null>(null);
-    const peerConnectionsRef = useRef<Map<string, Peer.Instance>>(new Map());
     const myPeerIdRef = useRef<string>(crypto.randomUUID());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const myPeerCoValueRef = useRef<any>(null);
     const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const isJoiningRef = useRef(false); // Guard against duplicate join() calls
+    const isJoiningRef = useRef(false);
 
-    // Audio analysis refs
-    const localAnalyserRef = useRef<{ isSpeaking: () => boolean; cleanup: () => void } | null>(null);
-    const remoteAnalysersRef = useRef<Map<string, { isSpeaking: () => boolean; cleanup: () => void }>>(new Map());
-    const audioCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    /**
-     * Start monitoring audio levels for speaking detection.
-     */
-    const startAudioMonitoring = useCallback(() => {
-        if (audioCheckIntervalRef.current) return;
-
-        audioCheckIntervalRef.current = setInterval(() => {
-            // Check local speaking
-            if (localAnalyserRef.current) {
-                setIsSpeaking(localAnalyserRef.current.isSpeaking());
-            }
-
-            // Check remote peers speaking (update peer info)
-            setPeers((prevPeers) => {
-                let changed = false;
-                const updated = prevPeers.map((peer) => {
-                    const analyser = remoteAnalysersRef.current.get(peer.peerId);
-                    const speaking = analyser ? analyser.isSpeaking() : false;
-                    if (speaking !== peer.isSpeaking) {
-                        changed = true;
-                        return { ...peer, isSpeaking: speaking };
-                    }
-                    return peer;
-                });
-                return changed ? updated : prevPeers;
-            });
-        }, AUDIO_CHECK_INTERVAL);
-    }, []);
+    // Composed hooks
+    const audioAnalysis = useAudioAnalysis();
+    const peerConnections = usePeerConnections(audioAnalysis);
 
     /**
-     * Stop audio monitoring.
+     * Remove stale VoicePeer entries for a peerId from the channel's voice state.
+     * Prevents ghost/clone entries when re-joining after an unclean leave.
      */
-    const stopAudioMonitoring = useCallback(() => {
-        if (audioCheckIntervalRef.current) {
-            clearInterval(audioCheckIntervalRef.current);
-            audioCheckIntervalRef.current = null;
-        }
-    }, []);
-
-    /**
-     * Remove any stale VoicePeer entries for our peerId from the channel's voice state.
-     * This prevents ghost/clone entries when re-joining after an unclean leave.
-     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cleanupStalePeerEntries = useCallback((voiceState: any, peerId: string) => {
         if (!voiceState?.peers) return;
-
         try {
             const peersList = voiceState.peers;
             const items = Array.from(peersList).filter(Boolean);
-
-            // Walk backwards to safely splice multiple matches
             for (let i = items.length - 1; i >= 0; i--) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const p = items[i] as any;
@@ -152,12 +65,28 @@ export function useVoiceChat(channel: any, userName: string) {
     }, []);
 
     /**
+     * Start polling for peers and establishing WebRTC connections.
+     */
+    const startPeerPolling = useCallback(() => {
+        if (pollIntervalRef.current) return;
+
+        pollIntervalRef.current = setInterval(() => {
+            if (!channel?.voiceState?.peers) return;
+            peerConnections.processPeerList(
+                channel.voiceState.peers,
+                myPeerIdRef.current,
+                localStreamRef.current,
+                myPeerCoValueRef.current,
+                setPeers,
+            );
+        }, 2000);
+    }, [channel, peerConnections]);
+
+    /**
      * Join the voice channel.
      */
     const join = useCallback(async () => {
         if (!channel) return;
-
-        // Guard: prevent duplicate join() calls
         if (isJoiningRef.current) {
             console.warn("[useVoiceChat] join() already in progress, ignoring duplicate call");
             return;
@@ -175,8 +104,8 @@ export function useVoiceChat(channel: any, userName: string) {
             });
             localStreamRef.current = stream;
 
-            // Set up local audio analyser for speaking detection
-            localAnalyserRef.current = createAudioAnalyser(stream);
+            // Set up local audio analyser
+            audioAnalysis.setupLocalAnalyser(stream);
 
             // Ensure voice state exists on channel
             if (!channel.voiceState) {
@@ -184,7 +113,7 @@ export function useVoiceChat(channel: any, userName: string) {
                 const ownerGroup = getOwnerGroup(channel) as any;
                 const voiceState = VoiceState.create(
                     { peers: VoicePeerList.create([], { owner: ownerGroup }) },
-                    { owner: ownerGroup }
+                    { owner: ownerGroup },
                 );
                 coSet(channel, "voiceState", voiceState);
             }
@@ -198,14 +127,10 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // Generate a fresh peerId for this join session
             myPeerIdRef.current = crypto.randomUUID();
-
-            // Clean up any stale entries from our previous peerId (shouldn't exist with fresh UUID,
-            // but this also cleans up ghost entries from other crashed sessions)
             cleanupStalePeerEntries(voiceState, myPeerIdRef.current);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const ownerGroup = getOwnerGroup(channel) as any;
-
             const voicePeer = VoicePeer.create(
                 {
                     peerId: myPeerIdRef.current,
@@ -213,54 +138,34 @@ export function useVoiceChat(channel: any, userName: string) {
                     peerName: userName,
                     isMuted: false,
                 },
-                { owner: ownerGroup }
+                { owner: ownerGroup },
             );
             myPeerCoValueRef.current = voicePeer;
-
             coPush(voiceState.peers, voicePeer);
 
             setIsConnected(true);
-
-            // Start polling for peers and audio monitoring
             startPeerPolling();
-            startAudioMonitoring();
+            audioAnalysis.startAudioMonitoring(setIsSpeaking, setPeers);
         } catch (err) {
             console.error("[useVoiceChat] Failed to join voice:", err);
         } finally {
             isJoiningRef.current = false;
         }
-    }, [channel, userName, startAudioMonitoring, cleanupStalePeerEntries]);
+    }, [channel, userName, audioAnalysis, cleanupStalePeerEntries, startPeerPolling]);
 
     /**
      * Leave the voice channel.
      */
     const leave = useCallback(() => {
-        // Stop polling & audio monitoring
+        // Stop polling
         if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = null;
         }
-        stopAudioMonitoring();
 
-        // Cleanup local analyser
-        if (localAnalyserRef.current) {
-            localAnalyserRef.current.cleanup();
-            localAnalyserRef.current = null;
-        }
-
-        // Cleanup remote analysers
-        remoteAnalysersRef.current.forEach((analyser) => analyser.cleanup());
-        remoteAnalysersRef.current.clear();
-
-        // Destroy all peer connections
-        peerConnectionsRef.current.forEach((peer) => {
-            try {
-                peer.destroy();
-            } catch {
-                /* ignore cleanup errors */
-            }
-        });
-        peerConnectionsRef.current.clear();
+        // Cleanup audio + peers
+        audioAnalysis.cleanupAll();
+        peerConnections.destroyAll();
 
         // Stop local audio stream
         if (localStreamRef.current) {
@@ -269,14 +174,11 @@ export function useVoiceChat(channel: any, userName: string) {
         }
 
         // Remove our VoicePeer from the channel's peer list
-        // Use peerId matching (more reliable than CoValue id matching)
         try {
             const voiceState = channel?.voiceState;
             if (voiceState?.peers && myPeerIdRef.current) {
                 const peersList = voiceState.peers;
                 const items = Array.from(peersList).filter(Boolean);
-
-                // Walk backwards to safely remove all entries with our peerId
                 for (let i = items.length - 1; i >= 0; i--) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const p = items[i] as any;
@@ -299,7 +201,7 @@ export function useVoiceChat(channel: any, userName: string) {
         setIsSpeaking(false);
         setPeers([]);
         setIsMuted(false);
-    }, [channel, stopAudioMonitoring]);
+    }, [channel, audioAnalysis, peerConnections]);
 
     /**
      * Toggle microphone mute state.
@@ -314,7 +216,6 @@ export function useVoiceChat(channel: any, userName: string) {
                 .forEach((track) => (track.enabled = !newMuted));
         }
 
-        // When muted, force speaking to false
         if (newMuted) {
             setIsSpeaking(false);
         }
@@ -323,123 +224,6 @@ export function useVoiceChat(channel: any, userName: string) {
             coSet(myPeerCoValueRef.current, "isMuted", newMuted);
         }
     }, [isMuted]);
-
-    /**
-     * Poll the VoiceState peer list for new peers and establish connections.
-     */
-    const startPeerPolling = useCallback(() => {
-        if (pollIntervalRef.current) return;
-
-        pollIntervalRef.current = setInterval(() => {
-            if (!channel?.voiceState?.peers) return;
-
-            const voicePeers = channel.voiceState.peers;
-            const items = Array.from(voicePeers).filter(Boolean);
-
-            // Update peers list for UI
-            const peerInfoList: PeerInfo[] = [];
-            for (const vp of items) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const vpAny = vp as any;
-                if (!vpAny || vpAny.peerId === myPeerIdRef.current) continue;
-                // Preserve existing isSpeaking state from audio analyser
-                const existingAnalyser = remoteAnalysersRef.current.get(vpAny.peerId);
-                peerInfoList.push({
-                    peerId: vpAny.peerId,
-                    peerName: vpAny.peerName,
-                    isMuted: vpAny.isMuted,
-                    isSpeaking: existingAnalyser ? existingAnalyser.isSpeaking() : false,
-                });
-            }
-            setPeers(peerInfoList);
-
-            // Establish WebRTC connections with new peers
-            for (const vp of items) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const vpAny = vp as any;
-                if (!vpAny || vpAny.peerId === myPeerIdRef.current) continue;
-
-                if (peerConnectionsRef.current.has(vpAny.peerId)) {
-                    const existingPeer = peerConnectionsRef.current.get(vpAny.peerId);
-                    if (existingPeer && vpAny.signalData) {
-                        try {
-                            const signalData = JSON.parse(vpAny.signalData);
-                            existingPeer.signal(signalData);
-                        } catch {
-                            /* signal may have already been processed */
-                        }
-                    }
-                    continue;
-                }
-
-                const isInitiator = myPeerIdRef.current > vpAny.peerId;
-
-                if (!localStreamRef.current) continue;
-
-                const peer = new Peer({
-                    initiator: isInitiator,
-                    stream: localStreamRef.current,
-                    trickle: true,
-                    config: {
-                        iceServers: [
-                            { urls: "stun:stun.l.google.com:19302" },
-                            { urls: "stun:stun1.l.google.com:19302" },
-                        ],
-                    },
-                });
-
-                peer.on("signal", (data: Peer.SignalData) => {
-                    if (myPeerCoValueRef.current) {
-                        coSet(myPeerCoValueRef.current, "signalData", JSON.stringify(data));
-                    }
-                });
-
-                // Handle incoming audio stream — create analyser for speaking detection
-                const remotePeerId = vpAny.peerId;
-                peer.on("stream", (remoteStream: MediaStream) => {
-                    // Play remote audio
-                    const audio = new Audio();
-                    audio.srcObject = remoteStream;
-                    audio.autoplay = true;
-                    audio.play().catch(() => {
-                        /* autoplay may be blocked */
-                    });
-
-                    // Create analyser for this remote peer's audio
-                    const analyser = createAudioAnalyser(remoteStream);
-                    remoteAnalysersRef.current.set(remotePeerId, analyser);
-                });
-
-                peer.on("error", (err: Error) => {
-                    console.error(
-                        `[useVoiceChat] Peer error with ${vpAny.peerId}:`,
-                        err
-                    );
-                });
-
-                peer.on("close", () => {
-                    peerConnectionsRef.current.delete(vpAny.peerId);
-                    // Cleanup remote analyser
-                    const analyser = remoteAnalysersRef.current.get(vpAny.peerId);
-                    if (analyser) {
-                        analyser.cleanup();
-                        remoteAnalysersRef.current.delete(vpAny.peerId);
-                    }
-                });
-
-                peerConnectionsRef.current.set(vpAny.peerId, peer);
-
-                if (vpAny.signalData) {
-                    try {
-                        const signalData = JSON.parse(vpAny.signalData);
-                        peer.signal(signalData);
-                    } catch {
-                        /* ignore parse errors */
-                    }
-                }
-            }
-        }, 2000);
-    }, [channel]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -460,3 +244,6 @@ export function useVoiceChat(channel: any, userName: string) {
         toggleMute,
     };
 }
+
+// Re-export types for consumers
+export type { PeerInfo } from "./useVoiceChatTypes";

@@ -298,6 +298,44 @@ input[type="range"].range-green::-moz-range-thumb {
 /* ─── Utility Classes ────────────────────────────────────────────────────── */
 @layer utilities {
 
+    /* ── Common Text/Background shortcuts ── */
+    .text-muted-color {
+        color: hsl(var(--muted-foreground));
+    }
+
+    .text-primary-color {
+        color: hsl(var(--foreground));
+    }
+
+    .bg-surface {
+        background-color: hsl(var(--secondary));
+    }
+
+    .bg-card-surface {
+        background-color: hsl(var(--card));
+    }
+
+    /* Common interactive input base */
+    .input-base {
+        background-color: hsl(var(--secondary));
+        border: 1px solid hsl(var(--border));
+    }
+
+    /* Dialog content base */
+    .dialog-base {
+        background-color: hsl(var(--card));
+        border-color: hsl(var(--border));
+    }
+
+    /* Section label (frequently repeated pattern) */
+    .label-section {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: hsl(var(--muted-foreground));
+    }
+
     /* ── Surface System (Apple-style shadow depth, replaces glass) ── */
     .surface {
         background: hsl(var(--card));

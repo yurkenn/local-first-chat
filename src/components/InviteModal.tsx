@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
+import type { LoadedServer } from "@/lib/jazz-types";
 
 interface InviteModalProps {
-    server: any;
+    server: LoadedServer;
     onClose: () => void;
 }
 
@@ -50,16 +51,16 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
+            <DialogContent className="dialog-base sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Invite People</DialogTitle>
                     <DialogDescription>
                         Share this invite code with friends to let them join{" "}
-                        <strong className="text-[hsl(var(--foreground))]">{server?.name}</strong>.
+                        <strong className="text-primary-color">{server?.name}</strong>.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex items-center gap-2 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] p-3">
+                <div className="flex items-center gap-2 rounded-lg bg-surface border border-[hsl(var(--border))] p-3">
                     <code
                         className="flex-1 text-sm font-mono text-[var(--organic-sage)] select-all break-all"
                         data-invite-code
@@ -80,7 +81,7 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
                     </Button>
                 </div>
 
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                <p className="text-xs text-muted-color">
                     Recipients can join by pasting this code in their Lotus app.
                 </p>
 

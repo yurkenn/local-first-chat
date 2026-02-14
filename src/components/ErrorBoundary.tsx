@@ -52,18 +52,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                         <AlertTriangle className="h-6 w-6 text-[hsl(var(--destructive))]" />
                     </div>
                     <div className="space-y-1">
-                        <h3 className="text-sm font-semibold text-[hsl(var(--foreground))]">
+                        <h3 className="text-sm font-semibold text-primary-color">
                             Something went wrong
                         </h3>
-                        <p className="text-xs text-[hsl(var(--muted-foreground))] max-w-xs">
+                        <p className="text-xs text-muted-color max-w-xs">
                             {this.state.error?.message || "An unexpected error occurred."}
                         </p>
                     </div>
                     <button
                         onClick={this.handleRetry}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-lg
-                            bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))/0.8]
-                            text-sm font-medium text-[hsl(var(--foreground))]
+                            bg-surface hover:bg-[hsl(var(--secondary))/0.8]
+                            text-sm font-medium text-primary-color
                             transition-colors cursor-pointer"
                     >
                         <RefreshCw className="h-4 w-4" />

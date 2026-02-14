@@ -21,7 +21,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-[hsl(var(--card))] sm:max-w-[480px] max-h-[85vh] overflow-y-auto p-0 gap-0 border-[hsl(var(--border))]">
+            <DialogContent className="bg-card-surface sm:max-w-[480px] max-h-[85vh] overflow-y-auto p-0 gap-0 border-[hsl(var(--border))]">
                 {/* Header */}
                 <DialogHeader className="p-6 pb-4">
                     <DialogTitle className="text-base font-heading font-semibold flex items-center gap-2.5">
@@ -79,7 +79,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                     <div className="segmented-section">
                         <div className="segment-item space-y-3">
                             <SectionLabel icon={<Activity className="h-3.5 w-3.5" />} label="Voice Sensitivity" />
-                            <p className="text-[11px] text-[hsl(var(--muted-foreground))] leading-relaxed -mt-1">
+                            <p className="text-[11px] text-muted-color leading-relaxed -mt-1">
                                 Adjust when your mic activates. Lower = more sensitive.
                             </p>
                             <SliderRow
@@ -139,7 +139,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                                 </div>
                             </div>
                             {audio.isTesting && (
-                                <p className="text-[10px] text-[hsl(var(--muted-foreground))] animate-fade-in">
+                                <p className="text-[10px] text-muted-color animate-fade-in">
                                     Speak to test your microphone input level.
                                 </p>
                             )}
@@ -155,13 +155,13 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                                         "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                                         audio.isDeafened
                                             ? "bg-[hsl(var(--destructive))/0.15] text-[hsl(var(--destructive))]"
-                                            : "bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))]"
+                                            : "bg-surface text-muted-color"
                                     )}>
                                         <VolumeX className="h-4 w-4" />
                                     </div>
                                     <div>
                                         <div className="text-xs font-medium">Deafen</div>
-                                        <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5">
+                                        <div className="text-[10px] text-muted-color mt-0.5">
                                             Mute all incoming audio
                                         </div>
                                     </div>
@@ -180,7 +180,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                             variant="ghost"
                             size="sm"
                             onClick={audio.refreshDevices}
-                            className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] gap-1.5 text-xs h-8"
+                            className="text-muted-color hover:text-primary-color gap-1.5 text-xs h-8"
                         >
                             <RefreshCw className="h-3 w-3" /> Refresh
                         </Button>
@@ -205,7 +205,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
 
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
     return (
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-color">
             {icon}
             {label}
         </div>
@@ -229,7 +229,7 @@ function SliderRow({
     return (
         <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-                <span className="text-[hsl(var(--muted-foreground))]">{label}</span>
+                <span className="text-muted-color">{label}</span>
                 <span className="font-mono text-[10px] tabular-nums" style={{ color: accentColor }}>
                     {value}%
                 </span>
@@ -258,7 +258,7 @@ function StyledSelect({
     return (
         <div className="relative">
             <select
-                className="w-full appearance-none bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-3 py-2.5 pr-9 text-sm text-[hsl(var(--foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] focus:border-[hsl(var(--border))] cursor-pointer transition-all"
+                className="w-full appearance-none bg-surface border border-[hsl(var(--border))] rounded-lg px-3 py-2.5 pr-9 text-sm text-primary-color outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] focus:border-[hsl(var(--border))] cursor-pointer transition-all"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
             >
@@ -268,7 +268,7 @@ function StyledSelect({
                     </option>
                 ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--muted-foreground))] pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-color pointer-events-none" />
         </div>
     );
 }
@@ -287,7 +287,7 @@ function PremiumSwitch({
                 "relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer",
                 checked
                     ? "bg-[hsl(var(--destructive))] shadow-[0_0_12px_rgba(239,68,68,0.3)]"
-                    : "bg-[hsl(var(--secondary))] border border-[hsl(var(--border))]"
+                    : "bg-surface border border-[hsl(var(--border))]"
             )}
             aria-label="Toggle deafen"
         >

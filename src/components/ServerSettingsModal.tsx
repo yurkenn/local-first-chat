@@ -12,9 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { Check, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { coSet } from "@/lib/jazz-helpers";
+import type { LoadedServer } from "@/lib/jazz-types";
+import { handleError } from "@/lib/error-utils";
 
 interface ServerSettingsModalProps {
-    server: any;
+    server: LoadedServer;
     onClose: () => void;
     onDeleteServer: () => void;
 }
@@ -35,7 +37,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (err) {
-            console.error("[ServerSettings] Save failed:", err);
+            handleError(err, { context: "ServerSettings" });
         }
     };
 
@@ -46,7 +48,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
+            <DialogContent className="dialog-base sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Server Settings</DialogTitle>
                 </DialogHeader>
@@ -54,12 +56,12 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                 <div className="space-y-6 py-2">
                     {/* Server Info */}
                     <div className="space-y-4">
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <h3 className="label-section">
                             Server Info
                         </h3>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            <label className="label-section">
                                 Server Name
                             </label>
                             <Input
@@ -67,12 +69,12 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Server name"
-                                className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                                className="input-base"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                            <label className="label-section">
                                 Server Icon
                             </label>
                             <div className="flex flex-wrap gap-1.5">
@@ -83,7 +85,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                                             "w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all cursor-pointer",
                                             emoji === e
                                                 ? "bg-[hsl(var(--primary))/0.2] ring-2 ring-[hsl(var(--primary))] scale-110"
-                                                : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))/0.8]"
+                                                : "bg-surface hover:bg-[hsl(var(--secondary))/0.8]"
                                         )}
                                         onClick={() => setEmoji(e)}
                                     >

@@ -127,19 +127,19 @@ export function SearchModal({
             >
                 {/* Search input */}
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-[hsl(var(--border))]">
-                    <Search className="h-5 w-5 text-[hsl(var(--muted-foreground))] shrink-0" />
+                    <Search className="h-5 w-5 text-muted-color shrink-0" />
                     <input
                         ref={inputRef}
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Search messages…"
-                        className="flex-1 bg-transparent text-[hsl(var(--foreground))] placeholder-[hsl(var(--muted-foreground))] outline-none text-sm"
+                        className="flex-1 bg-transparent text-primary-color placeholder-[hsl(var(--muted-foreground))] outline-none text-sm"
                     />
                     {query && (
                         <button
                             onClick={() => setQuery("")}
-                            className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors"
+                            className="text-muted-color hover:text-primary-color transition-colors"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -149,29 +149,29 @@ export function SearchModal({
                 {/* Results */}
                 <div className="max-h-[50vh] overflow-y-auto">
                     {query.trim().length < 2 ? (
-                        <div className="p-8 text-center text-[hsl(var(--muted-foreground))] text-sm">
+                        <div className="p-8 text-center text-muted-color text-sm">
                             <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-40" />
                             Type at least 2 characters to search
                         </div>
                     ) : results.length === 0 ? (
-                        <div className="p-8 text-center text-[hsl(var(--muted-foreground))] text-sm">
+                        <div className="p-8 text-center text-muted-color text-sm">
                             No messages found for &ldquo;{query}&rdquo;
                         </div>
                     ) : (
                         <div className="py-2">
-                            <div className="px-4 py-1 text-xs text-[hsl(var(--muted-foreground))]">
+                            <div className="px-4 py-1 text-xs text-muted-color">
                                 {results.length} result{results.length !== 1 && "s"}
                             </div>
                             {results.map((result, i) => (
                                 <button
                                     key={`${result.channelId}-${result.createdAt}-${i}`}
-                                    className="w-full flex items-start gap-3 px-4 py-2.5 hover:bg-[hsl(var(--secondary))] transition-colors text-left group cursor-pointer"
+                                    className="w-full flex items-start gap-3 px-4 py-2.5 hover:bg-surface transition-colors text-left group cursor-pointer"
                                     onClick={() => handleSelect(result)}
                                 >
-                                    <Hash className="h-4 w-4 text-[hsl(var(--muted-foreground))] shrink-0 mt-0.5" />
+                                    <Hash className="h-4 w-4 text-muted-color shrink-0 mt-0.5" />
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
-                                            <span className="font-medium text-[hsl(var(--foreground))]">
+                                        <div className="flex items-center gap-2 text-xs text-muted-color">
+                                            <span className="font-medium text-primary-color">
                                                 {result.senderName}
                                             </span>
                                             <span>in #{result.channelName}</span>
@@ -180,7 +180,7 @@ export function SearchModal({
                                                 {new Date(result.createdAt).toLocaleDateString()}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-[hsl(var(--foreground))] truncate mt-0.5">
+                                        <p className="text-sm text-primary-color truncate mt-0.5">
                                             <HighlightedText
                                                 text={result.messageContent}
                                                 matchStart={result.matchStart}
@@ -188,7 +188,7 @@ export function SearchModal({
                                             />
                                         </p>
                                     </div>
-                                    <ArrowRight className="h-4 w-4 text-[hsl(var(--muted-foreground))] opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
+                                    <ArrowRight className="h-4 w-4 text-muted-color opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
                                 </button>
                             ))}
                         </div>
@@ -196,10 +196,10 @@ export function SearchModal({
                 </div>
 
                 {/* Footer shortcut hint */}
-                <div className="px-4 py-2 border-t border-[hsl(var(--border))] flex items-center gap-3 text-[10px] text-[hsl(var(--muted-foreground))]">
-                    <kbd className="px-1.5 py-0.5 bg-[hsl(var(--secondary))] rounded text-[10px] font-mono">↵</kbd>
+                <div className="px-4 py-2 border-t border-[hsl(var(--border))] flex items-center gap-3 text-[10px] text-muted-color">
+                    <kbd className="px-1.5 py-0.5 bg-surface rounded text-[10px] font-mono">↵</kbd>
                     <span>Select</span>
-                    <kbd className="px-1.5 py-0.5 bg-[hsl(var(--secondary))] rounded text-[10px] font-mono">Esc</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-surface rounded text-[10px] font-mono">Esc</kbd>
                     <span>Close</span>
                 </div>
             </div>
@@ -228,7 +228,7 @@ function HighlightedText({
         <span>
             {contextStart > 0 && "…"}
             {before}
-            <mark className="bg-[var(--organic-sage)]/30 text-[hsl(var(--foreground))] rounded-sm px-0.5">
+            <mark className="bg-[var(--organic-sage)]/30 text-primary-color rounded-sm px-0.5">
                 {match}
             </mark>
             {after}

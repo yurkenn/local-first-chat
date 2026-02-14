@@ -30,7 +30,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
+            <DialogContent className="dialog-base sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Create Channel</DialogTitle>
                     <DialogDescription>
@@ -41,7 +41,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                 <div className="space-y-4 py-2">
                     {/* Channel type selector */}
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <label className="label-section">
                             Channel Type
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -50,7 +50,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                                     "flex items-center gap-2 px-4 py-3 rounded-lg border transition-all cursor-pointer",
                                     type === "text"
                                         ? "bg-[hsl(var(--primary))/0.1] border-[hsl(var(--primary))] text-[hsl(var(--primary))]"
-                                        : "bg-[hsl(var(--secondary))] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--muted-foreground))]"
+                                        : "input-base text-muted-color hover:border-[hsl(var(--muted-foreground))]"
                                 )}
                                 onClick={() => setType("text")}
                                 type="button"
@@ -63,7 +63,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                                     "flex items-center gap-2 px-4 py-3 rounded-lg border transition-all cursor-pointer",
                                     type === "voice"
                                         ? "bg-[hsl(var(--primary))/0.1] border-[hsl(var(--primary))] text-[hsl(var(--primary))]"
-                                        : "bg-[hsl(var(--secondary))] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--muted-foreground))]"
+                                        : "input-base text-muted-color hover:border-[hsl(var(--muted-foreground))]"
                                 )}
                                 onClick={() => setType("voice")}
                                 type="button"
@@ -75,7 +75,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                        <label className="label-section">
                             Channel Name
                         </label>
                         <Input
@@ -86,7 +86,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                             autoFocus
                             maxLength={30}
-                            className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                            className="input-base"
                         />
                     </div>
                 </div>

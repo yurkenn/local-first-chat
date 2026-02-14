@@ -38,7 +38,7 @@ export const ChatArea = memo(function ChatArea({
             <div className="flex flex-col items-center justify-center min-w-0">
                 <div className="brand-logo brand-logo--lg mb-2">🪷</div>
                 <h1 className="text-3xl brand-title mt-4">Lotus</h1>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] text-center mt-2">
+                <p className="text-sm text-muted-color text-center mt-2">
                     Select a channel to begin.
                 </p>
             </div>
@@ -93,7 +93,7 @@ function TypingIndicator({ users }: { users: string[] }) {
     }
 
     return (
-        <div className="px-4 py-1.5 text-xs text-[hsl(var(--muted-foreground))] animate-fade-in flex items-center gap-2">
+        <div className="px-4 py-1.5 text-xs text-muted-color animate-fade-in flex items-center gap-2">
             <span className="flex items-center gap-[3px]">
                 {[0, 1, 2].map((i) => (
                     <span

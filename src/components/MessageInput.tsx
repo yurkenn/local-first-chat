@@ -6,6 +6,7 @@ import { Send, X, Image as ImageIcon, Reply } from "lucide-react";
 import { messageRateLimiter } from "@/lib/rate-limiter";
 import { getOwnerGroup, coPush, coSet } from "@/lib/jazz-helpers";
 import { MAX_MESSAGE_LENGTH, isValidImageDataUrl } from "@/lib/validators";
+import type { LoadedChannel } from "@/lib/jazz-types";
 
 export interface ReplyTarget {
     senderName: string;
@@ -13,7 +14,7 @@ export interface ReplyTarget {
 }
 
 interface MessageInputProps {
-    channel: any;
+    channel: LoadedChannel;
     userName: string;
     /** Callback to notify that the user is typing */
     onTyping?: () => void;
@@ -170,20 +171,20 @@ export function MessageInput({
         <div className="px-4 pb-4 pt-1">
             {/* Reply banner */}
             {replyTarget && (
-                <div className="flex items-center gap-2 px-3 py-1.5 mb-1.5 rounded-lg bg-[hsl(var(--secondary))] text-xs">
+                <div className="flex items-center gap-2 px-3 py-1.5 mb-1.5 rounded-lg bg-surface text-xs">
                     <Reply className="h-3 w-3 text-[var(--organic-sage)] shrink-0" />
-                    <span className="text-[hsl(var(--muted-foreground))]">
+                    <span className="text-muted-color">
                         Replying to{" "}
-                        <span className="font-semibold text-[hsl(var(--foreground))]">
+                        <span className="font-semibold text-primary-color">
                             {replyTarget.senderName}
                         </span>
                     </span>
-                    <span className="truncate text-[hsl(var(--muted-foreground))] flex-1">
+                    <span className="truncate text-muted-color flex-1">
                         {replyTarget.content.slice(0, 80)}
                     </span>
                     <button
                         onClick={onClearReply}
-                        className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors shrink-0"
+                        className="text-muted-color hover:text-primary-color transition-colors shrink-0"
                         aria-label="Cancel reply"
                     >
                         <X className="h-3 w-3" />
@@ -213,7 +214,7 @@ export function MessageInput({
                 {/* Image upload button */}
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="h-8 w-8 flex items-center justify-center rounded-lg text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--secondary))] transition-colors shrink-0"
+                    className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-color hover:text-primary-color hover:bg-surface transition-colors shrink-0"
                     aria-label="Attach image"
                 >
                     <ImageIcon className="h-4 w-4" />
@@ -227,7 +228,7 @@ export function MessageInput({
                 />
 
                 <textarea
-                    className="flex-1 min-h-[36px] max-h-[120px] bg-transparent border-none outline-none resize-none text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] px-3 py-2"
+                    className="flex-1 min-h-[36px] max-h-[120px] bg-transparent border-none outline-none resize-none text-sm text-primary-color placeholder:text-muted-color px-3 py-2"
                     value={text}
                     onChange={(e) => {
                         setText(e.target.value);
@@ -243,7 +244,7 @@ export function MessageInput({
                     maxLength={MAX_MESSAGE_LENGTH}
                 />
                 {text.length > MAX_MESSAGE_LENGTH * 0.9 && (
-                    <span className={`text-[10px] self-end shrink-0 tabular-nums ${text.length > MAX_MESSAGE_LENGTH ? "text-[hsl(var(--destructive))]" : "text-[hsl(var(--muted-foreground))]"}`}>
+                    <span className={`text-[10px] self-end shrink-0 tabular-nums ${text.length > MAX_MESSAGE_LENGTH ? "text-[hsl(var(--destructive))]" : "text-muted-color"}`}>
                         {text.length}/{MAX_MESSAGE_LENGTH}
                     </span>
                 )}

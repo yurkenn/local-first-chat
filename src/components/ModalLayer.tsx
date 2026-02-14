@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import type { Theme } from "@/hooks/useTheme";
 import type { ModalName } from "@/hooks/useModalState";
+import type { LoadedServer, LoadedAccount } from "@/lib/jazz-types";
 
 // Lazy-loaded modals (named exports → default for React.lazy)
 const CreateServerModal = lazy(() => import("@/components/CreateServerModal").then(m => ({ default: m.CreateServerModal })));
@@ -15,16 +16,16 @@ const SearchModal = lazy(() => import("@/components/SearchModal").then(m => ({ d
 export interface ModalLayerProps {
     modals: Record<string, boolean>;
     closeModal: (name: ModalName) => void;
-    activeServer: any;
+    activeServer: LoadedServer | null;
     activeServerId: string | null;
     setActiveServerId: (id: string | null) => void;
     setActiveChannelId: (id: string | null) => void;
-    serverArray: any[];
+    serverArray: LoadedServer[];
     theme: Theme;
     setTheme: (t: Theme) => void;
     handleCreateServer: (name: string, emoji: string) => void;
     handleCreateChannel: (name: string, type: "text" | "voice") => void;
-    me: any;
+    me: LoadedAccount | null;
 }
 
 /**

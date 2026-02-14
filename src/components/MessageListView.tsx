@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Smile, Pencil, Trash2, Reply } from "lucide-react";
 import { isValidImageDataUrl } from "@/lib/validators";
 import { coSet } from "@/lib/jazz-helpers";
+import type { LoadedChannel } from "@/lib/jazz-types";
+import { handleError } from "@/lib/error-utils";
 
 /** Format a timestamp with smart relative dates */
 function formatTimestamp(ts: number): string {
@@ -27,6 +29,7 @@ function formatTimestamp(ts: number): string {
 }
 
 /** Check if two messages should be grouped */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function shouldGroup(prev: any, curr: any): boolean {
     if (!prev || !curr) return false;
     if (prev.senderName !== curr.senderName) return false;
@@ -34,7 +37,7 @@ function shouldGroup(prev: any, curr: any): boolean {
 }
 
 interface MessageListViewProps {
-    channel: any;
+    channel: LoadedChannel;
     userName: string;
     /** Called when user clicks Reply on a message */
     onReply?: (msg: { senderName: string; content: string }) => void;
@@ -44,7 +47,8 @@ export const MessageListView = memo(function MessageListView({ channel, userName
     const messages = channel.messages;
     const parentRef = useRef<HTMLDivElement>(null);
     const msgArray = useMemo(
-        () => (messages ? Array.from(messages).filter(Boolean) : []),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        () => (messages ? Array.from(messages as any).filter(Boolean) : []),
         [messages]
     );
 
@@ -57,7 +61,6 @@ export const MessageListView = memo(function MessageListView({ channel, userName
         getScrollElement: () => parentRef.current,
         estimateSize: (index) => {
             const prev = index > 0 ? msgArray[index - 1] : null;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const curr = msgArray[index] as any;
             const isGrouped = shouldGroup(prev, curr);
             let height = isGrouped ? 28 : 52;
@@ -85,13 +88,14 @@ export const MessageListView = memo(function MessageListView({ channel, userName
         setEditText(content);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const saveEdit = (msg: any) => {
         if (!editText.trim()) return;
         try {
             coSet(msg, "content", editText.trim());
             coSet(msg, "editedAt", Date.now());
         } catch (err) {
-            console.error("[ChatArea] Edit failed:", err);
+            handleError(err, { context: "MessageList" });
         }
         setEditingIndex(null);
         setEditText("");
@@ -102,22 +106,24 @@ export const MessageListView = memo(function MessageListView({ channel, userName
         setEditText("");
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const deleteMessage = (msg: any) => {
         try {
             coSet(msg, "isDeleted", true);
             coSet(msg, "content", "[message deleted]");
         } catch (err) {
-            console.error("[ChatArea] Delete failed:", err);
+            handleError(err, { context: "MessageList" });
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleReaction = (msg: any, emoji: string) => {
         try {
             const current = parseReactions(msg.reactions);
             const updated = toggleReaction(current, emoji, userName);
             coSet(msg, "reactions", JSON.stringify(updated));
         } catch (err) {
-            console.error("[ChatArea] Reaction failed:", err);
+            handleError(err, { context: "MessageList" });
         }
     };
 
@@ -126,8 +132,8 @@ export const MessageListView = memo(function MessageListView({ channel, userName
             <div className="flex-1 flex items-center justify-center overflow-y-auto" ref={parentRef} role="status" aria-label="No messages in channel">
                 <div className="flex flex-col items-center gap-3 animate-fade-in">
                     <div className="text-4xl">✨</div>
-                    <h3 className="text-lg font-heading font-semibold text-[hsl(var(--foreground))]">No messages yet</h3>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    <h3 className="text-lg font-heading font-semibold text-primary-color">No messages yet</h3>
+                    <p className="text-xs text-muted-color">
                         Be the first to send a message in this channel!
                     </p>
                 </div>
@@ -194,8 +200,8 @@ export const MessageListView = memo(function MessageListView({ channel, userName
                                     {/* Sender name + timestamp — only for ungrouped */}
                                     {!isGrouped && (
                                         <div className="flex items-baseline gap-2">
-                                            <span className="text-sm font-semibold text-[hsl(var(--foreground))]">{msg.senderName || "Unknown"}</span>
-                                            <span className="text-[10px] text-[hsl(var(--muted-foreground))]">{formatTimestamp(msg.createdAt)}</span>
+                                            <span className="text-sm font-semibold text-primary-color">{msg.senderName || "Unknown"}</span>
+                                            <span className="text-[10px] text-muted-color">{formatTimestamp(msg.createdAt)}</span>
                                         </div>
                                     )}
 
@@ -248,14 +254,14 @@ function MessageContent({
     }
 
     if (isDeleted) {
-        return <p className="text-sm italic text-[hsl(var(--muted-foreground))]">[message deleted]</p>;
+        return <p className="text-sm italic text-muted-color">[message deleted]</p>;
     }
 
     return (
         <>
             <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--organic-sage)]">
                 {msg.replyToSender && (
-                    <div className="flex items-center gap-1.5 mb-1 pl-2 border-l-2 border-[var(--organic-sage)] text-xs text-[hsl(var(--muted-foreground))]">
+                    <div className="flex items-center gap-1.5 mb-1 pl-2 border-l-2 border-[var(--organic-sage)] text-xs text-muted-color">
                         <Reply className="h-3 w-3 shrink-0" />
                         <span className="font-semibold">{msg.replyToSender}</span>
                         <span className="truncate">{(msg.replyToContent || '').slice(0, 80)}</span>
@@ -267,7 +273,7 @@ function MessageContent({
                 )}
             </div>
             {msg.editedAt && (
-                <span className="text-[10px] text-[hsl(var(--muted-foreground))] ml-1">(edited)</span>
+                <span className="text-[10px] text-muted-color ml-1">(edited)</span>
             )}
         </>
     );
@@ -289,18 +295,18 @@ const MessageActions = memo(function MessageActions({
 }) {
     return (
         <div className="absolute right-2 top-0 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 rounded-md surface-elevated px-1 py-0.5 shadow-lg z-10">
-            <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]" onClick={onReact} title="Add reaction">
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-color hover:text-primary-color" onClick={onReact} title="Add reaction">
                 <Smile className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]" onClick={onReply} title="Reply">
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-color hover:text-primary-color" onClick={onReply} title="Reply">
                 <Reply className="h-3.5 w-3.5" />
             </Button>
             {isOwn && (
                 <>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]" onClick={onEdit} title="Edit message">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-color hover:text-primary-color" onClick={onEdit} title="Edit message">
                         <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))]" onClick={onDelete} title="Delete message">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-color hover:text-[hsl(var(--destructive))]" onClick={onDelete} title="Delete message">
                         <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                 </>
@@ -324,7 +330,7 @@ function EditBox({
     return (
         <div className="mt-1">
             <textarea
-                className="w-full bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-3 py-2 text-sm text-[hsl(var(--foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none"
+                className="w-full bg-surface border border-[hsl(var(--border))] rounded-lg px-3 py-2 text-sm text-primary-color outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none"
                 value={text}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={(e) => {
@@ -339,7 +345,7 @@ function EditBox({
                 autoFocus
                 rows={2}
             />
-            <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-1">
+            <div className="text-[10px] text-muted-color mt-1">
                 Escape to{" "}
                 <button className="text-[var(--organic-sage)] hover:underline" onClick={onCancel}>cancel</button>
                 {" · "}Enter to{" "}
@@ -374,7 +380,7 @@ const ReactionPills = memo(function ReactionPills({
                             "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-colors cursor-pointer",
                             hasReacted
                                 ? "bg-[hsl(var(--primary))/0.2] border border-[hsl(var(--primary))/0.4] text-[hsl(var(--primary))]"
-                                : "bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))/0.8]"
+                                : "bg-surface border border-[hsl(var(--border))] text-muted-color hover:bg-[hsl(var(--secondary))/0.8]"
                         )}
                         onClick={() => onToggle(emoji)}
                         title={users.join(", ")}

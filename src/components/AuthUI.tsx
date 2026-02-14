@@ -148,13 +148,13 @@ function SavePassphraseView({
                         <KeyRound className="h-8 w-8 text-white" />
                     </div>
                     <h1 className="text-xl font-heading font-bold text-gradient">Save Your Recovery Key</h1>
-                    <p className="text-sm text-[hsl(var(--muted-foreground))] text-center mt-2">
+                    <p className="text-sm text-muted-color text-center mt-2">
                         Copy this passphrase and keep it safe. You'll need it to log back in.
                     </p>
                 </div>
 
                 <textarea
-                    className="w-full bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-4 py-3 text-sm font-mono text-[hsl(var(--foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none mb-4"
+                    className="w-full bg-surface border border-[hsl(var(--border))] rounded-lg px-4 py-3 text-sm font-mono text-primary-color outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none mb-4"
                     readOnly
                     value={passphrase}
                     rows={3}
@@ -173,7 +173,7 @@ function SavePassphraseView({
                     )}
                 </Button>
 
-                <p className="text-[10px] text-[hsl(var(--muted-foreground))] text-center mt-3 flex items-center justify-center gap-1">
+                <p className="text-[10px] text-muted-color text-center mt-3 flex items-center justify-center gap-1">
                     <Shield className="h-3 w-3" />
                     Clipboard will be auto-cleared after 30 seconds for security.
                 </p>
@@ -208,7 +208,7 @@ function AuthFormView({
                 <div className="flex flex-col items-center mb-8">
                     <div className="brand-logo mb-4">🪷</div>
                     <h1 className="text-2xl brand-title">Lotus</h1>
-                    <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+                    <p className="text-sm text-muted-color mt-1">
                         Secure, local-first messaging
                     </p>
                 </div>
@@ -221,7 +221,7 @@ function AuthFormView({
 
                 {/* Sign Up Section */}
                 <div className="space-y-3">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                    <label className="label-section">
                         New here? Create an account
                     </label>
                     <Input
@@ -233,7 +233,7 @@ function AuthFormView({
                             if (e.key === "Enter" && name.trim()) onSignUp();
                         }}
                         aria-label="Display name"
-                        className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
+                        className="input-base"
                     />
                     <Button
                         className="w-full bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] transition-opacity"
@@ -250,17 +250,17 @@ function AuthFormView({
                         <div className="w-full border-t border-[hsl(var(--border))]" />
                     </div>
                     <div className="relative flex justify-center text-xs">
-                        <span className="bg-[hsl(var(--card))] px-3 text-[hsl(var(--muted-foreground))]">or</span>
+                        <span className="bg-card-surface px-3 text-muted-color">or</span>
                     </div>
                 </div>
 
                 {/* Log In Section */}
                 <div className="space-y-3">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                    <label className="label-section">
                         Already have an account?
                     </label>
                     <textarea
-                        className="w-full bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-4 py-3 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none"
+                        className="w-full bg-surface border border-[hsl(var(--border))] rounded-lg px-4 py-3 text-sm text-primary-color placeholder:text-muted-color outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] resize-none"
                         placeholder="Paste your recovery passphrase..."
                         value={passphraseInput}
                         onChange={(e) => onPassphraseChange(e.target.value)}

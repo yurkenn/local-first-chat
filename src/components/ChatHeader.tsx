@@ -34,7 +34,7 @@ export const ChatHeader = memo(function ChatHeader({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                    "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
+                    "h-8 w-8 text-muted-color hover:text-primary-color transition-colors",
                     sidebarOpen && "text-[var(--organic-sage)]"
                 )}
                 onClick={onToggleSidebar}
@@ -46,7 +46,7 @@ export const ChatHeader = memo(function ChatHeader({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                    "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
+                    "h-8 w-8 text-muted-color hover:text-primary-color transition-colors",
                     channelSidebarOpen && "text-[var(--organic-sage)]"
                 )}
                 onClick={onToggleChannelSidebar}
@@ -58,9 +58,9 @@ export const ChatHeader = memo(function ChatHeader({
             {/* Channel info */}
             <div className="flex items-center gap-1.5 ml-1">
                 {channelType === "voice" ? (
-                    <Volume2 className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                    <Volume2 className="h-4 w-4 text-muted-color" />
                 ) : (
-                    <Hash className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                    <Hash className="h-4 w-4 text-muted-color" />
                 )}
                 <span className="text-sm font-medium truncate">{channelName}</span>
             </div>
@@ -79,7 +79,7 @@ export const ChatHeader = memo(function ChatHeader({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                    "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
+                    "h-8 w-8 text-muted-color hover:text-primary-color transition-colors",
                     memberPanelOpen && "text-[var(--organic-sage)]"
                 )}
                 onClick={onToggleMemberPanel}
