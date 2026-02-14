@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import { createInviteLink } from "jazz-tools";
 import {
     Dialog,
     DialogContent,
@@ -20,13 +21,25 @@ interface InviteModalProps {
 export function InviteModal({ server, onClose }: InviteModalProps) {
     const [copied, setCopied] = useState(false);
 
-    const inviteCode = server?.$jazz?.id || "N/A";
+    // Generate a proper Jazz invite link using the server's owning Group
+    const inviteLink = useMemo(() => {
+        try {
+            // createInviteLink(coValue, role, baseURL?, valueHint?)
+            const baseURL = window.location.origin + "/";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return createInviteLink(server as any, "writer", baseURL, "server");
+        } catch (err) {
+            console.error("[InviteModal] Failed to create invite link:", err);
+            return null;
+        }
+    }, [server]);
 
     const handleCopy = async () => {
+        if (!inviteLink) return;
         try {
-            await navigator.clipboard.writeText(inviteCode);
+            await navigator.clipboard.writeText(inviteLink);
             setCopied(true);
-            toast.success("Invite code copied!");
+            toast.success("Invite link copied!");
             setTimeout(() => setCopied(false), 2000);
         } catch {
             try {
@@ -55,34 +68,40 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Invite People</DialogTitle>
                     <DialogDescription>
-                        Share this invite code with friends to let them join{" "}
+                        Share this invite link with friends to let them join{" "}
                         <strong className="text-primary-color">{server?.name}</strong>.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex items-center gap-2 rounded-lg bg-surface border border-[hsl(var(--border))] p-3">
-                    <code
-                        className="flex-1 text-sm font-mono text-[var(--organic-sage)] select-all break-all"
-                        data-invite-code
-                    >
-                        {inviteCode}
-                    </code>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleCopy}
-                        className="shrink-0"
-                    >
-                        {copied ? (
-                            <><Check className="h-4 w-4 mr-1 text-[var(--organic-green)]" /> Copied!</>
-                        ) : (
-                            <><Copy className="h-4 w-4 mr-1" /> Copy</>
-                        )}
-                    </Button>
-                </div>
+                {inviteLink ? (
+                    <div className="flex items-center gap-2 rounded-lg bg-surface border border-[hsl(var(--border))] p-3">
+                        <code
+                            className="flex-1 text-xs font-mono text-[var(--organic-sage)] select-all break-all leading-relaxed"
+                            data-invite-code
+                        >
+                            {inviteLink}
+                        </code>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleCopy}
+                            className="shrink-0"
+                        >
+                            {copied ? (
+                                <><Check className="h-4 w-4 mr-1 text-[var(--organic-green)]" /> Copied!</>
+                            ) : (
+                                <><Copy className="h-4 w-4 mr-1" /> Copy</>
+                            )}
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="text-sm text-muted-color">
+                        Unable to generate invite link. Please try again.
+                    </div>
+                )}
 
                 <p className="text-xs text-muted-color">
-                    Recipients can join by pasting this code in their Lotus app.
+                    Recipients can join by pasting this link in their Lotus app.
                 </p>
 
                 <DialogFooter>

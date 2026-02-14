@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { handleError } from "@/lib/error-utils";
+import { consumeInviteLink, parseInviteLink } from "jazz-tools";
 import { useCoState } from "jazz-tools/react";
 import { ChatServer, ChatAccount } from "@/schema";
 import {
@@ -13,9 +14,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Hash, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 import { joinRateLimiter } from "@/lib/rate-limiter";
-import { coPush, getCoId, isAccountLoaded, getServerArray } from "@/lib/jazz-helpers";
+import { coPush, isAccountLoaded, getServerArray, getCoId } from "@/lib/jazz-helpers";
 
 interface JoinServerModalProps {
     onClose: () => void;
@@ -23,23 +24,29 @@ interface JoinServerModalProps {
 }
 
 /**
- * Validate invite code format.
- * Jazz CoValue IDs are `co_z` followed by a base58-like string (alphanumeric, no 0OIl).
+ * Validate that the pasted text looks like a Jazz invite link.
+ * Format: https://domain/#/invite/{valueID}/{inviteSecret}
  */
-const INVITE_CODE_REGEX = /^co_z[A-HJ-NP-Za-km-z1-9]{10,60}$/;
+function validateInviteLink(link: string): string | null {
+    const trimmed = link.trim();
+    if (!trimmed) return "Please paste an invite link.";
+    if (trimmed.length < 20) return "Invite link is too short.";
 
-function validateInviteCode(code: string): string | null {
-    const trimmed = code.trim();
-    if (!trimmed) return "Please paste an invite code.";
-    if (trimmed.length < 10) return "Invite code is too short.";
-    if (trimmed.length > 80) return "Invite code is too long.";
-    if (!trimmed.startsWith("co_")) return "Invalid invite code. It should start with 'co_'.";
-    if (!INVITE_CODE_REGEX.test(trimmed)) return "Invalid invite code format. Please check and try again.";
+    // Try to parse with Jazz's own parser
+    const parsed = parseInviteLink(trimmed);
+    if (!parsed) {
+        // Check if user pasted a raw CoValue ID instead of a link
+        if (trimmed.startsWith("co_")) {
+            return "This looks like a raw ID, not an invite link. Please ask for a new invite link from the server owner.";
+        }
+        return "Invalid invite link format. Please check and try again.";
+    }
+
     return null;
 }
 
 export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
-    const [inviteCode, setInviteCode] = useState("");
+    const [inviteLink, setInviteLink] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [joining, setJoining] = useState(false);
 
@@ -47,36 +54,9 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
         resolve: { root: { servers: true } },
     });
 
-    const trimmedCode = inviteCode.trim();
-    const isValidFormat = INVITE_CODE_REGEX.test(trimmedCode);
-
-    const serverPreview = useCoState(
-        ChatServer,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        isValidFormat ? (trimmedCode as any) : undefined,
-        { resolve: { channels: { $each: true } } }
-    );
-
-    // Derive loading state from Jazz's internal status
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const previewAny = serverPreview as any;
-    const loadingState: string | undefined = previewAny?.$jazz?.loadingState;
-    const isFullyLoaded = previewAny?.$isLoaded === true;
-
-    // Timeout: if still loading after 15 seconds, show a helpful message
-    const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-    useEffect(() => {
-        if (!isValidFormat || isFullyLoaded) {
-            setLoadingTimedOut(false);
-            return;
-        }
-        const timer = setTimeout(() => setLoadingTimedOut(true), 15000);
-        return () => clearTimeout(timer);
-    }, [isValidFormat, isFullyLoaded, trimmedCode]);
-
-    const handleJoin = useCallback(() => {
+    const handleJoin = useCallback(async () => {
         // Validate format
-        const validationError = validateInviteCode(inviteCode);
+        const validationError = validateInviteLink(inviteLink);
         if (validationError) {
             setError(validationError);
             return;
@@ -90,54 +70,69 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
             return;
         }
 
-        // Check server loaded
-        if (!serverPreview) {
-            setError("Could not find a server with that invite code. It may still be loading — try again in a moment.");
-            return;
-        }
-
         // Check account loaded
         if (!isAccountLoaded(me) || !me) {
             setError("Still loading your account — please wait a moment and try again.");
             return;
         }
 
-        // Check duplicate
-        const servers = getServerArray(me);
-        const alreadyJoined = servers.some(
-            (s) => getCoId(s) === trimmedCode
-        );
-        if (alreadyJoined) {
-            setError("You've already joined this server!");
-            return;
-        }
-
         setJoining(true);
+        setError(null);
         joinRateLimiter.record();
 
         try {
+            // Use Jazz's consumeInviteLink to properly join the Group
+            const result = await consumeInviteLink({
+                inviteURL: inviteLink.trim(),
+                invitedObjectSchema: ChatServer,
+                forValueHint: "server",
+            });
+
+            if (!result) {
+                setError("Could not process this invite link. It may be invalid or expired.");
+                setJoining(false);
+                return;
+            }
+
+            // Load the server after accepting the invite
+            const serverId = result.valueID as string;
+
+            // Check if already joined
+            const servers = getServerArray(me);
+            const alreadyJoined = servers.some(
+                (s) => getCoId(s) === serverId
+            );
+            if (alreadyJoined) {
+                setError("You've already joined this server!");
+                setJoining(false);
+                return;
+            }
+
+            // Load the server and add it to our list
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const server = await (ChatServer as any).load(serverId, {
+                resolve: { channels: { $each: true } },
+            });
+
+            if (!server) {
+                setError("Server loaded but data is unavailable. Please try again.");
+                setJoining(false);
+                return;
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const serverList = (me as any)?.root?.servers;
-            coPush(serverList, serverPreview);
-            const serverId = getCoId(serverPreview);
+            coPush(serverList, server);
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            toast.success(`Joined "${(serverPreview as any)?.name || 'server'}"`);
-            onJoined(serverId ?? '');
+            toast.success(`Joined "${(server as any)?.name || 'server'}"`);
+            onJoined(serverId);
         } catch (err) {
             handleError(err, { context: "JoinServer" });
-            setError("Failed to join server. Please try again.");
+            setError("Failed to join server. The invite link may be invalid or expired.");
             setJoining(false);
         }
-    }, [inviteCode, trimmedCode, serverPreview, me, onJoined]);
-
-    const isLoaded = isFullyLoaded && !!serverPreview;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sp = serverPreview as any;
-    const serverName = isLoaded ? sp?.name : null;
-    const serverEmoji = isLoaded ? sp?.iconEmoji : null;
-    const channelCount = isLoaded && sp?.channels
-        ? Array.from(sp.channels).filter(Boolean).length
-        : 0;
+    }, [inviteLink, me, onJoined]);
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -145,65 +140,27 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Join a Server</DialogTitle>
                     <DialogDescription>
-                        Paste an invite code to join an existing server.
+                        Paste an invite link to join an existing server.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-2">
                     <div className="space-y-2">
                         <label className="label-section">
-                            Invite Code
+                            Invite Link
                         </label>
                         <Input
                             type="text"
-                            value={inviteCode}
+                            value={inviteLink}
                             onChange={(e) => {
-                                setInviteCode(e.target.value);
+                                setInviteLink(e.target.value);
                                 setError(null);
                             }}
-                            placeholder="co_zQZKpq..."
+                            placeholder="https://lotus.app/#/invite/co_z..."
                             autoFocus
-                            className="input-base font-mono"
+                            className="input-base font-mono text-xs"
                         />
                     </div>
-
-                    {/* Server preview card */}
-                    {isLoaded && serverName && (
-                        <div className="flex items-center gap-3 rounded-lg bg-surface border border-[hsl(var(--border))] p-3 animate-fade-in">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-green)] flex items-center justify-center text-lg shrink-0">
-                                {serverEmoji || "💬"}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="text-sm font-semibold truncate">{serverName}</div>
-                                <div className="text-xs text-muted-color flex items-center gap-1">
-                                    <Hash className="h-3 w-3" />
-                                    {channelCount} channel{channelCount !== 1 ? "s" : ""}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Loading states */}
-                    {isValidFormat && !isLoaded && loadingState === "unauthorized" && (
-                        <div className="flex items-start gap-2 bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.3] text-[hsl(var(--destructive))] text-sm rounded-lg px-3 py-2">
-                            <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
-                            <span>You don't have permission to access this server. The invite code may be invalid or expired.</span>
-                        </div>
-                    )}
-                    {isValidFormat && !isLoaded && loadingState === "unavailable" && (
-                        <div className="flex items-start gap-2 bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.3] text-[hsl(var(--destructive))] text-sm rounded-lg px-3 py-2">
-                            <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
-                            <span>Server not found. The invite code may be incorrect or the server may have been deleted.</span>
-                        </div>
-                    )}
-                    {isValidFormat && !isLoaded && loadingState !== "unauthorized" && loadingState !== "unavailable" && (
-                        <div className="flex items-center gap-2 text-sm text-muted-color">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            {loadingTimedOut
-                                ? "Still looking... The server might be unavailable or the code might be incorrect."
-                                : "Looking for server..."}
-                        </div>
-                    )}
 
                     {error && (
                         <div className="flex items-start gap-2 bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.3] text-[hsl(var(--destructive))] text-sm rounded-lg px-3 py-2">
@@ -218,7 +175,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
                     <Button
                         className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
                         onClick={handleJoin}
-                        disabled={joining || !isLoaded || !isAccountLoaded(me)}
+                        disabled={joining || !inviteLink.trim() || !isAccountLoaded(me)}
                     >
                         {joining ? (
                             <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Joining...</>
