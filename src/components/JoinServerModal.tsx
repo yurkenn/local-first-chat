@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import { handleError } from "@/lib/error-utils";
 import { useCoState } from "jazz-tools/react";
 import { ChatServer, ChatAccount } from "@/schema";
 import {

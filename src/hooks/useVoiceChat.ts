@@ -4,6 +4,7 @@ import { getOwnerGroup, coSet, coPush, coSplice } from "@/lib/jazz-helpers";
 import { useAudioAnalysis } from "./useAudioAnalysis";
 import { usePeerConnections } from "./usePeerConnections";
 import type { PeerInfo } from "./useVoiceChatTypes";
+import { handleError } from "@/lib/error-utils";
 
 /**
  * useVoiceChat — Full-mesh voice chat via WebRTC + Jazz state.
@@ -147,7 +148,7 @@ export function useVoiceChat(channel: any, userName: string) {
             startPeerPolling();
             audioAnalysis.startAudioMonitoring(setIsSpeaking, setPeers);
         } catch (err) {
-            console.error("[useVoiceChat] Failed to join voice:", err);
+            handleError(err, { context: "useVoiceChat", toast: "Failed to join voice channel" });
         } finally {
             isJoiningRef.current = false;
         }

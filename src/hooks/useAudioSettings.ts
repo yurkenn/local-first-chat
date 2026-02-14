@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { handleError } from "@/lib/error-utils";
 
 /**
  * useAudioSettings — Manages audio device selection, volume, sensitivity, and deafen state.
@@ -145,7 +146,7 @@ export function useAudioSettings(): AudioSettings {
                 setSelectedOutputId(outputs[0].deviceId);
             }
         } catch (err) {
-            console.error("[useAudioSettings] Failed to enumerate devices:", err);
+            handleError(err, { context: "useAudioSettings" });
         }
     }, [selectedInputId, selectedOutputId]);
 
@@ -209,7 +210,7 @@ export function useAudioSettings(): AudioSettings {
 
             setIsTesting(true);
         } catch (err) {
-            console.error("[useAudioSettings] Mic test failed:", err);
+            handleError(err, { context: "useAudioSettings" });
         }
     }, [selectedInputId, inputVolume]);
 

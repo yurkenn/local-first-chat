@@ -25,7 +25,7 @@ export interface ModalLayerProps {
     setTheme: (t: Theme) => void;
     handleCreateServer: (name: string, emoji: string) => void;
     handleCreateChannel: (name: string, type: "text" | "voice") => void;
-    me: LoadedAccount | null;
+    me: LoadedAccount | null | undefined;
 }
 
 /**

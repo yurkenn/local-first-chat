@@ -4,6 +4,7 @@ import { wordlist } from "../wordlist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, Check, Shield, KeyRound } from "lucide-react";
+import { handleError } from "@/lib/error-utils";
 
 /**
  * AuthUI — Passphrase-based authentication for desktop apps.
@@ -110,7 +111,7 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
                     setPassphraseInput("");
                     failedAttemptsRef.current = 0;
                 } catch (err: unknown) {
-                    console.error("[AuthUI] Log in failed:", err);
+                    handleError(err, { context: "AuthUI" });
                     failedAttemptsRef.current += 1;
 
                     if (failedAttemptsRef.current >= MAX_ATTEMPTS_BEFORE_BACKOFF) {

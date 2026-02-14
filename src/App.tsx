@@ -235,7 +235,7 @@ export default function App() {
         setTheme={setTheme}
         handleCreateServer={createServer}
         handleCreateChannel={createChannel}
-        me={me}
+        me={me as any}
       />
     </>
   );

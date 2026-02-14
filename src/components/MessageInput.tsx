@@ -7,6 +7,7 @@ import { messageRateLimiter } from "@/lib/rate-limiter";
 import { getOwnerGroup, coPush, coSet } from "@/lib/jazz-helpers";
 import { MAX_MESSAGE_LENGTH, isValidImageDataUrl } from "@/lib/validators";
 import type { LoadedChannel } from "@/lib/jazz-types";
+import { handleError } from "@/lib/error-utils";
 
 export interface ReplyTarget {
     senderName: string;
@@ -110,7 +111,7 @@ export function MessageInput({
             onClearReply?.();
             messageRateLimiter.record();
         } catch (err) {
-            console.error("[MessageInput] Failed to send message:", err);
+            handleError(err, { context: "MessageInput", toast: "Failed to send message" });
         }
     }, [text, pendingImage, channel, userName, replyTarget, onClearReply]);
 
