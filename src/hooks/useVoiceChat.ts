@@ -76,6 +76,7 @@ export function useVoiceChat(channel: any, userName: string) {
     const myPeerIdRef = useRef<string>(crypto.randomUUID());
     const myPeerCoValueRef = useRef<any>(null);
     const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const isJoiningRef = useRef(false); // Guard against duplicate join() calls
 
     // Audio analysis refs
     const localAnalyserRef = useRef<{ isSpeaking: () => boolean; cleanup: () => void } | null>(null);
@@ -122,10 +123,44 @@ export function useVoiceChat(channel: any, userName: string) {
     }, []);
 
     /**
+     * Remove any stale VoicePeer entries for our peerId from the channel's voice state.
+     * This prevents ghost/clone entries when re-joining after an unclean leave.
+     */
+    const cleanupStalePeerEntries = useCallback((voiceState: any, peerId: string) => {
+        if (!voiceState?.peers) return;
+
+        try {
+            const peersList = voiceState.peers;
+            const items = Array.from(peersList).filter(Boolean);
+
+            // Walk backwards to safely splice multiple matches
+            for (let i = items.length - 1; i >= 0; i--) {
+                const p = items[i] as any;
+                if (p?.peerId === peerId) {
+                    try {
+                        (peersList as any).$jazz.splice(i, 1);
+                    } catch (err) {
+                        console.warn("[useVoiceChat] Failed to remove stale peer at index", i, err);
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn("[useVoiceChat] Error cleaning up stale peers:", err);
+        }
+    }, []);
+
+    /**
      * Join the voice channel.
      */
     const join = useCallback(async () => {
         if (!channel) return;
+
+        // Guard: prevent duplicate join() calls
+        if (isJoiningRef.current) {
+            console.warn("[useVoiceChat] join() already in progress, ignoring duplicate call");
+            return;
+        }
+        isJoiningRef.current = true;
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -154,8 +189,16 @@ export function useVoiceChat(channel: any, userName: string) {
             const voiceState = channel.voiceState;
             if (!voiceState || !voiceState.peers) {
                 console.warn("[useVoiceChat] Voice state or peers not available");
+                isJoiningRef.current = false;
                 return;
             }
+
+            // Generate a fresh peerId for this join session
+            myPeerIdRef.current = crypto.randomUUID();
+
+            // Clean up any stale entries from our previous peerId (shouldn't exist with fresh UUID,
+            // but this also cleans up ghost entries from other crashed sessions)
+            cleanupStalePeerEntries(voiceState, myPeerIdRef.current);
 
             const ownerGroup = (channel as any)._owner;
 
@@ -179,8 +222,10 @@ export function useVoiceChat(channel: any, userName: string) {
             startAudioMonitoring();
         } catch (err) {
             console.error("[useVoiceChat] Failed to join voice:", err);
+        } finally {
+            isJoiningRef.current = false;
         }
-    }, [channel, userName, startAudioMonitoring]);
+    }, [channel, userName, startAudioMonitoring, cleanupStalePeerEntries]);
 
     /**
      * Leave the voice channel.
@@ -220,17 +265,23 @@ export function useVoiceChat(channel: any, userName: string) {
         }
 
         // Remove our VoicePeer from the channel's peer list
+        // Use peerId matching (more reliable than CoValue id matching)
         try {
             const voiceState = channel?.voiceState;
-            if (voiceState?.peers && myPeerCoValueRef.current) {
+            if (voiceState?.peers && myPeerIdRef.current) {
                 const peersList = voiceState.peers;
-                const myCoValueId = myPeerCoValueRef.current.id;
-                const items = Array.from(peersList);
-                const index = items.findIndex(
-                    (p: any) => p?.id === myCoValueId
-                );
-                if (index >= 0) {
-                    (peersList as any).$jazz.splice(index, 1);
+                const items = Array.from(peersList).filter(Boolean);
+
+                // Walk backwards to safely remove all entries with our peerId
+                for (let i = items.length - 1; i >= 0; i--) {
+                    const p = items[i] as any;
+                    if (p?.peerId === myPeerIdRef.current) {
+                        try {
+                            (peersList as any).$jazz.splice(i, 1);
+                        } catch (err) {
+                            console.warn("[useVoiceChat] Error removing peer at index", i, err);
+                        }
+                    }
                 }
             }
         } catch (err) {
@@ -238,6 +289,7 @@ export function useVoiceChat(channel: any, userName: string) {
         }
 
         myPeerCoValueRef.current = null;
+        isJoiningRef.current = false;
         setIsConnected(false);
         setIsSpeaking(false);
         setPeers([]);
