@@ -57,9 +57,9 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
     if (auth.state === "signedIn" && showSavePassphrase) {
         return (
             <div className="flex items-center justify-center min-h-screen p-4">
-                <div className="w-full max-w-md glass-strong rounded-2xl p-8 animate-fade-in">
+                <div className="w-full max-w-md surface-elevated rounded-2xl p-8 animate-fade-in">
                     <div className="flex flex-col items-center mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-green)] flex items-center justify-center mb-4">
                             <KeyRound className="h-8 w-8 text-white" />
                         </div>
                         <h1 className="text-xl font-heading font-bold text-gradient">Save Your Recovery Key</h1>
@@ -78,7 +78,7 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
                     />
 
                     <Button
-                        className="w-full bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90 transition-opacity"
+                        className="w-full bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] transition-opacity"
                         onClick={async () => {
                             try {
                                 await navigator.clipboard.writeText(auth.passphrase);
@@ -109,10 +109,10 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
     // Login / Sign-up form
     return (
         <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="w-full max-w-md glass-strong rounded-2xl p-8 animate-fade-in">
+            <div className="w-full max-w-md surface-elevated rounded-2xl p-8 animate-fade-in">
                 <div className="flex flex-col items-center mb-8">
-                    <div className="text-5xl mb-3 drop-shadow-[0_0_24px_rgba(168,85,247,0.3)]">🪷</div>
-                    <h1 className="text-2xl font-heading font-bold text-gradient">Lotus</h1>
+                    <div className="brand-logo mb-4">🪷</div>
+                    <h1 className="text-2xl brand-title">Lotus</h1>
                     <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
                         Secure, local-first messaging
                     </p>
@@ -141,7 +141,7 @@ export function AuthUI({ children }: { children: React.ReactNode }) {
                         className="bg-[hsl(var(--secondary))] border-[hsl(var(--border))]"
                     />
                     <Button
-                        className="w-full bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90 transition-opacity"
+                        className="w-full bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] transition-opacity"
                         onClick={handleSignUp}
                         disabled={!name.trim()}
                     >

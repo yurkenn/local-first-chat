@@ -25,7 +25,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                 {/* Header */}
                 <DialogHeader className="p-6 pb-4">
                     <DialogTitle className="text-base font-heading font-semibold flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--neon-cyan)] to-[var(--neon-violet)] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-green)] flex items-center justify-center">
                             <Headphones className="h-4 w-4 text-white" />
                         </div>
                         Voice & Audio
@@ -105,7 +105,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                                         "gap-2 rounded-lg h-9 px-4 text-xs font-medium transition-all",
                                         audio.isTesting
                                             ? "bg-[hsl(var(--destructive))/0.12] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.2]"
-                                            : "bg-[var(--neon-green)]/10 text-[var(--neon-green)] hover:bg-[var(--neon-green)]/20"
+                                            : "bg-[var(--organic-green)]/10 text-[var(--organic-green)] hover:bg-[var(--organic-green)]/20"
                                     )}
                                 >
                                     {audio.isTesting ? (
@@ -127,10 +127,10 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                                                     : "4px",
                                                 background: audio.isTesting
                                                     ? audio.micLevel > 75
-                                                        ? "var(--neon-orange)"
+                                                        ? "var(--organic-orange)"
                                                         : audio.micLevel > 40
-                                                            ? "var(--neon-green)"
-                                                            : "var(--neon-cyan)"
+                                                            ? "var(--organic-green)"
+                                                            : "var(--organic-sage)"
                                                     : "hsl(var(--border))",
                                                 animationDelay: audio.isTesting ? `${i * 80}ms` : undefined,
                                             }}
@@ -190,7 +190,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                                 if (audio.isTesting) audio.stopMicTest();
                                 onClose();
                             }}
-                            className="h-9 px-6 rounded-lg bg-gradient-to-r from-[var(--neon-violet)] to-[hsl(270,60%,48%)] text-white font-medium text-xs hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-shadow"
+                            className="h-9 px-6 rounded-lg bg-[var(--organic-sage)] text-white font-medium text-xs hover:shadow-[var(--shadow-md)] transition-shadow"
                         >
                             Done
                         </Button>
@@ -225,7 +225,7 @@ function SliderRow({
     color: "cyan" | "green";
     onChange: (v: number) => void;
 }) {
-    const accentColor = color === "green" ? "var(--neon-green)" : "var(--neon-cyan)";
+    const accentColor = color === "green" ? "var(--organic-green)" : "var(--organic-sage)";
     return (
         <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
@@ -258,7 +258,7 @@ function StyledSelect({
     return (
         <div className="relative">
             <select
-                className="w-full appearance-none bg-[hsl(var(--secondary))] border border-[var(--glass-border)] rounded-lg px-3 py-2.5 pr-9 text-sm text-[hsl(var(--foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] focus:border-[var(--glass-border-strong)] cursor-pointer transition-all"
+                className="w-full appearance-none bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] rounded-lg px-3 py-2.5 pr-9 text-sm text-[hsl(var(--foreground))] outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] focus:border-[hsl(var(--border))] cursor-pointer transition-all"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
             >
@@ -287,7 +287,7 @@ function PremiumSwitch({
                 "relative w-11 h-6 rounded-full transition-all duration-300 cursor-pointer",
                 checked
                     ? "bg-[hsl(var(--destructive))] shadow-[0_0_12px_rgba(239,68,68,0.3)]"
-                    : "bg-[hsl(var(--secondary))] border border-[var(--glass-border)]"
+                    : "bg-[hsl(var(--secondary))] border border-[hsl(var(--border))]"
             )}
             aria-label="Toggle deafen"
         >

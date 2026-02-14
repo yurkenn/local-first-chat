@@ -264,11 +264,11 @@ export default function App() {
             />
           ) : (
             <div className="flex flex-col min-w-0 h-full">
-              <div className="flex items-center h-12 px-3 gap-2 glass-strong border-b border-[var(--glass-border)]">
+              <div className="flex items-center h-12 px-3 gap-2 surface-elevated border-b border-[hsl(var(--border))]">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", layout.sidebarOpen && "text-[var(--neon-violet)]")}
+                  className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", layout.sidebarOpen && "text-[var(--organic-sage)]")}
                   onClick={toggleSidebar}
                   aria-label="Toggle servers"
                 >
@@ -277,7 +277,7 @@ export default function App() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", layout.channelSidebarOpen && "text-[var(--neon-violet)]")}
+                  className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", layout.channelSidebarOpen && "text-[var(--organic-sage)]")}
                   onClick={toggleChannelSidebar}
                   aria-label="Toggle channels"
                 >
@@ -285,14 +285,14 @@ export default function App() {
                 </Button>
                 <div className="flex-1" />
                 <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
-                  <div className="neon-dot" style={{ width: 6, height: 6 }} />
+                  <div className="status-dot" style={{ width: 6, height: 6 }} />
                   E2EE
                 </div>
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4 animate-fade-in">
-                  <div className="text-6xl drop-shadow-[0_0_24px_rgba(168,85,247,0.3)]">🪷</div>
-                  <h1 className="text-3xl font-heading font-bold text-gradient">Lotus</h1>
+                  <div className="brand-logo brand-logo--lg">🪷</div>
+                  <h1 className="text-3xl brand-title">Lotus</h1>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] text-center leading-relaxed px-6">
                     Select a channel to start chatting,
                     <br />
@@ -357,11 +357,11 @@ export default function App() {
             />
           ) : (
             <div className="flex flex-col min-w-0">
-              <div className="flex items-center h-12 px-3 gap-2 glass-strong border-b border-[var(--glass-border)]">
+              <div className="flex items-center h-12 px-3 gap-2 surface-elevated border-b border-[hsl(var(--border))]">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", layout.sidebarOpen && "text-[var(--neon-violet)]")}
+                  className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", layout.sidebarOpen && "text-[var(--organic-sage)]")}
                   onClick={toggleSidebar}
                   aria-label="Toggle servers"
                 >
@@ -369,14 +369,14 @@ export default function App() {
                 </Button>
                 <div className="flex-1" />
                 <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
-                  <div className="neon-dot" style={{ width: 6, height: 6 }} />
+                  <div className="status-dot" style={{ width: 6, height: 6 }} />
                   E2EE
                 </div>
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4 animate-fade-in">
-                  <div className="text-6xl drop-shadow-[0_0_24px_rgba(168,85,247,0.3)]">🪷</div>
-                  <h1 className="text-3xl font-heading font-bold text-gradient">Lotus</h1>
+                  <div className="brand-logo brand-logo--lg">🪷</div>
+                  <h1 className="text-3xl brand-title">Lotus</h1>
                   <p className="text-sm text-[hsl(var(--muted-foreground))] text-center leading-relaxed">
                     Select a channel to start chatting,
                     <br />

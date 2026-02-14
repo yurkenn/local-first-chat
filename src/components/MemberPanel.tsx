@@ -44,27 +44,27 @@ export const MemberPanel = memo(function MemberPanel({
                         Online — 1
                     </div>
                     <div className="group flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-[hsl(var(--secondary))/0.5] transition-colors cursor-default">
-                        <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center text-xs font-bold text-white shrink-0 transition-shadow group-hover:shadow-[0_0_0_2px_rgba(168,85,247,0.3)]">
+                        <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-xs font-bold text-white shrink-0 transition-shadow group-hover:shadow-[var(--shadow-md)]">
                             {userName.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-sm truncate flex-1">{userName}</span>
-                        <div className="neon-dot" style={{ width: 7, height: 7 }} />
+                        <div className="status-dot" style={{ width: 7, height: 7 }} />
                     </div>
                 </div>
             </ScrollArea>
 
-            {/* Mesh status — glow card */}
+            {/* Mesh status — hover card */}
             <div className="p-3 border-t border-[hsl(var(--border))]">
-                <div className="glow-card p-3 space-y-2">
+                <div className="hover-card p-3 space-y-2">
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
                         Mesh Network
                     </div>
                     <div className="flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
-                        <Wifi className="h-3 w-3 text-[var(--neon-green)]" />
+                        <Wifi className="h-3 w-3 text-[var(--organic-green)]" />
                         <span>P2P Direct — Active</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
-                        <Radio className="h-3 w-3 text-[#eab308]" />
+                        <Radio className="h-3 w-3 text-[var(--organic-orange)]" />
                         <span>Relay Fallback — Standby</span>
                     </div>
                 </div>

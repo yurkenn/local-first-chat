@@ -61,7 +61,7 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
 
                 <div className="flex items-center gap-2 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] p-3">
                     <code
-                        className="flex-1 text-sm font-mono text-[var(--neon-cyan)] select-all break-all"
+                        className="flex-1 text-sm font-mono text-[var(--organic-sage)] select-all break-all"
                         data-invite-code
                     >
                         {inviteCode}
@@ -73,7 +73,7 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
                         className="shrink-0"
                     >
                         {copied ? (
-                            <><Check className="h-4 w-4 mr-1 text-[var(--neon-green)]" /> Copied!</>
+                            <><Check className="h-4 w-4 mr-1 text-[var(--organic-green)]" /> Copied!</>
                         ) : (
                             <><Copy className="h-4 w-4 mr-1" /> Copy</>
                         )}

@@ -164,7 +164,7 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
                                         ) : isDeleted ? (
                                             <p className="text-sm italic text-[hsl(var(--muted-foreground))]">[message deleted]</p>
                                         ) : (
-                                            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--neon-cyan)]">
+                                            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--organic-sage)]">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                             </div>
                                         )}
@@ -187,7 +187,7 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
                                 </div>
                             ) : (
                                 <div className="flex gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5">
                                         {(msg.senderName || "?").charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -200,7 +200,7 @@ export function MessageListView({ channel, userName }: MessageListViewProps) {
                                         ) : isDeleted ? (
                                             <p className="text-sm italic text-[hsl(var(--muted-foreground))]">[message deleted]</p>
                                         ) : (
-                                            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--neon-cyan)]">
+                                            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--organic-sage)]">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                             </div>
                                         )}
@@ -243,7 +243,7 @@ const MessageActions = memo(function MessageActions({
     isOwn: boolean;
 }) {
     return (
-        <div className="absolute right-2 top-0 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 rounded-md glass-strong px-1 py-0.5 shadow-lg z-10">
+        <div className="absolute right-2 top-0 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 rounded-md surface-elevated px-1 py-0.5 shadow-lg z-10">
             <Button variant="ghost" size="icon" className="h-6 w-6 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]" onClick={onReact} title="Add reaction">
                 <Smile className="h-3.5 w-3.5" />
             </Button>
@@ -293,9 +293,9 @@ function EditBox({
             />
             <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-1">
                 Escape to{" "}
-                <button className="text-[var(--neon-cyan)] hover:underline" onClick={onCancel}>cancel</button>
+                <button className="text-[var(--organic-sage)] hover:underline" onClick={onCancel}>cancel</button>
                 {" · "}Enter to{" "}
-                <button className="text-[var(--neon-cyan)] hover:underline" onClick={onSave}>save</button>
+                <button className="text-[var(--organic-sage)] hover:underline" onClick={onSave}>save</button>
             </div>
         </div>
     );

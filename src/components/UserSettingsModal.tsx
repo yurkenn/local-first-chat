@@ -53,13 +53,13 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
                         </h3>
 
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center text-lg font-bold text-white shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-lg font-bold text-white shrink-0">
                                 {(currentName || "U").charAt(0).toUpperCase()}
                             </div>
                             <div>
                                 <div className="text-sm font-semibold">{currentName}</div>
-                                <div className="text-xs text-[var(--neon-green)] flex items-center gap-1">
-                                    <div className="neon-dot" style={{ width: 6, height: 6 }} />
+                                <div className="text-xs text-[var(--organic-green)] flex items-center gap-1">
+                                    <div className="status-dot" style={{ width: 6, height: 6 }} />
                                     Online
                                 </div>
                             </div>
@@ -79,7 +79,7 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
                         </div>
 
                         {saved && (
-                            <div className="flex items-center gap-1.5 text-sm text-[var(--neon-green)] animate-fade-in">
+                            <div className="flex items-center gap-1.5 text-sm text-[var(--organic-green)] animate-fade-in">
                                 <Check className="h-4 w-4" /> Name updated!
                             </div>
                         )}
@@ -95,7 +95,7 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
                         <div className="flex items-center justify-between text-sm">
                             <span className="text-[hsl(var(--muted-foreground))]">Auth Method</span>
                             <span className="flex items-center gap-1.5">
-                                <Shield className="h-3.5 w-3.5 text-[var(--neon-cyan)]" />
+                                <Shield className="h-3.5 w-3.5 text-[var(--organic-sage)]" />
                                 Passphrase (BIP39)
                             </span>
                         </div>
@@ -108,7 +108,7 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
                 <DialogFooter>
                     <Button variant="ghost" onClick={onClose}>Close</Button>
                     <Button
-                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
+                        className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
                         onClick={handleSave}
                         disabled={!name.trim()}
                     >

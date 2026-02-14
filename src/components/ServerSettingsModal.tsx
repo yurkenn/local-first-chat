@@ -93,7 +93,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                         </div>
 
                         {saved && (
-                            <div className="flex items-center gap-1.5 text-sm text-[var(--neon-green)] animate-fade-in">
+                            <div className="flex items-center gap-1.5 text-sm text-[var(--organic-green)] animate-fade-in">
                                 <Check className="h-4 w-4" /> Server updated!
                             </div>
                         )}
@@ -133,7 +133,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                 <DialogFooter>
                     <Button variant="ghost" onClick={onClose}>Close</Button>
                     <Button
-                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
+                        className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
                         onClick={handleSave}
                         disabled={!name.trim()}
                     >

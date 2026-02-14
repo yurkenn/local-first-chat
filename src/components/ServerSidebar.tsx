@@ -38,14 +38,14 @@ export const ServerSidebar = memo(function ServerSidebar({
                         <div className="relative flex items-center">
                             {/* Active pill indicator */}
                             {!activeServerId && (
-                                <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-white transition-all duration-200" />
+                                <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-[var(--organic-sage)] transition-all duration-200" />
                             )}
                             <div
                                 className={cn(
                                     "w-11 h-11 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
-                                    "hover:rounded-xl hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]",
+                                    "hover:rounded-xl hover:scale-105 hover:shadow-[var(--shadow-md)]",
                                     !activeServerId
-                                        ? "rounded-xl bg-[hsl(var(--primary))] shadow-[0_0_16px_rgba(168,85,247,0.35)]"
+                                        ? "rounded-xl bg-[hsl(var(--primary))] shadow-[var(--shadow-md)]"
                                         : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--primary))]"
                                 )}
                                 onClick={() => onSelectServer("")}
@@ -73,14 +73,14 @@ export const ServerSidebar = memo(function ServerSidebar({
                                 <div className="relative flex items-center">
                                     {/* Active pill indicator */}
                                     {isActive && (
-                                        <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-white transition-all duration-200" />
+                                        <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-[var(--organic-sage)] transition-all duration-200" />
                                     )}
                                     <div
                                         className={cn(
                                             "w-11 h-11 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
-                                            "hover:rounded-xl hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]",
+                                            "hover:rounded-xl hover:scale-105 hover:shadow-[var(--shadow-md)]",
                                             isActive
-                                                ? "rounded-xl bg-[hsl(var(--primary))] shadow-[0_0_16px_rgba(168,85,247,0.35)]"
+                                                ? "rounded-xl bg-[hsl(var(--primary))] shadow-[var(--shadow-md)]"
                                                 : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--primary))]"
                                         )}
                                         onClick={() => onSelectServer(server.$jazz.id)}
@@ -104,7 +104,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[var(--neon-green)] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[var(--neon-green)] hover:text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(34,197,94,0.25)] transition-all duration-300 cursor-pointer"
+                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[var(--organic-green)] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[var(--organic-green)] hover:text-black hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
                             onClick={onCreateServer}
                             aria-label="Create a server"
                         >
@@ -118,7 +118,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[hsl(var(--muted-foreground))] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-300 cursor-pointer"
+                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[hsl(var(--muted-foreground))] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
                             onClick={onJoinServer}
                             aria-label="Join a server"
                         >

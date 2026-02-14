@@ -31,7 +31,7 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
     return (
         <div
             ref={ref}
-            className="absolute right-0 top-full mt-1 z-20 glass-strong rounded-xl p-2 shadow-xl border border-[var(--glass-border)] animate-fade-in"
+            className="absolute right-0 top-full mt-1 z-20 surface-elevated rounded-xl p-2 shadow-xl border border-[hsl(var(--border))] animate-fade-in"
         >
             <div className="grid grid-cols-6 gap-0.5">
                 {REACTION_EMOJIS.map((emoji) => (

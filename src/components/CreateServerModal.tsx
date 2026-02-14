@@ -85,7 +85,7 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
                 <DialogFooter>
                     <Button variant="ghost" onClick={onClose}>Cancel</Button>
                     <Button
-                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
+                        className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
                         onClick={handleSubmit}
                         disabled={!name.trim()}
                     >

@@ -116,7 +116,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
                     {/* Server preview card */}
                     {isLoaded && serverName && (
                         <div className="flex items-center gap-3 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] p-3 animate-fade-in">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center text-lg shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-green)] flex items-center justify-center text-lg shrink-0">
                                 {serverEmoji || "💬"}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -147,7 +147,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
                 <DialogFooter>
                     <Button variant="ghost" onClick={onClose}>Cancel</Button>
                     <Button
-                        className="bg-gradient-to-r from-[var(--neon-violet)] to-[var(--neon-cyan)] hover:opacity-90"
+                        className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
                         onClick={handleJoin}
                         disabled={joining || !isLoaded}
                     >

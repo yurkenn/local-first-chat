@@ -25,9 +25,9 @@ export const ChatHeader = memo(function ChatHeader({
     onToggleMemberPanel,
 }: ChatHeaderProps) {
     return (
-        <div className="relative flex items-center h-12 px-3 gap-1 glass-strong shrink-0">
-            {/* Bottom gradient shadow */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--glass-border-strong)] to-transparent" />
+        <div className="relative flex items-center h-12 px-3 gap-1 surface-elevated shrink-0">
+            {/* Bottom border */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-[hsl(var(--border))]" />
 
             {/* Left controls */}
             <Button
@@ -35,7 +35,7 @@ export const ChatHeader = memo(function ChatHeader({
                 size="icon"
                 className={cn(
                     "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
-                    sidebarOpen && "text-[var(--neon-violet)]"
+                    sidebarOpen && "text-[var(--organic-sage)]"
                 )}
                 onClick={onToggleSidebar}
                 aria-label="Toggle servers"
@@ -47,7 +47,7 @@ export const ChatHeader = memo(function ChatHeader({
                 size="icon"
                 className={cn(
                     "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
-                    channelSidebarOpen && "text-[var(--neon-violet)]"
+                    channelSidebarOpen && "text-[var(--organic-sage)]"
                 )}
                 onClick={onToggleChannelSidebar}
                 aria-label="Toggle channels"
@@ -68,10 +68,10 @@ export const ChatHeader = memo(function ChatHeader({
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* E2EE badge — pill style */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--neon-green)]/8 border border-[var(--neon-green)]/15 mr-1">
-                <Shield className="h-3 w-3 text-[var(--neon-green)]" />
-                <span className="text-[10px] font-medium text-[var(--neon-green)]">E2EE</span>
+            {/* E2EE badge — organic pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--organic-sage)]/8 border border-[var(--organic-sage)]/15 mr-1">
+                <Shield className="h-3 w-3 text-[var(--organic-sage)]" />
+                <span className="text-[10px] font-medium text-[var(--organic-sage)]">E2EE</span>
             </div>
 
             {/* Right controls */}
@@ -80,7 +80,7 @@ export const ChatHeader = memo(function ChatHeader({
                 size="icon"
                 className={cn(
                     "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
-                    memberPanelOpen && "text-[var(--neon-violet)]"
+                    memberPanelOpen && "text-[var(--organic-sage)]"
                 )}
                 onClick={onToggleMemberPanel}
                 aria-label="Toggle members"

@@ -35,8 +35,8 @@ export const ChatArea = memo(function ChatArea({
     if (!channel) {
         return (
             <div className="flex flex-col items-center justify-center min-w-0">
-                <div className="text-6xl drop-shadow-[0_0_24px_rgba(168,85,247,0.3)]">🪷</div>
-                <h1 className="text-3xl font-heading font-bold text-gradient mt-4">Lotus</h1>
+                <div className="brand-logo brand-logo--lg mb-2">🪷</div>
+                <h1 className="text-3xl brand-title mt-4">Lotus</h1>
                 <p className="text-sm text-[hsl(var(--muted-foreground))] text-center mt-2">
                     Select a channel to begin.
                 </p>
@@ -87,7 +87,7 @@ function TypingIndicator({ users }: { users: string[] }) {
                 {[0, 1, 2].map((i) => (
                     <span
                         key={i}
-                        className="w-[6px] h-[6px] rounded-full bg-[var(--neon-cyan)]"
+                        className="w-[6px] h-[6px] rounded-full bg-[var(--organic-sage)]"
                         style={{
                             animation: "typing-bounce 1.2s ease-in-out infinite",
                             animationDelay: `${i * 160}ms`,

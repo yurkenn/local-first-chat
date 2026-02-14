@@ -41,8 +41,9 @@ export const ChannelSidebar = memo(function ChannelSidebar({
     if (!server) {
         return (
             <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-r border-[hsl(var(--border))]">
-                <div className="h-12 flex items-center px-4 font-heading font-semibold text-sm border-b border-[hsl(var(--border))]">
-                    Lotus
+                <div className="h-12 flex items-center px-4 gap-2 border-b border-[hsl(var(--border))]">
+                    <span className="text-lg leading-none">🪷</span>
+                    <span className="font-heading font-semibold text-sm brand-title">Lotus</span>
                 </div>
                 <div className="flex-1 flex items-center justify-center p-6">
                     <div className="text-center">
@@ -53,7 +54,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     </div>
                 </div>
                 <UserPanel userName={userName} onLogout={onLogout} onUserSettings={onUserSettings} />
-            </div>
+            </div >
         );
     }
 
@@ -96,7 +97,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                         bg-[hsl(var(--primary)/0.08)] hover:bg-[hsl(var(--primary)/0.15)]
                         text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]
                         border border-[hsl(var(--primary)/0.2)] hover:border-[hsl(var(--primary)/0.4)]
-                        hover:shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
+                        hover:shadow-[var(--shadow-sm)]"
                     onClick={onInvite}
                     aria-label="Invite people to this server"
                 >
@@ -132,7 +133,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                                 onClick={() => onSelectChannel(channel.$jazz.id)}
                                 aria-label={`Text channel: ${channel.name}`}
                             >
-                                <Hash className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--neon-cyan)] opacity-100" : "opacity-60")} />
+                                <Hash className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--organic-sage)] opacity-100" : "opacity-60")} />
                                 <span className="truncate">{channel.name}</span>
                             </button>
                         );
@@ -168,13 +169,13 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                                     title="Click to join voice"
                                 >
                                     {voice.isJoining && voice.connectedChannel?.$jazz?.id === channel.$jazz.id ? (
-                                        <Loader2 className="h-4 w-4 shrink-0 text-[var(--neon-cyan)] animate-spin" />
+                                        <Loader2 className="h-4 w-4 shrink-0 text-[var(--organic-sage)] animate-spin" />
                                     ) : (
-                                        <Volume2 className={cn("h-4 w-4 shrink-0", isConnectedToThis ? "text-[var(--neon-green)]" : "opacity-60")} />
+                                        <Volume2 className={cn("h-4 w-4 shrink-0", isConnectedToThis ? "text-[var(--organic-green)]" : "opacity-60")} />
                                     )}
                                     <span className="truncate flex-1 text-left">{channel.name}</span>
                                     {voice.isJoining && voice.connectedChannel?.$jazz?.id === channel.$jazz.id ? (
-                                        <span className="text-[10px] text-[var(--neon-cyan)]">Joining…</span>
+                                        <span className="text-[10px] text-[var(--organic-sage)]">Joining…</span>
                                     ) : !isConnectedToThis ? (
                                         <span className="text-[10px] opacity-0 group-hover/voice:opacity-60 transition-opacity">
                                             Join
@@ -193,8 +194,8 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                                                 <SpeakingAvatar
                                                     name={peer.peerName || "?"}
                                                     isSpeaking={peer.isSpeaking}
-                                                    gradientFrom="var(--neon-violet)"
-                                                    gradientTo="var(--neon-cyan)"
+                                                    gradientFrom="var(--organic-sage)"
+                                                    gradientTo="var(--organic-blue)"
                                                 />
                                                 <span className="truncate flex-1">{peer.peerName || "Unknown"}</span>
                                                 {peer.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
@@ -210,8 +211,8 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                                             <SpeakingAvatar
                                                 name={userName || "U"}
                                                 isSpeaking={voice.isSpeaking && !voice.isMuted}
-                                                gradientFrom="var(--neon-cyan)"
-                                                gradientTo="var(--neon-green)"
+                                                gradientFrom="var(--organic-sage)"
+                                                gradientTo="var(--organic-green)"
                                             />
                                             <span className="truncate flex-1">{userName || "You"}</span>
                                             {voice.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
@@ -224,7 +225,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
 
                     {/* Add channel button */}
                     <button
-                        className="w-full flex items-center gap-2 px-2 py-1.5 mt-1 rounded-md text-sm text-[hsl(var(--muted-foreground))] hover:text-[var(--neon-green)] hover:bg-[hsl(var(--secondary))/0.5] transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2 px-2 py-1.5 mt-1 rounded-md text-sm text-[hsl(var(--muted-foreground))] hover:text-[var(--organic-green)] hover:bg-[hsl(var(--secondary))/0.5] transition-colors cursor-pointer"
                         onClick={onCreateChannel}
                         aria-label="Add channel"
                     >
@@ -253,7 +254,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
 });
 
 /**
- * SpeakingAvatar — Small avatar with green glow ring when speaking.
+ * SpeakingAvatar — Small avatar with soft glow ring when speaking.
  */
 function SpeakingAvatar({
     name,
@@ -273,7 +274,7 @@ function SpeakingAvatar({
         <div
             className={cn(
                 "relative rounded-full shrink-0 transition-shadow duration-200",
-                isSpeaking && "shadow-[0_0_0_2px_var(--neon-green),0_0_8px_var(--neon-green)]"
+                isSpeaking && "shadow-[0_0_0_2px_var(--organic-green),0_0_6px_var(--organic-green)]"
             )}
         >
             <div
@@ -291,7 +292,7 @@ function SpeakingAvatar({
     );
 }
 
-/** VoiceStatusBar — Persistent voice connection bar, Discord-style */
+/** VoiceStatusBar — Persistent voice connection bar */
 function VoiceStatusBar({
     channelName,
     isMuted,
@@ -308,19 +309,19 @@ function VoiceStatusBar({
     onAudioSettings?: () => void;
 }) {
     return (
-        <div className="px-2 py-2 glass-strong border-t border-[var(--glass-border)] animate-fade-in gradient-border-top">
+        <div className="px-2 py-2 surface-elevated border-t border-[hsl(var(--border))] animate-fade-in gradient-border-top">
             {/* Connection status */}
             <div className="flex items-center gap-2 mb-1.5">
                 <div className={cn(
                     "w-2 h-2 rounded-full transition-colors duration-200",
                     isSpeaking && !isMuted
-                        ? "bg-[var(--neon-green)] shadow-[0_0_8px_var(--neon-green)] scale-125"
-                        : "bg-[var(--neon-green)] shadow-[0_0_6px_var(--neon-green)] animate-pulse"
+                        ? "bg-[var(--organic-green)] shadow-[0_0_6px_var(--organic-green)] scale-125"
+                        : "bg-[var(--organic-green)] shadow-[0_0_4px_rgba(106,176,122,0.3)] animate-pulse"
                 )} />
                 <div className="flex-1 min-w-0">
                     <div className={cn(
                         "text-xs font-semibold transition-colors duration-200",
-                        isSpeaking && !isMuted ? "text-[var(--neon-green)]" : "text-[var(--neon-green)]"
+                        isSpeaking && !isMuted ? "text-[var(--organic-green)]" : "text-[var(--organic-green)]"
                     )}>
                         {isSpeaking && !isMuted ? "Speaking" : "Voice Connected"}
                     </div>
@@ -340,7 +341,7 @@ function VoiceStatusBar({
                         isMuted
                             ? "bg-[hsl(var(--destructive))/0.15] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.25]"
                             : isSpeaking
-                                ? "text-[var(--neon-green)] bg-[var(--neon-green)]/10 hover:bg-[var(--neon-green)]/20"
+                                ? "text-[var(--organic-green)] bg-[var(--organic-green)]/10 hover:bg-[var(--organic-green)]/20"
                                 : "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--secondary))]"
                     )}
                     onClick={onToggleMute}
@@ -375,14 +376,14 @@ function VoiceStatusBar({
 
 function UserPanel({ userName, onLogout, onUserSettings }: { userName: string; onLogout?: () => void; onUserSettings?: () => void }) {
     return (
-        <div className="flex items-center gap-2 px-2 py-2 glass-strong border-t border-[var(--glass-border)]">
-            <div className="group/avatar relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--neon-violet)] to-[var(--neon-cyan)] flex items-center justify-center text-xs font-bold text-white transition-shadow hover:shadow-[0_0_0_2px_rgba(168,85,247,0.3)]">
+        <div className="flex items-center gap-2 px-2 py-2 surface-elevated border-t border-[hsl(var(--border))]">
+            <div className="group/avatar relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-xs font-bold text-white transition-shadow hover:shadow-[var(--shadow-md)]">
                 {userName.charAt(0).toUpperCase()}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[var(--neon-green)] border-2 border-[hsl(var(--card))]" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[var(--organic-green)] border-2 border-[hsl(var(--card))]" />
             </div>
             <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium truncate">{userName}</div>
-                <div className="text-[10px] text-[var(--neon-green)]">Online</div>
+                <div className="text-[10px] text-[var(--organic-green)]">Online</div>
             </div>
             {onUserSettings && (
                 <Button

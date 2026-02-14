@@ -51,7 +51,7 @@ export function MessageInput({ channel, userName, onTyping }: MessageInputProps)
 
     return (
         <div className="px-4 pb-4 pt-1">
-            <div className="flex items-end gap-2 rounded-xl glass-elevated p-1.5 focus-glow transition-all duration-200">
+            <div className="flex items-end gap-2 rounded-xl surface-floating p-1.5 focus-glow transition-all duration-200">
                 <textarea
                     className="flex-1 min-h-[36px] max-h-[120px] bg-transparent border-none outline-none resize-none text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] px-3 py-2"
                     value={text}
@@ -69,7 +69,7 @@ export function MessageInput({ channel, userName, onTyping }: MessageInputProps)
                 />
                 <Button
                     size="icon"
-                    className="h-8 w-8 rounded-lg bg-gradient-to-br from-[var(--neon-violet)] to-[hsl(270,60%,45%)] hover:scale-110 hover:shadow-[0_0_16px_rgba(168,85,247,0.35)] shrink-0 disabled:opacity-30 disabled:hover:scale-100 disabled:hover:shadow-none transition-all duration-200 text-white"
+                    className="h-8 w-8 rounded-lg bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] hover:scale-110 hover:shadow-[var(--shadow-md)] shrink-0 disabled:opacity-30 disabled:hover:scale-100 disabled:hover:shadow-none transition-all duration-200 text-white"
                     onClick={handleSend}
                     disabled={!text.trim()}
                     aria-label="Send message"
