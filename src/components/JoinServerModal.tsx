@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { handleError } from "@/lib/error-utils";
 import { useCoState } from "jazz-tools/react";
@@ -57,6 +57,23 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
         { resolve: { channels: { $each: true } } }
     );
 
+    // Derive loading state from Jazz's internal status
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const previewAny = serverPreview as any;
+    const loadingState: string | undefined = previewAny?.$jazz?.loadingState;
+    const isFullyLoaded = previewAny?.$isLoaded === true;
+
+    // Timeout: if still loading after 15 seconds, show a helpful message
+    const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+    useEffect(() => {
+        if (!isValidFormat || isFullyLoaded) {
+            setLoadingTimedOut(false);
+            return;
+        }
+        const timer = setTimeout(() => setLoadingTimedOut(true), 15000);
+        return () => clearTimeout(timer);
+    }, [isValidFormat, isFullyLoaded, trimmedCode]);
+
     const handleJoin = useCallback(() => {
         // Validate format
         const validationError = validateInviteCode(inviteCode);
@@ -113,7 +130,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
         }
     }, [inviteCode, trimmedCode, serverPreview, me, onJoined]);
 
-    const isLoaded = !!serverPreview;
+    const isLoaded = isFullyLoaded && !!serverPreview;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sp = serverPreview as any;
     const serverName = isLoaded ? sp?.name : null;
@@ -166,11 +183,25 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
                         </div>
                     )}
 
-                    {/* Loading */}
-                    {isValidFormat && !isLoaded && (
+                    {/* Loading states */}
+                    {isValidFormat && !isLoaded && loadingState === "unauthorized" && (
+                        <div className="flex items-start gap-2 bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.3] text-[hsl(var(--destructive))] text-sm rounded-lg px-3 py-2">
+                            <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+                            <span>You don't have permission to access this server. The invite code may be invalid or expired.</span>
+                        </div>
+                    )}
+                    {isValidFormat && !isLoaded && loadingState === "unavailable" && (
+                        <div className="flex items-start gap-2 bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.3] text-[hsl(var(--destructive))] text-sm rounded-lg px-3 py-2">
+                            <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+                            <span>Server not found. The invite code may be incorrect or the server may have been deleted.</span>
+                        </div>
+                    )}
+                    {isValidFormat && !isLoaded && loadingState !== "unauthorized" && loadingState !== "unavailable" && (
                         <div className="flex items-center gap-2 text-sm text-muted-color">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            Looking for server...
+                            {loadingTimedOut
+                                ? "Still looking... The server might be unavailable or the code might be incorrect."
+                                : "Looking for server..."}
                         </div>
                     )}
 
