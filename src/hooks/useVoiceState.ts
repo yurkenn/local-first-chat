@@ -6,11 +6,6 @@ import { useVoiceChat } from "@/hooks/useVoiceChat";
  *
  * Separates "which voice channel am I connected to" from "which channel am I viewing".
  * This enables Discord-like behavior: stay in voice while browsing text channels.
- *
- * Usage:
- *   const voice = useVoiceState(userName, allChannels);
- *   // Click voice channel → voice.joinVoice(channel)
- *   // Sidebar shows voice.connectedChannel, voice.peers, voice controls
  */
 
 export interface VoiceStateReturn {
@@ -18,10 +13,14 @@ export interface VoiceStateReturn {
     connectedChannel: any | null;
     /** Whether we're connected to a voice channel */
     isConnected: boolean;
+    /** Whether a join is in progress (for loading UI) */
+    isJoining: boolean;
     /** Whether our mic is muted */
     isMuted: boolean;
+    /** Whether we are currently speaking */
+    isSpeaking: boolean;
     /** List of peers in the voice channel */
-    peers: Array<{ peerId: string; peerName: string; isMuted: boolean }>;
+    peers: Array<{ peerId: string; peerName: string; isMuted: boolean; isSpeaking: boolean }>;
     /** Join a voice channel (auto-leaves current if any) */
     joinVoice: (channel: any) => void;
     /** Leave the current voice channel */
@@ -32,10 +31,10 @@ export interface VoiceStateReturn {
 
 export function useVoiceState(userName: string): VoiceStateReturn {
     const [connectedChannel, setConnectedChannel] = useState<any | null>(null);
+    const [isJoining, setIsJoining] = useState(false);
     const pendingJoinRef = useRef(false);
 
-    // useVoiceChat manages the actual WebRTC connections
-    const { isConnected, isMuted, peers, join, leave, toggleMute } =
+    const { isConnected, isMuted, isSpeaking, peers, join, leave, toggleMute } =
         useVoiceChat(connectedChannel, userName);
 
     // When connectedChannel changes and we have a pending join, trigger it
@@ -46,12 +45,20 @@ export function useVoiceState(userName: string): VoiceStateReturn {
         }
     }, [connectedChannel, join]);
 
+    // Clear isJoining when connection is established
+    useEffect(() => {
+        if (isConnected) {
+            setIsJoining(false);
+        }
+    }, [isConnected]);
+
     const joinVoice = useCallback(
         (channel: any) => {
             const channelId = channel?.$jazz?.id;
             const currentId = connectedChannel?.$jazz?.id;
 
-            // If already connected to this channel, do nothing
+            // If already connected to this channel or join in progress, do nothing
+            if (isJoining) return;
             if (channelId && channelId === currentId && isConnected) return;
 
             // If connected to a different channel, leave first
@@ -59,22 +66,28 @@ export function useVoiceState(userName: string): VoiceStateReturn {
                 leave();
             }
 
+            // Set joining state to prevent duplicate clicks
+            setIsJoining(true);
+
             // Set the new channel and queue a join
             pendingJoinRef.current = true;
             setConnectedChannel(channel);
         },
-        [connectedChannel, isConnected, leave]
+        [connectedChannel, isConnected, isJoining, leave]
     );
 
     const leaveVoice = useCallback(() => {
         leave();
+        setIsJoining(false);
         setConnectedChannel(null);
     }, [leave]);
 
     return {
         connectedChannel,
         isConnected,
+        isJoining,
         isMuted,
+        isSpeaking,
         peers,
         joinVoice,
         leaveVoice,

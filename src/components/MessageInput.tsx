@@ -6,9 +6,11 @@ import { Send } from "lucide-react";
 interface MessageInputProps {
     channel: any;
     userName: string;
+    /** Callback to notify that the user is typing */
+    onTyping?: () => void;
 }
 
-export function MessageInput({ channel, userName }: MessageInputProps) {
+export function MessageInput({ channel, userName, onTyping }: MessageInputProps) {
     const [text, setText] = useState("");
 
     const handleSend = useCallback(() => {
@@ -49,11 +51,17 @@ export function MessageInput({ channel, userName }: MessageInputProps) {
 
     return (
         <div className="px-4 pb-4 pt-1">
-            <div className="flex items-end gap-2 rounded-xl glass-strong p-1.5">
+            <div className="flex items-end gap-2 rounded-xl glass-elevated p-1.5 focus-glow transition-all duration-200">
                 <textarea
                     className="flex-1 min-h-[36px] max-h-[120px] bg-transparent border-none outline-none resize-none text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] px-3 py-2"
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => {
+                        setText(e.target.value);
+                        // Notify typing on every keystroke
+                        if (e.target.value.trim() && onTyping) {
+                            onTyping();
+                        }
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder={`Message #${channel?.name || "channel"}`}
                     rows={1}
@@ -61,7 +69,7 @@ export function MessageInput({ channel, userName }: MessageInputProps) {
                 />
                 <Button
                     size="icon"
-                    className="h-8 w-8 rounded-lg bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))/0.8] shrink-0 disabled:opacity-30 transition-all"
+                    className="h-8 w-8 rounded-lg bg-gradient-to-br from-[var(--neon-violet)] to-[hsl(270,60%,45%)] hover:scale-110 hover:shadow-[0_0_16px_rgba(168,85,247,0.35)] shrink-0 disabled:opacity-30 disabled:hover:scale-100 disabled:hover:shadow-none transition-all duration-200 text-white"
                     onClick={handleSend}
                     disabled={!text.trim()}
                     aria-label="Send message"

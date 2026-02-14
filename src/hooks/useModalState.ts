@@ -6,7 +6,8 @@ type ModalName =
     | "invite"
     | "joinServer"
     | "userSettings"
-    | "serverSettings";
+    | "serverSettings"
+    | "audioSettings";
 
 type ModalState = Record<ModalName, boolean>;
 
@@ -17,6 +18,7 @@ const initialState: ModalState = {
     joinServer: false,
     userSettings: false,
     serverSettings: false,
+    audioSettings: false,
 };
 
 /**

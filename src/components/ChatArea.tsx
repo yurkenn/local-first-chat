@@ -1,6 +1,7 @@
 import { ChatHeader } from "@/components/ChatHeader";
 import { MessageListView } from "@/components/MessageListView";
 import { MessageInput } from "@/components/MessageInput";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 
 interface ChatAreaProps {
     channel: any | null;
@@ -28,6 +29,8 @@ export function ChatArea({
     onToggleChannelSidebar,
     onToggleMemberPanel,
 }: ChatAreaProps) {
+    const { typingUsers, notifyTyping } = useTypingIndicator(channel, userName);
+
     if (!channel) {
         return (
             <div className="flex flex-col items-center justify-center min-w-0">
@@ -53,7 +56,45 @@ export function ChatArea({
                 onToggleMemberPanel={onToggleMemberPanel}
             />
             <MessageListView channel={channel} userName={userName} />
-            <MessageInput channel={channel} userName={userName} />
+
+            {/* Typing indicator */}
+            {typingUsers.length > 0 && (
+                <TypingIndicator users={typingUsers} />
+            )}
+
+            <MessageInput channel={channel} userName={userName} onTyping={notifyTyping} />
+        </div>
+    );
+}
+
+/** Typing indicator — shows animated dots with user names */
+function TypingIndicator({ users }: { users: string[] }) {
+    let text = "";
+    if (users.length === 1) {
+        text = `${users[0]} is typing`;
+    } else if (users.length === 2) {
+        text = `${users[0]} and ${users[1]} are typing`;
+    } else if (users.length === 3) {
+        text = `${users[0]}, ${users[1]}, and ${users[2]} are typing`;
+    } else {
+        text = `${users.length} people are typing`;
+    }
+
+    return (
+        <div className="px-4 py-1.5 text-xs text-[hsl(var(--muted-foreground))] animate-fade-in flex items-center gap-2">
+            <span className="flex items-center gap-[3px]">
+                {[0, 1, 2].map((i) => (
+                    <span
+                        key={i}
+                        className="w-[6px] h-[6px] rounded-full bg-[var(--neon-cyan)]"
+                        style={{
+                            animation: "typing-bounce 1.2s ease-in-out infinite",
+                            animationDelay: `${i * 160}ms`,
+                        }}
+                    />
+                ))}
+            </span>
+            <span className="text-[11px]">{text}</span>
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Menu, Hash, Volume2, Users } from "lucide-react";
+import { Menu, Hash, Volume2, Users, Shield } from "lucide-react";
 
 interface ChatHeaderProps {
     channelName: string;
@@ -24,12 +24,18 @@ export function ChatHeader({
     onToggleMemberPanel,
 }: ChatHeaderProps) {
     return (
-        <div className="flex items-center h-12 px-3 gap-1 glass-strong border-b border-[var(--glass-border)] shrink-0">
+        <div className="relative flex items-center h-12 px-3 gap-1 glass-strong shrink-0">
+            {/* Bottom gradient shadow */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--glass-border-strong)] to-transparent" />
+
             {/* Left controls */}
             <Button
                 variant="ghost"
                 size="icon"
-                className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", sidebarOpen && "text-[var(--neon-violet)]")}
+                className={cn(
+                    "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
+                    sidebarOpen && "text-[var(--neon-violet)]"
+                )}
                 onClick={onToggleSidebar}
                 aria-label="Toggle servers"
             >
@@ -38,7 +44,10 @@ export function ChatHeader({
             <Button
                 variant="ghost"
                 size="icon"
-                className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", channelSidebarOpen && "text-[var(--neon-violet)]")}
+                className={cn(
+                    "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
+                    channelSidebarOpen && "text-[var(--neon-violet)]"
+                )}
                 onClick={onToggleChannelSidebar}
                 aria-label="Toggle channels"
             >
@@ -58,17 +67,20 @@ export function ChatHeader({
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* E2EE indicator */}
-            <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))] mr-1">
-                <div className="neon-dot" style={{ width: 6, height: 6 }} />
-                E2EE
+            {/* E2EE badge — pill style */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--neon-green)]/8 border border-[var(--neon-green)]/15 mr-1">
+                <Shield className="h-3 w-3 text-[var(--neon-green)]" />
+                <span className="text-[10px] font-medium text-[var(--neon-green)]">E2EE</span>
             </div>
 
             {/* Right controls */}
             <Button
                 variant="ghost"
                 size="icon"
-                className={cn("h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]", memberPanelOpen && "text-[var(--neon-violet)]")}
+                className={cn(
+                    "h-8 w-8 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors",
+                    memberPanelOpen && "text-[var(--neon-violet)]"
+                )}
                 onClick={onToggleMemberPanel}
                 aria-label="Toggle members"
             >

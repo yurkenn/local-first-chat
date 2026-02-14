@@ -13,6 +13,8 @@ import {
   MessageList,
   VoiceState,
   VoicePeerList,
+  TypingState,
+  TypingUserList,
   ChatAccount,
 } from "@/schema";
 import { ServerSidebar } from "@/components/ServerSidebar";
@@ -25,6 +27,7 @@ import { InviteModal } from "@/components/InviteModal";
 import { JoinServerModal } from "@/components/JoinServerModal";
 import { UserSettingsModal } from "@/components/UserSettingsModal";
 import { ServerSettingsModal } from "@/components/ServerSettingsModal";
+import { AudioSettingsModal } from "@/components/AudioSettingsModal";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,12 +83,17 @@ export default function App() {
         { peers: VoicePeerList.create([], { owner: serverGroup }) },
         { owner: serverGroup }
       );
+      const generalTypingState = TypingState.create(
+        { typingUsers: TypingUserList.create([], { owner: serverGroup }) },
+        { owner: serverGroup }
+      );
       const generalChannel = Channel.create(
         {
           name: "general",
           channelType: "text",
           messages: generalMessages,
           voiceState: generalVoiceState,
+          typingState: generalTypingState,
         },
         { owner: serverGroup }
       );
@@ -133,6 +141,10 @@ export default function App() {
         { peers: VoicePeerList.create([], { owner: serverGroup }) },
         { owner: serverGroup }
       );
+      const typingState = TypingState.create(
+        { typingUsers: TypingUserList.create([], { owner: serverGroup }) },
+        { owner: serverGroup }
+      );
 
       const channel = Channel.create(
         {
@@ -140,6 +152,7 @@ export default function App() {
           channelType: type,
           messages,
           voiceState,
+          typingState,
         },
         { owner: serverGroup }
       );
@@ -218,6 +231,7 @@ export default function App() {
           onLogout={logOut}
           onUserSettings={() => openModal("userSettings")}
           onServerSettings={() => openModal("serverSettings")}
+          onAudioSettings={() => openModal("audioSettings")}
           voice={voice}
         />
 
@@ -306,6 +320,12 @@ export default function App() {
       {modals.userSettings && (
         <UserSettingsModal
           onClose={() => closeModal("userSettings")}
+        />
+      )}
+
+      {modals.audioSettings && (
+        <AudioSettingsModal
+          onClose={() => closeModal("audioSettings")}
         />
       )}
 

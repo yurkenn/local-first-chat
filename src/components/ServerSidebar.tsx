@@ -35,21 +35,27 @@ export const ServerSidebar = memo(function ServerSidebar({
                 {/* Home / DM icon */}
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <div
-                            className={cn(
-                                "w-10 h-10 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-200",
-                                "hover:rounded-xl hover:bg-[hsl(var(--primary))]",
-                                !activeServerId
-                                    ? "rounded-xl bg-[hsl(var(--primary))] shadow-[0_0_12px_rgba(168,85,247,0.4)]"
-                                    : "bg-[hsl(var(--secondary))]"
+                        <div className="relative flex items-center">
+                            {/* Active pill indicator */}
+                            {!activeServerId && (
+                                <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-white transition-all duration-200" />
                             )}
-                            onClick={() => onSelectServer("")}
-                            onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(""))}
-                            role="button"
-                            tabIndex={0}
-                            aria-label="Direct Messages"
-                        >
-                            💬
+                            <div
+                                className={cn(
+                                    "w-11 h-11 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
+                                    "hover:rounded-xl hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]",
+                                    !activeServerId
+                                        ? "rounded-xl bg-[hsl(var(--primary))] shadow-[0_0_16px_rgba(168,85,247,0.35)]"
+                                        : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--primary))]"
+                                )}
+                                onClick={() => onSelectServer("")}
+                                onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(""))}
+                                role="button"
+                                tabIndex={0}
+                                aria-label="Direct Messages"
+                            >
+                                💬
+                            </div>
                         </div>
                     </TooltipTrigger>
                     <TooltipContent side="right">Direct Messages</TooltipContent>
@@ -64,21 +70,27 @@ export const ServerSidebar = memo(function ServerSidebar({
                     return (
                         <Tooltip key={server.$jazz.id}>
                             <TooltipTrigger asChild>
-                                <div
-                                    className={cn(
-                                        "w-10 h-10 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-200",
-                                        "hover:rounded-xl hover:bg-[hsl(var(--primary))]",
-                                        isActive
-                                            ? "rounded-xl bg-[hsl(var(--primary))] shadow-[0_0_12px_rgba(168,85,247,0.4)]"
-                                            : "bg-[hsl(var(--secondary))]"
+                                <div className="relative flex items-center">
+                                    {/* Active pill indicator */}
+                                    {isActive && (
+                                        <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-white transition-all duration-200" />
                                     )}
-                                    onClick={() => onSelectServer(server.$jazz.id)}
-                                    onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(server.$jazz.id))}
-                                    role="button"
-                                    tabIndex={0}
-                                    aria-label={server.name}
-                                >
-                                    {server.iconEmoji || "📁"}
+                                    <div
+                                        className={cn(
+                                            "w-11 h-11 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
+                                            "hover:rounded-xl hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]",
+                                            isActive
+                                                ? "rounded-xl bg-[hsl(var(--primary))] shadow-[0_0_16px_rgba(168,85,247,0.35)]"
+                                                : "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--primary))]"
+                                        )}
+                                        onClick={() => onSelectServer(server.$jazz.id)}
+                                        onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(server.$jazz.id))}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={server.name}
+                                    >
+                                        {server.iconEmoji || "📁"}
+                                    </div>
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent side="right">{server.name}</TooltipContent>
@@ -92,7 +104,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-10 h-10 rounded-2xl flex items-center justify-center text-[var(--neon-green)] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[var(--neon-green)] hover:text-black transition-all duration-200 cursor-pointer"
+                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[var(--neon-green)] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[var(--neon-green)] hover:text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(34,197,94,0.25)] transition-all duration-300 cursor-pointer"
                             onClick={onCreateServer}
                             aria-label="Create a server"
                         >
@@ -106,7 +118,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-10 h-10 rounded-2xl flex items-center justify-center text-[hsl(var(--muted-foreground))] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white transition-all duration-200 cursor-pointer"
+                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[hsl(var(--muted-foreground))] bg-[hsl(var(--secondary))] hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white hover:scale-105 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-300 cursor-pointer"
                             onClick={onJoinServer}
                             aria-label="Join a server"
                         >

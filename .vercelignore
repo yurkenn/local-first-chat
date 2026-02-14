@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Tauri native build (not needed for web deploy)
+src-tauri
+target
+
+# Build output (Vercel rebuilds from source)
+dist
+dist-ssr
+
+# IDE & OS
+.vscode
+.idea
+.DS_Store
+*.sw?
+
+# Logs
+*.log
+
+# Lock files (npm install uses package.json)
+# package-lock.json
+
+# Git
+.git
+
+# Agent config
+.agent
+.gemini

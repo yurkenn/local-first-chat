@@ -69,6 +69,33 @@ export const VoiceState = co.map({
 export type VoiceState = co.loaded<typeof VoiceState>;
 
 // ─────────────────────────────────────────────
+// Typing Indicator Layer
+// ─────────────────────────────────────────────
+
+/**
+ * Represents a user currently typing in a channel.
+ * The `lastTypedAt` timestamp is used to determine if the user is still actively typing
+ * (within a configurable timeout, typically 3 seconds).
+ */
+export const TypingUser = co.map({
+  /** Display name of the typing user */
+  userName: z.string(),
+  /** Unix timestamp of last keystroke */
+  lastTypedAt: z.number(),
+});
+export type TypingUser = co.loaded<typeof TypingUser>;
+
+/** List of users currently typing */
+export const TypingUserList = co.list(TypingUser);
+export type TypingUserList = co.loaded<typeof TypingUserList>;
+
+/** Typing state for a channel */
+export const TypingState = co.map({
+  typingUsers: TypingUserList,
+});
+export type TypingState = co.loaded<typeof TypingState>;
+
+// ─────────────────────────────────────────────
 // Channel Layer
 // ─────────────────────────────────────────────
 
@@ -82,6 +109,8 @@ export const Channel = co.map({
   messages: MessageList,
   /** Voice state with peer list (only for voice channels) */
   voiceState: VoiceState,
+  /** Typing indicator state */
+  typingState: TypingState,
 });
 export type Channel = co.loaded<typeof Channel>;
 
