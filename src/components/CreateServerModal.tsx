@@ -33,7 +33,7 @@ export function CreateServerModal({ onClose, onCreate }: CreateServerModalProps)
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="glass-strong border-[var(--glass-border)] sm:max-w-md">
+            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Create a Server</DialogTitle>
                     <DialogDescription>

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ChatHeader } from "@/components/ChatHeader";
 import { MessageListView } from "@/components/MessageListView";
 import { MessageInput } from "@/components/MessageInput";
@@ -19,7 +20,7 @@ interface ChatAreaProps {
  *
  * Voice channels are now handled by ChannelSidebar's VoiceStatusBar (Discord-style).
  */
-export function ChatArea({
+export const ChatArea = memo(function ChatArea({
     channel,
     userName,
     sidebarOpen,
@@ -65,7 +66,7 @@ export function ChatArea({
             <MessageInput channel={channel} userName={userName} onTyping={notifyTyping} />
         </div>
     );
-}
+});
 
 /** Typing indicator — shows animated dots with user names */
 function TypingIndicator({ users }: { users: string[] }) {

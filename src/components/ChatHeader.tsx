@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Menu, Hash, Volume2, Users, Shield } from "lucide-react";
+import { memo } from "react";
 
 interface ChatHeaderProps {
     channelName: string;
@@ -13,7 +14,7 @@ interface ChatHeaderProps {
     onToggleMemberPanel: () => void;
 }
 
-export function ChatHeader({
+export const ChatHeader = memo(function ChatHeader({
     channelName,
     channelType,
     sidebarOpen,
@@ -88,4 +89,4 @@ export function ChatHeader({
             </Button>
         </div>
     );
-}
+});

@@ -87,7 +87,7 @@ export function JoinServerModal({ onClose, onJoined }: JoinServerModalProps) {
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="glass-strong border-[var(--glass-border)] sm:max-w-md">
+            <DialogContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))] sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-lg font-heading">Join a Server</DialogTitle>
                     <DialogDescription>

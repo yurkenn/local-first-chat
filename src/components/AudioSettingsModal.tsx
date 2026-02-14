@@ -21,7 +21,7 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="glass-elevated sm:max-w-[480px] max-h-[85vh] overflow-y-auto p-0 gap-0 border-[var(--glass-border-strong)]">
+            <DialogContent className="bg-[hsl(var(--card))] sm:max-w-[480px] max-h-[85vh] overflow-y-auto p-0 gap-0 border-[hsl(var(--border))]">
                 {/* Header */}
                 <DialogHeader className="p-6 pb-4">
                     <DialogTitle className="text-base font-heading font-semibold flex items-center gap-2.5">

@@ -32,25 +32,48 @@ export interface VoiceStateReturn {
 export function useVoiceState(userName: string): VoiceStateReturn {
     const [connectedChannel, setConnectedChannel] = useState<any | null>(null);
     const [isJoining, setIsJoining] = useState(false);
-    const pendingJoinRef = useRef(false);
+    const joiningRef = useRef(false); // Ref mirror to avoid stale closures
 
     const { isConnected, isMuted, isSpeaking, peers, join, leave, toggleMute } =
         useVoiceChat(connectedChannel, userName);
 
-    // When connectedChannel changes and we have a pending join, trigger it
+    // Keep ref in sync
+    joiningRef.current = isJoining;
+
+    // When channel changes + we're in joining state, trigger join
+    // This effect fires after useVoiceChat has re-initialized with the new channel
     useEffect(() => {
-        if (pendingJoinRef.current && connectedChannel) {
-            pendingJoinRef.current = false;
+        if (!joiningRef.current || !connectedChannel) return;
+
+        // Small delay to ensure useVoiceChat has the new channel reference
+        const timer = setTimeout(() => {
             join();
-        }
-    }, [connectedChannel, join]);
+        }, 50);
+
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [connectedChannel]);
 
     // Clear isJoining when connection is established
     useEffect(() => {
-        if (isConnected) {
+        if (isConnected && isJoining) {
             setIsJoining(false);
         }
-    }, [isConnected]);
+    }, [isConnected, isJoining]);
+
+    // Safety timeout — if stuck in joining for 8s, reset
+    useEffect(() => {
+        if (!isJoining) return;
+
+        const timeout = setTimeout(() => {
+            if (joiningRef.current && !isConnected) {
+                console.warn("[useVoiceState] Join timed out after 8s, resetting");
+                setIsJoining(false);
+            }
+        }, 8000);
+
+        return () => clearTimeout(timeout);
+    }, [isJoining, isConnected]);
 
     const joinVoice = useCallback(
         (channel: any) => {
@@ -58,7 +81,7 @@ export function useVoiceState(userName: string): VoiceStateReturn {
             const currentId = connectedChannel?.$jazz?.id;
 
             // If already connected to this channel or join in progress, do nothing
-            if (isJoining) return;
+            if (joiningRef.current) return;
             if (channelId && channelId === currentId && isConnected) return;
 
             // If connected to a different channel, leave first
@@ -69,11 +92,11 @@ export function useVoiceState(userName: string): VoiceStateReturn {
             // Set joining state to prevent duplicate clicks
             setIsJoining(true);
 
-            // Set the new channel and queue a join
-            pendingJoinRef.current = true;
+            // Set the new channel — this triggers re-render of useVoiceChat,
+            // and the effect above will call join() once the hook is ready
             setConnectedChannel(channel);
         },
-        [connectedChannel, isConnected, isJoining, leave]
+        [connectedChannel, isConnected, leave]
     );
 
     const leaveVoice = useCallback(() => {
