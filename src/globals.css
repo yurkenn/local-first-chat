@@ -642,6 +642,49 @@ input[type="range"].range-green::-moz-range-thumb {
     .press-effect:active {
         transform: scale(0.97);
     }
+
+    /* ── Universal interactive feedback ── */
+    /* All icon-sized buttons: scale + glow on hover, shrink on click */
+    button[aria-label],
+    [role="button"] {
+        transition: transform 150ms ease-out, background-color 200ms ease, color 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
+    }
+
+    button[aria-label]:hover,
+    [role="button"]:hover {
+        transform: scale(1.08);
+    }
+
+    button[aria-label]:active,
+    [role="button"]:active {
+        transform: scale(0.9) !important;
+        transition: transform 50ms ease-out !important;
+    }
+
+    /* Clickable list items (channels, servers, etc.) */
+    button:not([aria-label]):not([disabled]) {
+        cursor: pointer;
+    }
+
+    /* SVG icons inside interactive elements — subtle brightness boost */
+    button:hover svg,
+    [role="button"]:hover svg {
+        filter: drop-shadow(0 0 3px currentColor);
+    }
+
+    /* Remove hover effects on touch devices for performance */
+    @media (hover: none) {
+
+        button[aria-label]:hover,
+        [role="button"]:hover {
+            transform: none;
+        }
+
+        button:hover svg,
+        [role="button"]:hover svg {
+            filter: none;
+        }
+    }
 }
 
 /* ─── Keyframes ──────────────────────────────────────────────────────────── */
