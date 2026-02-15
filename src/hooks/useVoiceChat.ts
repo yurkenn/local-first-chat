@@ -35,6 +35,12 @@ export function useVoiceChat(channel: any, userName: string) {
     const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isJoiningRef = useRef(false);
 
+    // Keep a ref to the current channel to avoid stale closures in polling
+    const channelRef = useRef(channel);
+    useEffect(() => {
+        channelRef.current = channel;
+    }, [channel]);
+
     // Composed hooks
     const audioAnalysis = useAudioAnalysis();
     const peerConnections = usePeerConnections(audioAnalysis);
@@ -66,28 +72,13 @@ export function useVoiceChat(channel: any, userName: string) {
     }, []);
 
     /**
-     * Start polling for peers and establishing WebRTC connections.
-     */
-    const startPeerPolling = useCallback(() => {
-        if (pollIntervalRef.current) return;
-
-        pollIntervalRef.current = setInterval(() => {
-            if (!channel?.voiceState?.peers) return;
-            peerConnections.processPeerList(
-                channel.voiceState.peers,
-                myPeerIdRef.current,
-                localStreamRef.current,
-                myPeerCoValueRef.current,
-                setPeers,
-            );
-        }, 1000); // 1s polling for faster signal exchange
-    }, [channel, peerConnections]);
-
-    /**
      * Join the voice channel.
      */
     const join = useCallback(async () => {
-        if (!channel) return;
+        // Use the ref to get the absolute latest channel instance
+        const currentChannel = channelRef.current;
+
+        if (!currentChannel) return;
         if (isJoiningRef.current) {
             console.warn("[useVoiceChat] join() already in progress, ignoring duplicate call");
             return;
@@ -112,13 +103,13 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // Ensure voice state exists on channel
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let voiceState: any = channel.voiceState;
+            let voiceState: any = currentChannel.voiceState;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let peersList: any = voiceState?.peers;
             console.log("[useVoiceChat] voiceState exists?", !!voiceState, "peers exists?", !!peersList);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ownerGroup = getOwnerGroup(channel) as any;
+            const ownerGroup = getOwnerGroup(currentChannel) as any;
 
             if (!voiceState) {
                 // No voice state at all — create fresh VoiceState + PeerList
@@ -127,7 +118,7 @@ export function useVoiceChat(channel: any, userName: string) {
                     { peers: peersList },
                     { owner: ownerGroup },
                 );
-                coSet(channel, "voiceState", voiceState);
+                coSet(currentChannel, "voiceState", voiceState);
                 console.log("[useVoiceChat] Created new VoiceState + PeerList");
             } else if (!peersList) {
                 // VoiceState exists but peers not loaded yet (Jazz lazy loading)
@@ -136,7 +127,7 @@ export function useVoiceChat(channel: any, userName: string) {
                 for (let retry = 0; retry < 10; retry++) {
                     await new Promise((r) => setTimeout(r, 500));
                     // Re-read from channel in case Jazz synced it
-                    voiceState = channel.voiceState;
+                    voiceState = currentChannel.voiceState;
                     peersList = voiceState?.peers;
                     if (peersList) {
                         console.log("[useVoiceChat] Peers loaded after retry", retry + 1);
@@ -191,14 +182,71 @@ export function useVoiceChat(channel: any, userName: string) {
             } catch { /* ignore */ }
 
             setIsConnected(true);
-            startPeerPolling();
             audioAnalysis.startAudioMonitoring(setIsSpeaking, setPeers);
         } catch (err) {
             handleError(err, { context: "useVoiceChat", toast: "Failed to join voice channel" });
+            setIsConnected(false);
         } finally {
             isJoiningRef.current = false;
         }
-    }, [channel, userName, audioAnalysis, cleanupStalePeerEntries, startPeerPolling]);
+    }, [userName, audioAnalysis, cleanupStalePeerEntries]); // Removed `channel` dependency to rely on ref
+
+    /**
+     * Start polling for peers and establishing WebRTC connections.
+     * Rewritten to use channelRef to avoid stale closures.
+     */
+    useEffect(() => {
+        if (!isConnected) return;
+
+        console.log("[useVoiceChat] Starting peer polling interval");
+
+        const interval = setInterval(() => {
+            const currentChannel = channelRef.current;
+
+            // If we lost connection to channel or voice state, abort
+            if (!currentChannel?.voiceState?.peers) {
+                console.warn("[useVoiceChat] Polling: voiceState or peers missing");
+                return;
+            }
+
+            const voiceState = currentChannel.voiceState;
+            const peersList = voiceState.peers;
+
+            // 1. Process peers for connection & UI
+            peerConnections.processPeerList(
+                peersList,
+                myPeerIdRef.current,
+                localStreamRef.current,
+                myPeerCoValueRef.current,
+                setPeers,
+            );
+
+            // 2. Self-healing: Check if *I* am still in the peers list
+            // Sometimes during sync or if we were kicked/pruned, we might disappear.
+            // If so, and we think we are connected, re-add ourselves.
+            try {
+                const items = Array.from(peersList).filter(Boolean);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const amIPresent = items.some((p: any) => p.peerId === myPeerIdRef.current && (!p.targetPeerId || p.targetPeerId === ""));
+
+                if (!amIPresent && myPeerCoValueRef.current) {
+                    console.warn("[useVoiceChat] Self-healing: I am missing from peers list! Re-adding...");
+                    coPush(peersList, myPeerCoValueRef.current);
+                }
+            } catch (err) {
+                console.warn("[useVoiceChat] Self-healing check failed:", err);
+            }
+
+        }, 1000); // 1s polling for faster signal exchange
+
+        pollIntervalRef.current = interval;
+
+        return () => {
+            if (interval) clearInterval(interval);
+            pollIntervalRef.current = null;
+        };
+    }, [isConnected, peerConnections]);
+
 
     /**
      * Leave the voice channel.
@@ -221,8 +269,9 @@ export function useVoiceChat(channel: any, userName: string) {
         }
 
         // Remove our VoicePeer from the channel's peer list
+        const currentChannel = channelRef.current;
         try {
-            const voiceState = channel?.voiceState;
+            const voiceState = currentChannel?.voiceState;
             if (voiceState?.peers && myPeerIdRef.current) {
                 const peersList = voiceState.peers;
                 const items = Array.from(peersList).filter(Boolean);
@@ -248,7 +297,7 @@ export function useVoiceChat(channel: any, userName: string) {
         setIsSpeaking(false);
         setPeers([]);
         setIsMuted(false);
-    }, [channel, audioAnalysis, peerConnections]);
+    }, [audioAnalysis, peerConnections]);
 
     /**
      * Toggle microphone mute state.
@@ -276,10 +325,17 @@ export function useVoiceChat(channel: any, userName: string) {
     useEffect(() => {
         return () => {
             if (isConnected) {
-                leave();
+                // We can't easily call leave() here because it might depend on state that is unmounting
+                // But we should at least stop tracks
+                if (localStreamRef.current) {
+                    localStreamRef.current.getTracks().forEach(t => t.stop());
+                }
+                if (pollIntervalRef.current) {
+                    clearInterval(pollIntervalRef.current);
+                }
             }
         };
-    }, [isConnected, leave]);
+    }, [isConnected]);
 
     return {
         isConnected,
