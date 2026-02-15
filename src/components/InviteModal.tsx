@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { createInviteLink } from "jazz-tools";
+import { createInviteLink } from "jazz-tools/react";
 import {
     Dialog,
     DialogContent,
@@ -23,17 +23,19 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
     const [inviteLink, setInviteLink] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(true);
 
-    // Generate invite link asynchronously to prevent blocking the main thread
+    // Generate invite link using the React-specific createInviteLink
+    // which handles baseURL automatically from window.location
     useEffect(() => {
         let cancelled = false;
         setIsGenerating(true);
+        setInviteLink(null);
 
-        // Use requestIdleCallback / setTimeout to yield to the browser
-        const timer = setTimeout(() => {
+        // Defer to next tick to keep initial render responsive
+        const raf = requestAnimationFrame(() => {
             try {
-                const baseURL = window.location.origin + "/";
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const link = createInviteLink(server as any, "writer", baseURL, "server");
+                const link = createInviteLink(server as any, "writer");
+                console.log("[InviteModal] Generated invite link:", link);
                 if (!cancelled) {
                     setInviteLink(link);
                 }
@@ -47,11 +49,11 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
                     setIsGenerating(false);
                 }
             }
-        }, 50);
+        });
 
         return () => {
             cancelled = true;
-            clearTimeout(timer);
+            cancelAnimationFrame(raf);
         };
     }, [server]);
 

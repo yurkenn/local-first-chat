@@ -95,6 +95,7 @@ export function useVoiceChat(channel: any, userName: string) {
         isJoiningRef.current = true;
 
         try {
+            console.log("[useVoiceChat] join() starting — requesting mic...");
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -104,6 +105,7 @@ export function useVoiceChat(channel: any, userName: string) {
                 video: false,
             });
             localStreamRef.current = stream;
+            console.log("[useVoiceChat] Got local stream, tracks:", stream.getAudioTracks().length);
 
             // Set up local audio analyser
             audioAnalysis.setupLocalAnalyser(stream);
@@ -113,6 +115,7 @@ export function useVoiceChat(channel: any, userName: string) {
             // because Jazz CoValue sync may not have completed yet.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let voiceState: any = channel.voiceState;
+            console.log("[useVoiceChat] voiceState exists?", !!voiceState);
             if (!voiceState) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const ownerGroup = getOwnerGroup(channel) as any;
@@ -141,6 +144,7 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // Generate a fresh peerId for this join session
             myPeerIdRef.current = crypto.randomUUID();
+            console.log("[useVoiceChat] My peerId:", myPeerIdRef.current);
             cleanupStalePeerEntries(voiceState, myPeerIdRef.current);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -156,6 +160,13 @@ export function useVoiceChat(channel: any, userName: string) {
             );
             myPeerCoValueRef.current = voicePeer;
             coPush(voiceState.peers, voicePeer);
+
+            // Log existing peers in the list
+            try {
+                const existingPeers = Array.from(voiceState.peers).filter(Boolean);
+                console.log("[useVoiceChat] Peers in voice state:", existingPeers.length,
+                    existingPeers.map((p: any) => ({ peerId: p?.peerId?.slice(0, 8), name: p?.peerName })));
+            } catch { /* ignore */ }
 
             setIsConnected(true);
             startPeerPolling();

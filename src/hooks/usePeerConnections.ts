@@ -38,6 +38,13 @@ export function usePeerConnections(
 
             const items = Array.from(voicePeers).filter(Boolean);
 
+            // Debug: log discovered peers
+            if (items.length > 0) {
+                console.log("[usePeerConnections] polling — found", items.length, "peer entries,",
+                    "myId:", myPeerId.slice(0, 8),
+                    "peers:", items.map((vp: any) => vp?.peerId?.slice(0, 8)).filter(Boolean));
+            }
+
             // Update peers list for UI
             const peerInfoList: PeerInfo[] = [];
             for (const vp of items) {
