@@ -7,6 +7,7 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { useVoiceState } from "@/hooks/useVoiceState";
+import { useAudioSettings } from "@/hooks/useAudioSettings";
 import { useServerActions } from "@/hooks/useServerActions";
 import { useLogOut, useAcceptInvite } from "jazz-tools/react";
 import { useAccount } from "jazz-tools/react";
@@ -170,7 +171,8 @@ export default function App() {
   const profileName = getProfileName(me);
 
   // ── Voice State (app-level, survives navigation) ──
-  const voice = useVoiceState(profileName);
+  const audio = useAudioSettings();
+  const voice = useVoiceState(profileName, audio);
 
   // ── Server & Channel CRUD (extracted hook) ──
   const { createServer, createChannel } = useServerActions({
@@ -300,6 +302,7 @@ export default function App() {
         onAudioSettings={() => openModal("audioSettings")}
         voice={voice}
         getUnreadCount={getUnreadCount}
+        audio={audio}
       />
     </ErrorBoundary>
   );
@@ -386,6 +389,7 @@ export default function App() {
         handleCreateServer={createServer}
         handleCreateChannel={createChannel}
         me={me as any}
+        audio={audio}
       />
     </>
   );

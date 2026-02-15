@@ -5,6 +5,7 @@ import { useAudioAnalysis } from "./useAudioAnalysis";
 import { usePeerConnections } from "./usePeerConnections";
 import type { PeerInfo } from "./useVoiceChatTypes";
 import { handleError } from "@/lib/error-utils";
+import type { AudioSettings } from "./useAudioSettings";
 
 /**
  * useVoiceChat — Full-mesh voice chat via WebRTC + Jazz state.
@@ -20,8 +21,77 @@ import { handleError } from "@/lib/error-utils";
  *   - usePeerConnections: WebRTC peer management via simple-peer
  */
 
+
+
+/**
+ * Remove stale VoicePeer entries for a peerId from the channel's voice state.
+ * Prevents ghost/clone entries when re-joining after an unclean leave.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useVoiceChat(channel: any, userName: string) {
+function cleanupStalePeers(voiceState: any, peerId: string) {
+    if (!voiceState?.peers) return;
+    try {
+        const peersList = voiceState.peers;
+        const items = Array.from(peersList).filter(Boolean);
+        for (let i = items.length - 1; i >= 0; i--) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const p = items[i] as any;
+            if (p?.peerId === peerId) {
+                try {
+                    coSplice(peersList, i, 1);
+                } catch (err) {
+                    console.warn("[useVoiceChat] Failed to remove stale peer at index", i, err);
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("[useVoiceChat] Error cleaning up stale peers:", err);
+    }
+}
+
+/**
+ * Ensure the channel has a valid VoiceState and PeerList.
+ * Creates them if missing.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ensureVoiceState(channel: any) {
+    let voiceState = channel.voiceState;
+    let peersList = voiceState?.peers;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ownerGroup = getOwnerGroup(channel) as any;
+
+    if (!voiceState) {
+        // No voice state at all — create fresh VoiceState + PeerList
+        peersList = VoicePeerList.create([], { owner: ownerGroup });
+        voiceState = VoiceState.create(
+            { peers: peersList },
+            { owner: ownerGroup },
+        );
+        coSet(channel, "voiceState", voiceState);
+        console.log("[useVoiceChat] Created new VoiceState + PeerList");
+        return peersList;
+    }
+
+    if (!peersList) {
+        // VoiceState exists but peers not loaded yet (Jazz lazy loading)
+        peersList = voiceState.peers;
+
+        // If still null (unlikely), create a new peersList
+        if (!peersList) {
+            try {
+                peersList = VoicePeerList.create([], { owner: ownerGroup });
+                coSet(voiceState, "peers", peersList);
+            } catch (err) {
+                console.error("[useVoiceChat] Failed to create PeerList:", err);
+                return null;
+            }
+        }
+    }
+    return peersList;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useVoiceChat(channel: any, userName: string, audioSettings?: AudioSettings) {
     const [isConnected, setIsConnected] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -68,26 +138,7 @@ export function useVoiceChat(channel: any, userName: string) {
      * Prevents ghost/clone entries when re-joining after an unclean leave.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cleanupStalePeerEntries = useCallback((voiceState: any, peerId: string) => {
-        if (!voiceState?.peers) return;
-        try {
-            const peersList = voiceState.peers;
-            const items = Array.from(peersList).filter(Boolean);
-            for (let i = items.length - 1; i >= 0; i--) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const p = items[i] as any;
-                if (p?.peerId === peerId) {
-                    try {
-                        coSplice(peersList, i, 1);
-                    } catch (err) {
-                        console.warn("[useVoiceChat] Failed to remove stale peer at index", i, err);
-                    }
-                }
-            }
-        } catch (err) {
-            console.warn("[useVoiceChat] Error cleaning up stale peers:", err);
-        }
-    }, []);
+
 
     /**
      * Join the voice channel.
@@ -110,11 +161,14 @@ export function useVoiceChat(channel: any, userName: string) {
         isJoiningRef.current = true;
 
         try {
-            console.log("[useVoiceChat] join() starting — requesting mic...");
+            console.log("[useVoiceChat] join() starting — requesting mic...", audioSettings?.selectedInputId);
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
+                    deviceId: audioSettings?.selectedInputId && audioSettings.selectedInputId !== "default"
+                        ? { exact: audioSettings.selectedInputId }
+                        : undefined,
+                    echoCancellation: audioSettings?.echoCancellation ?? true,
+                    noiseSuppression: audioSettings?.noiseSuppression ?? true,
                     autoGainControl: false, // Disabled to reduce hissing/feedback
                 },
                 video: false,
@@ -126,74 +180,9 @@ export function useVoiceChat(channel: any, userName: string) {
             audioAnalysis.setupLocalAnalyser(stream);
 
             // Ensure voice state exists on channel
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let voiceState: any = currentChannel.voiceState;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let peersList: any = voiceState?.peers;
-
-            // DEBUG: Log CoValue IDs to check for split-brain
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const channelId = (currentChannel as any)?.$jazz?.id;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const voiceStateId = (voiceState as any)?.$jazz?.id;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const peersListId = (peersList as any)?.$jazz?.id;
-
-            console.log("[useVoiceChat] DEBUG IDs:", {
-                channelId,
-                voiceStateId,
-                peersListId,
-                voiceStateExists: !!voiceState,
-                peersListExists: !!peersList
-            });
-
+            const peersList = ensureVoiceState(currentChannel);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const ownerGroup = getOwnerGroup(currentChannel) as any;
-
-            if (!voiceState) {
-                // No voice state at all — create fresh VoiceState + PeerList
-                peersList = VoicePeerList.create([], { owner: ownerGroup });
-                voiceState = VoiceState.create(
-                    { peers: peersList },
-                    { owner: ownerGroup },
-                );
-                coSet(currentChannel, "voiceState", voiceState);
-                console.log("[useVoiceChat] Created new VoiceState + PeerList", {
-                    newVoiceStateId: (voiceState as any)?.$jazz?.id,
-                    newPeersListId: (peersList as any)?.$jazz?.id
-                });
-            } else if (!peersList) {
-                // VoiceState exists but peers not loaded yet (Jazz lazy loading)
-                // Wait with retries for Jazz to sync the nested CoValue
-                console.log("[useVoiceChat] Waiting for peers to load...");
-                for (let retry = 0; retry < 10; retry++) {
-                    await new Promise((r) => setTimeout(r, 500));
-                    // Re-read from channel in case Jazz synced it
-                    voiceState = currentChannel.voiceState;
-                    peersList = voiceState?.peers;
-                    if (peersList) {
-                        console.log("[useVoiceChat] Peers loaded after retry", retry + 1, {
-                            loadedPeersListId: (peersList as any)?.$jazz?.id
-                        });
-                        break;
-                    }
-                    console.log("[useVoiceChat] Retry", retry + 1, "- peers still null");
-                }
-
-                // If still null after retries, create a new peersList
-                if (!peersList) {
-                    console.log("[useVoiceChat] Creating new PeerList after retries exhausted");
-                    try {
-                        peersList = VoicePeerList.create([], { owner: ownerGroup });
-                        coSet(voiceState, "peers", peersList);
-                        console.log("[useVoiceChat] Created replacement PeerList", {
-                            replacementPeersListId: (peersList as any)?.$jazz?.id
-                        });
-                    } catch (err) {
-                        console.error("[useVoiceChat] Failed to create PeerList:", err);
-                    }
-                }
-            }
 
             if (!peersList) {
                 console.warn("[useVoiceChat] Voice state peers still not available — giving up");
@@ -206,7 +195,7 @@ export function useVoiceChat(channel: any, userName: string) {
             // Generate a fresh peerId for this join session
             myPeerIdRef.current = crypto.randomUUID();
             console.log("[useVoiceChat] My peerId:", myPeerIdRef.current);
-            cleanupStalePeerEntries({ peers: peersList }, myPeerIdRef.current);
+            cleanupStalePeers({ peers: peersList }, myPeerIdRef.current);
 
             const voicePeer = VoicePeer.create(
                 {
@@ -221,16 +210,10 @@ export function useVoiceChat(channel: any, userName: string) {
             myPeerCoValueRef.current = voicePeer;
             coPush(peersList, voicePeer);
 
-            // Log existing peers in the list
+            // Log existing peers count
             try {
                 const existingPeers = Array.from(peersList).filter(Boolean);
-                console.log("[useVoiceChat] Peers in voice state:", existingPeers.length,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    existingPeers.map((p: any) => ({
-                        peerId: p?.peerId?.slice(0, 8),
-                        name: p?.peerName,
-                        target: p?.targetPeerId ? p.targetPeerId.slice(0, 8) : 'BROADCAST'
-                    })));
+                console.log("[useVoiceChat] Joined. Peers in room:", existingPeers.length);
             } catch { /* ignore */ }
 
             setIsConnected(true);
@@ -241,7 +224,7 @@ export function useVoiceChat(channel: any, userName: string) {
         } finally {
             isJoiningRef.current = false;
         }
-    }, [userName, audioAnalysis, cleanupStalePeerEntries, isConnected]); // Added isConnected dep
+    }, [userName, audioAnalysis, isConnected, audioSettings?.selectedInputId]);
 
     /**
      * Start polling for peers and establishing WebRTC connections.
@@ -257,7 +240,7 @@ export function useVoiceChat(channel: any, userName: string) {
 
             // If we lost connection to channel or voice state, abort
             if (!currentChannel?.voiceState?.peers) {
-                console.warn("[useVoiceChat] Polling: voiceState or peers missing");
+                // console.warn("[useVoiceChat] Polling: voiceState or peers missing");
                 return;
             }
 
@@ -389,6 +372,82 @@ export function useVoiceChat(channel: any, userName: string) {
             }
         };
     }, [isConnected]);
+
+    // Handle Deafen state (mute all incoming remote streams)
+    useEffect(() => {
+        if (!audioSettings) return;
+        remoteStreams.forEach((stream) => {
+            stream.getAudioTracks().forEach((track) => {
+                track.enabled = !audioSettings.isDeafened;
+            });
+        });
+    }, [remoteStreams, audioSettings?.isDeafened]);
+
+    /**
+     * Live Audio Settings Update
+     * Watch for changes in input device or processing options and hot-swap the stream.
+     */
+    useEffect(() => {
+        if (!isConnected || isJoiningRef.current) return;
+        if (!audioSettings) return;
+
+        const handleAudioChange = async () => {
+            console.log("[useVoiceChat] Audio settings changed, updating stream...", {
+                deviceId: audioSettings.selectedInputId,
+                echo: audioSettings.echoCancellation,
+                noise: audioSettings.noiseSuppression
+            });
+
+            try {
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        deviceId: audioSettings.selectedInputId && audioSettings.selectedInputId !== "default"
+                            ? { exact: audioSettings.selectedInputId }
+                            : undefined,
+                        echoCancellation: audioSettings.echoCancellation ?? true,
+                        noiseSuppression: audioSettings.noiseSuppression ?? true,
+                        autoGainControl: false,
+                    },
+                    video: false,
+                });
+
+                const oldStream = localStreamRef.current;
+
+                // 1. Update local ref
+                localStreamRef.current = newStream;
+
+                // 2. Update local analyser (so visualizer works with new stream)
+                audioAnalysis.setupLocalAnalyser(newStream);
+
+                // 3. Replace track in all peer connections
+                peerConnections.replaceStream(oldStream, newStream);
+
+                // 4. Update mute state on new stream
+                newStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+
+                // 5. Cleanup old stream
+                if (oldStream) {
+                    oldStream.getTracks().forEach(t => t.stop());
+                }
+
+            } catch (err) {
+                console.error("[useVoiceChat] Failed to update audio stream:", err);
+                // Fallback: maybe notify user?
+            }
+        };
+
+        handleAudioChange();
+
+        // We depend on specific settings to trigger this
+    }, [
+        isConnected,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        audioSettings?.selectedInputId,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        audioSettings?.echoCancellation,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        audioSettings?.noiseSuppression
+    ]);
 
     return {
         isConnected,

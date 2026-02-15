@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { VoiceStateReturn } from "@/hooks/useVoiceState";
 import type { LoadedServer, LoadedChannel } from "@/lib/jazz-types";
+import type { AudioSettings } from "@/hooks/useAudioSettings";
 
 interface ChannelSidebarProps {
     server: LoadedServer | null;
@@ -25,6 +26,7 @@ interface ChannelSidebarProps {
     voice: VoiceStateReturn;
     /** Get unread count for a channel */
     getUnreadCount?: (channelId: string) => number;
+    audio?: AudioSettings;
 }
 
 export const ChannelSidebar = memo(function ChannelSidebar({
@@ -41,6 +43,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
     onAudioSettings,
     voice,
     getUnreadCount,
+    audio,
 }: ChannelSidebarProps) {
     if (!server) {
         return (
@@ -70,7 +73,12 @@ export const ChannelSidebar = memo(function ChannelSidebar({
     // Render Audio elements for remote streams
     const audioElements = voice.remoteStreams
         ? Array.from(voice.remoteStreams.entries()).map(([peerId, stream]) => (
-            <AudioRef key={peerId} stream={stream} />
+            <AudioRef
+                key={peerId}
+                stream={stream}
+                volume={audio?.outputVolume ?? 100}
+                sinkId={audio?.selectedOutputId}
+            />
         ))
         : null;
 
@@ -185,11 +193,12 @@ export const ChannelSidebar = memo(function ChannelSidebar({
             </ScrollArea>
 
             {/* Voice Status Bar — persistent connection indicator (above UserPanel) */}
-            {voice.isConnected && voice.connectedChannel && (
+            {(voice.isConnected || voice.isJoining) && voice.connectedChannel && (
                 <VoiceStatusBar
                     channelName={voice.connectedChannel.name}
                     isMuted={voice.isMuted}
                     isSpeaking={voice.isSpeaking}
+                    isJoining={voice.isJoining && !voice.isConnected}
                     onToggleMute={voice.toggleMute}
                     onLeave={voice.leaveVoice}
                     onAudioSettings={onAudioSettings}
@@ -349,6 +358,7 @@ function VoiceStatusBar({
     channelName,
     isMuted,
     isSpeaking,
+    isJoining,
     onToggleMute,
     onLeave,
     onAudioSettings,
@@ -356,6 +366,7 @@ function VoiceStatusBar({
     channelName: string;
     isMuted: boolean;
     isSpeaking: boolean;
+    isJoining?: boolean;
     onToggleMute: () => void;
     onLeave: () => void;
     onAudioSettings?: () => void;
@@ -366,16 +377,20 @@ function VoiceStatusBar({
             <div className="flex items-center gap-2 mb-1.5">
                 <div className={cn(
                     "w-2 h-2 rounded-full transition-colors duration-200",
-                    isSpeaking && !isMuted
-                        ? "bg-[var(--organic-green)] shadow-[0_0_6px_var(--organic-green)] scale-125"
-                        : "bg-[var(--organic-green)] shadow-[0_0_4px_rgba(106,176,122,0.3)] animate-pulse"
+                    isJoining
+                        ? "bg-[var(--organic-sage)] animate-pulse"
+                        : isSpeaking && !isMuted
+                            ? "bg-[var(--organic-green)] shadow-[0_0_6px_var(--organic-green)] scale-125"
+                            : "bg-[var(--organic-green)] shadow-[0_0_4px_rgba(106,176,122,0.3)]"
                 )} />
                 <div className="flex-1 min-w-0">
                     <div className={cn(
                         "text-xs font-semibold transition-colors duration-200",
-                        isSpeaking && !isMuted ? "text-[var(--organic-green)]" : "text-[var(--organic-green)]"
+                        isJoining
+                            ? "text-[var(--organic-sage)]"
+                            : isSpeaking && !isMuted ? "text-[var(--organic-green)]" : "text-[var(--organic-green)]"
                     )}>
-                        {isSpeaking && !isMuted ? "Speaking" : "Voice Connected"}
+                        {isJoining ? "Connecting..." : isSpeaking && !isMuted ? "Speaking" : "Voice Connected"}
                     </div>
                     <div className="text-[10px] text-muted-color truncate">
                         🔊 {channelName}
@@ -397,9 +412,10 @@ function VoiceStatusBar({
                                 : "text-muted-color hover:text-primary-color hover:bg-surface"
                     )}
                     onClick={onToggleMute}
+                    disabled={isJoining}
                     aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
                 >
-                    {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
                 {onAudioSettings && (
                     <Button
@@ -478,28 +494,34 @@ function UserPanel({ userName, onLogout, onUserSettings, onAudioSettings }: { us
  * AudioRef — Renders an <audio> element for a remote stream.
  * Handles the srcObject reference and play() call.
  */
-function AudioRef({ stream }: { stream: MediaStream }) {
+function AudioRef({ stream, volume = 100, sinkId }: { stream: MediaStream; volume?: number; sinkId?: string }) {
     const audioRef = React.useRef<HTMLAudioElement>(null);
 
     React.useEffect(() => {
         if (!stream) return;
 
-        // Diagnostic logging for the stream
-        const tracks = stream.getAudioTracks();
-        console.log(`[AudioRef] Rendering stream id=${stream.id}`, {
-            tracks: tracks.length,
-            enabled: tracks[0]?.enabled,
-            muted: tracks[0]?.muted,
-            readyState: tracks[0]?.readyState
-        });
-
         if (audioRef.current) {
             audioRef.current.srcObject = stream;
             audioRef.current.play()
-                .then(() => console.log(`[AudioRef] Playing stream ${stream.id}`))
                 .catch(err => console.error(`[AudioRef] Playback failed for ${stream.id}:`, err));
         }
     }, [stream]);
+
+    // Apply volume and sinkId
+    React.useEffect(() => {
+        if (audioRef.current) {
+            // Volume in settings is 0-200, we map to 0-1 (cap at 1.0 because HTMLAudioElement volume is 0..1)
+            audioRef.current.volume = Math.min(1, Math.max(0, volume / 100));
+
+            // setSinkId (experimental - only in some browsers)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (sinkId && sinkId !== "default" && typeof (audioRef.current as any).setSinkId === 'function') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (audioRef.current as any).setSinkId(sinkId)
+                    .catch((err: any) => console.warn("[AudioRef] Failed to set sinkId:", err));
+            }
+        }
+    }, [volume, sinkId]);
 
     return (
         <audio
@@ -508,7 +530,6 @@ function AudioRef({ stream }: { stream: MediaStream }) {
             playsInline
             controls={false}
             className="hidden"
-            onVolumeChange={(e) => console.log("[AudioRef] Volume changed", e.currentTarget.volume, e.currentTarget.muted)}
         />
     );
 }

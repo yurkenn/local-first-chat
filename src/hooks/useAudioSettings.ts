@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { handleError } from "@/lib/error-utils";
 
 /**
@@ -41,6 +41,10 @@ export interface AudioSettings {
     isTesting: boolean;
     /** Current mic input level (0-100) for visual feedback */
     micLevel: number;
+    /** Enable noise suppression */
+    noiseSuppression: boolean;
+    /** Enable echo cancellation */
+    echoCancellation: boolean;
 
     // Actions
     setSelectedInputId: (id: string) => void;
@@ -49,6 +53,8 @@ export interface AudioSettings {
     setOutputVolume: (v: number) => void;
     setSensitivity: (v: number) => void;
     toggleDeafen: () => void;
+    setNoiseSuppression: (v: boolean) => void;
+    setEchoCancellation: (v: boolean) => void;
     startMicTest: () => void;
     stopMicTest: () => void;
     refreshDevices: () => void;
@@ -62,6 +68,8 @@ interface PersistedSettings {
     inputVolume: number;
     outputVolume: number;
     sensitivity: number;
+    noiseSuppression: boolean;
+    echoCancellation: boolean;
 }
 
 function loadPersistedSettings(): Partial<PersistedSettings> {
@@ -91,6 +99,8 @@ export function useAudioSettings(): AudioSettings {
     const [inputVolume, setInputVolume] = useState(persisted.current.inputVolume ?? 100);
     const [outputVolume, setOutputVolume] = useState(persisted.current.outputVolume ?? 100);
     const [sensitivity, setSensitivity] = useState(persisted.current.sensitivity ?? 40);
+    const [noiseSuppression, setNoiseSuppression] = useState(persisted.current.noiseSuppression ?? true);
+    const [echoCancellation, setEchoCancellation] = useState(persisted.current.echoCancellation ?? true);
     const [isDeafened, setIsDeafened] = useState(false);
     const [isTesting, setIsTesting] = useState(false);
     const [micLevel, setMicLevel] = useState(0);
@@ -104,8 +114,8 @@ export function useAudioSettings(): AudioSettings {
 
     // Persist settings on change
     useEffect(() => {
-        persistSettings({ selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity });
-    }, [selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity]);
+        persistSettings({ selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity, noiseSuppression, echoCancellation });
+    }, [selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity, noiseSuppression, echoCancellation]);
 
     // Enumerate audio devices
     const refreshDevices = useCallback(async () => {
@@ -166,8 +176,8 @@ export function useAudioSettings(): AudioSettings {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     deviceId: selectedInputId !== "default" ? { exact: selectedInputId } : undefined,
-                    echoCancellation: false,
-                    noiseSuppression: false,
+                    echoCancellation: echoCancellation,
+                    noiseSuppression: noiseSuppression,
                     autoGainControl: false,
                 },
             });
@@ -212,7 +222,7 @@ export function useAudioSettings(): AudioSettings {
         } catch (err) {
             handleError(err, { context: "useAudioSettings" });
         }
-    }, [selectedInputId, inputVolume]);
+    }, [selectedInputId, inputVolume, echoCancellation, noiseSuppression]);
 
     const stopMicTest = useCallback(() => {
         cancelAnimationFrame(testAnimFrameRef.current);
@@ -240,7 +250,7 @@ export function useAudioSettings(): AudioSettings {
         };
     }, [stopMicTest]);
 
-    return {
+    return useMemo(() => ({
         inputDevices,
         outputDevices,
         selectedInputId,
@@ -248,6 +258,8 @@ export function useAudioSettings(): AudioSettings {
         inputVolume,
         outputVolume,
         sensitivity,
+        noiseSuppression,
+        echoCancellation,
         isDeafened,
         isTesting,
         micLevel,
@@ -257,9 +269,30 @@ export function useAudioSettings(): AudioSettings {
         setInputVolume,
         setOutputVolume,
         setSensitivity,
+        setNoiseSuppression,
+        setEchoCancellation,
         toggleDeafen,
         startMicTest,
         stopMicTest,
         refreshDevices,
-    };
+    }), [
+        inputDevices,
+        outputDevices,
+        selectedInputId,
+        selectedOutputId,
+        inputVolume,
+        outputVolume,
+        sensitivity,
+        noiseSuppression,
+        echoCancellation,
+        isDeafened,
+        isTesting,
+        micLevel,
+        setSelectedInputId,
+        setSelectedOutputId,
+        toggleDeafen,
+        startMicTest,
+        stopMicTest,
+        refreshDevices
+    ]);
 }

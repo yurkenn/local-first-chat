@@ -1,4 +1,4 @@
-import { useAudioSettings } from "@/hooks/useAudioSettings";
+import type { AudioSettings } from "@/hooks/useAudioSettings";
 import {
     Dialog,
     DialogContent,
@@ -14,10 +14,10 @@ import { cn } from "@/lib/utils";
 
 interface AudioSettingsModalProps {
     onClose: () => void;
+    audio: AudioSettings;
 }
 
-export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
-    const audio = useAudioSettings();
+export function AudioSettingsModal({ onClose, audio }: AudioSettingsModalProps) {
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -89,6 +89,29 @@ export function AudioSettingsModal({ onClose }: AudioSettingsModalProps) {
                                 color="green"
                                 onChange={audio.setSensitivity}
                             />
+                        </div>
+                    </div>
+
+                    {/* ── Advanced ── */}
+                    <div className="segmented-section">
+                        <div className="segment-item space-y-3">
+                            <SectionLabel icon={<Activity className="h-3.5 w-3.5" />} label="Advanced" />
+
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-primary-color">Noise Suppression</span>
+                                <PremiumSwitch
+                                    checked={audio.noiseSuppression}
+                                    onChange={() => audio.setNoiseSuppression(!audio.noiseSuppression)}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-primary-color">Echo Cancellation</span>
+                                <PremiumSwitch
+                                    checked={audio.echoCancellation}
+                                    onChange={() => audio.setEchoCancellation(!audio.echoCancellation)}
+                                />
+                            </div>
                         </div>
                     </div>
 

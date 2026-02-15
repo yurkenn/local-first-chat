@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useVoiceChat } from "@/hooks/useVoiceChat";
+import type { AudioSettings } from "@/hooks/useAudioSettings";
 
 /**
  * useVoiceState — App-level voice state management.
@@ -31,13 +32,13 @@ export interface VoiceStateReturn {
     toggleMute: () => void;
 }
 
-export function useVoiceState(userName: string): VoiceStateReturn {
+export function useVoiceState(userName: string, audioSettings?: AudioSettings): VoiceStateReturn {
     const [connectedChannel, setConnectedChannel] = useState<any | null>(null);
     const [isJoining, setIsJoining] = useState(false);
     const joiningRef = useRef(false); // Ref mirror to avoid stale closures
 
     const { isConnected, isMuted, isSpeaking, peers, remoteStreams, join, leave, toggleMute } =
-        useVoiceChat(connectedChannel, userName);
+        useVoiceChat(connectedChannel, userName, audioSettings);
 
     // Keep ref in sync
     joiningRef.current = isJoining;

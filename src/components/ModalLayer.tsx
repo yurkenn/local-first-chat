@@ -3,6 +3,8 @@ import type { Theme } from "@/hooks/useTheme";
 import type { ModalName } from "@/hooks/useModalState";
 import type { LoadedServer, LoadedAccount } from "@/lib/jazz-types";
 
+import type { AudioSettings } from "@/hooks/useAudioSettings";
+
 // Lazy-loaded modals (named exports → default for React.lazy)
 const CreateServerModal = lazy(() => import("@/components/CreateServerModal").then(m => ({ default: m.CreateServerModal })));
 const CreateChannelModal = lazy(() => import("@/components/CreateChannelModal").then(m => ({ default: m.CreateChannelModal })));
@@ -26,6 +28,7 @@ export interface ModalLayerProps {
     handleCreateServer: (name: string, emoji: string) => void;
     handleCreateChannel: (name: string, type: "text" | "voice") => void;
     me: LoadedAccount | null | undefined;
+    audio: AudioSettings;
 }
 
 /**
@@ -45,6 +48,7 @@ export function ModalLayer({
     handleCreateServer,
     handleCreateChannel,
     me,
+    audio,
 }: ModalLayerProps) {
     return (
         <Suspense fallback={null}>
@@ -91,6 +95,7 @@ export function ModalLayer({
             {modals.audioSettings && (
                 <AudioSettingsModal
                     onClose={() => closeModal("audioSettings")}
+                    audio={audio}
                 />
             )}
 

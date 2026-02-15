@@ -70,25 +70,10 @@ export function usePeerConnections(
 
             setPeers(Array.from(uniquePeers.values()));
 
-            // Debug: log discovered peers
-            if (remotePeerIds.size > 0 || items.length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const signalCounts = items.reduce((acc: any, item: any) => {
-                    if (item?.targetPeerId) {
-                        const target = item.targetPeerId.slice(0, 8);
-                        acc[target] = (acc[target] || 0) + 1;
-                    } else {
-                        acc['BROADCAST'] = (acc['BROADCAST'] || 0) + 1;
-                    }
-                    return acc;
-                }, {});
-
-                console.log("[usePeerConnections] polling — remote peers:",
-                    Array.from(remotePeerIds).map(id => id.slice(0, 8)),
-                    "total entries:", items.length,
-                    "signals breakdown:", signalCounts
-                );
-            }
+            // Debug: log discovered peers (simplified)
+            // if (remotePeerIds.size > 0 || items.length > 0) {
+            //    console.log("[usePeerConnections] peers:", remotePeerIds.size, "signals:", items.length);
+            // }
 
             // Process signals addressed to me
             for (const vp of items) {
@@ -133,7 +118,6 @@ export function usePeerConnections(
                     peer.on("error", cleanup);
 
                     peerConnectionsRef.current.set(remotePeerId, peer);
-                    console.log("[usePeerConnections] Created non-initiator peer for", remotePeerId.slice(0, 8));
                 }
 
                 // Feed the signal to the peer connection
@@ -141,8 +125,6 @@ export function usePeerConnections(
                 if (existingPeer) {
                     try {
                         const signalData = JSON.parse(vpAny.signalData);
-                        console.log("[usePeerConnections] Feeding signal from", remotePeerId.slice(0, 8),
-                            "type:", signalData.type || "candidate");
                         existingPeer.signal(signalData);
                     } catch (err) {
                         console.warn("[usePeerConnections] Failed to parse/apply signal:", err);
@@ -181,7 +163,6 @@ export function usePeerConnections(
                 peer.on("error", cleanup);
 
                 peerConnectionsRef.current.set(remotePeerId, peer);
-                console.log("[usePeerConnections] Created initiator peer for", remotePeerId.slice(0, 8));
             }
         },
         [audioAnalysis],
@@ -200,7 +181,32 @@ export function usePeerConnections(
         processedSignalsRef.current.clear();
     }, []);
 
-    return { processPeerList, destroyAll };
+    /**
+     * Replace the audio track in all active peer connections.
+     * Used for hot-swapping microphone (e.g. changing device or toggling noise cancellation).
+     */
+    const replaceStream = useCallback((oldStream: MediaStream | null, newStream: MediaStream) => {
+        if (!oldStream) return;
+        const oldTrack = oldStream.getAudioTracks()[0];
+        const newTrack = newStream.getAudioTracks()[0];
+
+        if (!oldTrack || !newTrack) {
+            console.warn("[usePeerConnections] replaceStream: Missing tracks", { oldTrack, newTrack });
+            return;
+        }
+
+        peerConnectionsRef.current.forEach((peer, peerId) => {
+            try {
+                // simple-peer replaceTrack signature: (oldTrack, newTrack, stream)
+                peer.replaceTrack(oldTrack, newTrack, oldStream);
+                console.log("[usePeerConnections] Replaced track for peer", peerId.slice(0, 8));
+            } catch (err) {
+                console.error("[usePeerConnections] Failed to replace track for peer", peerId, err);
+            }
+        });
+    }, []);
+
+    return { processPeerList, destroyAll, replaceStream };
 }
 
 /**
@@ -250,9 +256,6 @@ function createPeerConnection(
     });
 
     peer.on("signal", (data: Peer.SignalData) => {
-        console.log("[usePeerConnections] Signal generated for", remotePeerId.slice(0, 8),
-            "type:", data.type || "candidate", "initiator:", isInitiator);
-
         // Create a new VoicePeer entry with this signal, addressed to the remote peer
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -269,7 +272,6 @@ function createPeerConnection(
                     { owner: ownerGroup },
                 );
                 coPush(voicePeers, signalEntry);
-                console.log("[usePeerConnections] Signal pushed to peers list for", remotePeerId.slice(0, 8));
             }
         } catch (err) {
             console.error("[usePeerConnections] Failed to push signal:", err);
@@ -281,7 +283,6 @@ function createPeerConnection(
     });
 
     peer.on("stream", (remoteStream: MediaStream) => {
-        console.log("[usePeerConnections] 🔊 Got remote stream from", remotePeerId.slice(0, 8));
         // Pass stream up to UI for rendering in <audio> tag
         onRemoteStream(remotePeerId, remoteStream);
 

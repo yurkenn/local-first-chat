@@ -3,10 +3,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { EmojiPicker, parseReactions, toggleReaction } from "@/components/EmojiPicker";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Smile, Pencil, Trash2, Reply } from "lucide-react";
+import { Smile, Pencil, Trash2, Reply, ChevronDown } from "lucide-react";
 import { isValidImageDataUrl } from "@/lib/validators";
 import { coSet } from "@/lib/jazz-helpers";
 import type { LoadedChannel } from "@/lib/jazz-types";
@@ -55,6 +57,14 @@ export const MessageListView = memo(function MessageListView({ channel, userName
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editText, setEditText] = useState("");
     const [pickerOpenIndex, setPickerOpenIndex] = useState<number | null>(null);
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const isFirstRender = useRef(true);
+
+    const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+        const { scrollHeight, scrollTop, clientHeight } = e.currentTarget;
+        const atBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+        setIsAtBottom(atBottom);
+    }, []);
 
     const virtualizer = useVirtualizer({
         count: msgArray.length,
@@ -80,8 +90,14 @@ export const MessageListView = memo(function MessageListView({ channel, userName
     }, [msgArray.length, virtualizer]);
 
     useEffect(() => {
-        scrollToBottom();
-    }, [msgArray.length, scrollToBottom]);
+        const lastMsg = msgArray[msgArray.length - 1] as any;
+        const isOwn = lastMsg?.senderName === userName;
+
+        if (isFirstRender.current || isAtBottom || isOwn) {
+            scrollToBottom();
+        }
+        isFirstRender.current = false;
+    }, [msgArray.length, scrollToBottom, isAtBottom, userName, msgArray]);
 
     const startEdit = (index: number, content: string) => {
         setEditingIndex(index);
@@ -150,7 +166,14 @@ export const MessageListView = memo(function MessageListView({ channel, userName
     }
 
     return (
-        <div className="flex-1 overflow-y-auto px-4 py-2" ref={parentRef} role="log" aria-live="polite" aria-label="Message history">
+        <div
+            className="flex-1 overflow-y-auto px-4 py-2"
+            ref={parentRef}
+            onScroll={onScroll}
+            role="log"
+            aria-live="polite"
+            aria-label="Message history"
+        >
             <div
                 style={{
                     height: `${virtualizer.getTotalSize()}px`,
@@ -235,6 +258,22 @@ export const MessageListView = memo(function MessageListView({ channel, userName
                     );
                 })}
             </div>
+
+            {/* Scroll to Bottom Button */}
+            {!isAtBottom && (
+                <Button
+                    size="icon"
+                    className="absolute bottom-6 right-8 w-9 h-9 rounded-full shadow-lg bg-primary-color text-primary-foreground hover:bg-primary-color/90 animate-in fade-in zoom-in duration-200 z-10"
+                    onClick={() => {
+                        scrollToBottom();
+                        // Force a small timeout to allow virtualizer to catch up if needed
+                        setTimeout(scrollToBottom, 50);
+                    }}
+                    aria-label="Scroll to bottom"
+                >
+                    <ChevronDown className="h-5 w-5" />
+                </Button>
+            )}
         </div>
     );
 });
@@ -275,7 +314,33 @@ function MessageContent({
                         <span className="truncate">{(msg.replyToContent || '').slice(0, 80)}</span>
                     </div>
                 )}
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>{msg.content}</ReactMarkdown>
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeSanitize]}
+                    components={{
+                        code(props) {
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            const { children, className, node, ref, ...rest } = props;
+                            const match = /language-(\w+)/.exec(className || "");
+                            return match ? (
+                                <SyntaxHighlighter
+                                    {...rest}
+                                    PreTag="div"
+                                    children={String(children).replace(/\n$/, "")}
+                                    language={match[1]}
+                                    style={vscDarkPlus}
+                                    customStyle={{ margin: 0, borderRadius: "0.5rem", fontSize: "12px" }}
+                                />
+                            ) : (
+                                <code {...rest} className={className}>
+                                    {children}
+                                </code>
+                            );
+                        },
+                    }}
+                >
+                    {msg.content}
+                </ReactMarkdown>
                 {msg.imageDataUrl && isValidImageDataUrl(msg.imageDataUrl) && (
                     <img src={msg.imageDataUrl} alt="Attachment" className="mt-1 max-w-[300px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => window.open(msg.imageDataUrl, '_blank')} />
                 )}
