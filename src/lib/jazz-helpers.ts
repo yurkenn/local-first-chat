@@ -87,7 +87,7 @@ export function coToArray<T = unknown>(coList: unknown): T[] {
  */
 export function getOwnerGroup(coValue: unknown): unknown {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (coValue as any)?._owner;
+    return (coValue as any)?.$jazz?.owner;
 }
 
 // ─── Account Helpers ─────────────────────────────────────────────────────────

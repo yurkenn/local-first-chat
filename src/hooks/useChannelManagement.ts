@@ -14,7 +14,7 @@ import {
     TypingState,
     TypingUserList,
 } from "@/schema";
-import { coPush, coToArray, getCoId, getOwnerGroup } from "@/lib/jazz-helpers";
+import { coPush, coToArray, getCoId } from "@/lib/jazz-helpers";
 
 interface UseChannelManagementProps {
     account: any;
@@ -43,7 +43,7 @@ export function useChannelManagement({
             if (!server?.channels) return;
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const serverGroup = getOwnerGroup(server) as any;
+            const serverGroup = (server as any).$jazz.owner;
 
             const messages = MessageList.create([], { owner: serverGroup });
             const voiceState = VoiceState.create(

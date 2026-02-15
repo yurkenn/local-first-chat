@@ -101,7 +101,7 @@ export function useServerActions({
             if (!channelsRef) return;
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const serverGroup = (server as any)._owner as Group;
+            const serverGroup = (server as any).$jazz.owner as Group;
 
             const channel = createChannelCoValues(name, type, serverGroup);
 
