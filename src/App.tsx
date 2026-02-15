@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useModalState } from "@/hooks/useModalState";
 import { useLayoutState } from "@/hooks/useLayoutState";
@@ -7,9 +8,10 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useTheme } from "@/hooks/useTheme";
 import { useVoiceState } from "@/hooks/useVoiceState";
 import { useServerActions } from "@/hooks/useServerActions";
-import { useLogOut } from "jazz-tools/react";
+import { useLogOut, useAcceptInvite } from "jazz-tools/react";
 import { useAccount } from "jazz-tools/react";
-import { ChatAccount } from "@/schema";
+import { ChatAccount, ChatServer } from "@/schema";
+import { coPush, getCoId, getServerArray } from "@/lib/jazz-helpers";
 import { ServerSidebar } from "@/components/ServerSidebar";
 import { ChannelSidebar } from "@/components/ChannelSidebar";
 import { MemberPanel } from "@/components/MemberPanel";
@@ -18,8 +20,8 @@ import { DesktopLayout } from "@/components/DesktopLayout";
 import { MobileLayout } from "@/components/MobileLayout";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import {
-  getCoId, isAccountLoaded,
-  getProfileName, getServerArray, findServerById,
+  isAccountLoaded,
+  getProfileName, findServerById,
   getChannelArray, findChannelById, closeAllModals,
 } from "@/lib/jazz-helpers";
 
@@ -49,6 +51,50 @@ export default function App() {
   const [activeServerId, setActiveServerId] = useState<string | null>(null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const logOut = useLogOut();
+
+  // ── Auto-accept invite links from URL hash ──
+  useAcceptInvite({
+    invitedObjectSchema: ChatServer,
+    forValueHint: "server",
+    onAccept: useCallback(async (serverId: string) => {
+      try {
+        // Load the server we just got access to
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const server = await (ChatServer as any).load(serverId, {
+          resolve: { channels: { $each: true } },
+        });
+
+        if (!server) {
+          toast.error("Could not load the invited server. Please try again.");
+          return;
+        }
+
+        // Check if already in server list
+        const servers = me ? getServerArray(me) : [];
+        const alreadyJoined = servers.some(
+          (s) => getCoId(s) === serverId
+        );
+
+        if (!alreadyJoined && me) {
+          // Add server to user's server list
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const serverList = (me as any)?.root?.servers;
+          if (serverList) {
+            coPush(serverList, server);
+          }
+        }
+
+        // Navigate to the joined server
+        setActiveServerId(serverId);
+        setActiveChannelId(null);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        toast.success(`Joined "${(server as any)?.name || 'server'}"`);
+      } catch (err) {
+        console.error("[App] Failed to process invite link:", err);
+        toast.error("Failed to join server from invite link.");
+      }
+    }, [me]),
+  });
 
   // ── Layout & Modal State (custom hooks) ──
   const { layout, isMobile, toggleSidebar, toggleChannelSidebar, toggleMemberPanel, openChannelSidebar, mobileScreen, navigateToServers, navigateToChannels, navigateToChat } = useLayoutState();
