@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useModalState } from "@/hooks/useModalState";
@@ -12,6 +12,8 @@ import { useLogOut, useAcceptInvite } from "jazz-tools/react";
 import { useAccount } from "jazz-tools/react";
 import { ChatAccount, ChatServer } from "@/schema";
 import { coPush, getCoId, getServerArray } from "@/lib/jazz-helpers";
+import { InviteAcceptModal } from "@/components/InviteAcceptModal";
+import type { PendingInvite } from "@/components/InviteAcceptModal";
 import { ServerSidebar } from "@/components/ServerSidebar";
 import { ChannelSidebar } from "@/components/ChannelSidebar";
 import { MemberPanel } from "@/components/MemberPanel";
@@ -52,27 +54,28 @@ export default function App() {
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const logOut = useLogOut();
 
+  // ── Pending invite state (for confirmation modal) ──
+  const [pendingInvite, setPendingInvite] = useState<PendingInvite | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pendingServerRef = useRef<any>(null);
+
   // ── Auto-accept invite links from URL hash ──
   useAcceptInvite({
     invitedObjectSchema: ChatServer,
     forValueHint: "server",
     onAccept: useCallback(async (serverId: string) => {
       console.log("[App] 🎉 Invite accepted! Server ID:", serverId);
-      toast.info("Processing invite link...");
+      toast.info("Loading server info...");
 
       try {
-        // Wait a moment for Jazz to sync the data
+        // Wait for Jazz to sync, then load the server
         await new Promise((r) => setTimeout(r, 1500));
-
-        // Load the invited server
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let server = await (ChatServer as any).load(serverId, {
           resolve: { channels: { $each: true } },
         });
 
-        // Retry once if first load fails (sync might be slow)
         if (!server) {
-          console.log("[App] Server not loaded yet, retrying in 2s...");
           await new Promise((r) => setTimeout(r, 2000));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           server = await (ChatServer as any).load(serverId, {
@@ -81,47 +84,57 @@ export default function App() {
         }
 
         if (!server) {
-          console.error("[App] Failed to load server after retry");
-          toast.error("Could not load server. Please try the link again.");
+          toast.error("Could not load server. Please try again.");
           return;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        console.log("[App] Server loaded:", (server as any)?.name);
+        const serverAny = server as any;
+        console.log("[App] Server loaded:", serverAny?.name);
 
-        // Add to user's server list if not already there
-        if (me) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const meAny = me as any;
-          const serverList = meAny?.root?.servers;
-          console.log("[App] Server list exists?", !!serverList);
-
-          if (serverList) {
-            // Check if already joined
-            const existingServers = getServerArray(me);
-            const alreadyJoined = existingServers.some(
-              (s) => getCoId(s) === serverId
-            );
-            console.log("[App] Already joined?", alreadyJoined);
-
-            if (!alreadyJoined) {
-              coPush(serverList, server);
-              console.log("[App] ✅ Server added to list");
-            }
-          }
-        }
-
-        // Navigate to the server
-        setActiveServerId(serverId);
-        setActiveChannelId(null);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        toast.success(`Joined "${(server as any)?.name || 'server'}" 🎉`);
+        // Store the server reference and show confirmation modal
+        pendingServerRef.current = server;
+        setPendingInvite({
+          serverId,
+          serverName: serverAny?.name || "Unknown Server",
+          serverIcon: serverAny?.iconUrl || "",
+        });
       } catch (err) {
         console.error("[App] ❌ Invite error:", err);
-        toast.error("Failed to join. Please try again.");
+        toast.error("Failed to load server. Please try again.");
       }
-    }, [me]),
+    }, []),
   });
+
+  // ── Handle invite accept/decline ──
+  const handleInviteAccept = useCallback(() => {
+    const server = pendingServerRef.current;
+    const invite = pendingInvite;
+    if (!server || !invite || !me) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meAny = me as any;
+    const serverList = meAny?.root?.servers;
+    if (serverList) {
+      const existingServers = getServerArray(me);
+      const alreadyJoined = existingServers.some((s) => getCoId(s) === invite.serverId);
+      if (!alreadyJoined) {
+        coPush(serverList, server);
+      }
+    }
+
+    setActiveServerId(invite.serverId);
+    setActiveChannelId(null);
+    toast.success(`Joined "${invite.serverName}" 🎉`);
+    setPendingInvite(null);
+    pendingServerRef.current = null;
+  }, [me, pendingInvite]);
+
+  const handleInviteDecline = useCallback(() => {
+    setPendingInvite(null);
+    pendingServerRef.current = null;
+    toast.info("Invite declined.");
+  }, []);
 
   // ── Layout & Modal State (custom hooks) ──
   const { layout, isMobile, toggleSidebar, toggleChannelSidebar, toggleMemberPanel, openChannelSidebar, mobileScreen, navigateToServers, navigateToChannels, navigateToChat } = useLayoutState();
@@ -323,6 +336,15 @@ export default function App() {
         />
       ) : (
         <DesktopLayout {...layoutProps} />
+      )}
+
+      {/* ── Invite Accept Confirmation ── */}
+      {pendingInvite && (
+        <InviteAcceptModal
+          invite={pendingInvite}
+          onAccept={handleInviteAccept}
+          onDecline={handleInviteDecline}
+        />
       )}
 
       {/* ── Modals ── */}
