@@ -109,19 +109,32 @@ export function useVoiceChat(channel: any, userName: string) {
             audioAnalysis.setupLocalAnalyser(stream);
 
             // Ensure voice state exists on channel
-            if (!channel.voiceState) {
+            // Important: use the direct reference after creation, not channel.voiceState,
+            // because Jazz CoValue sync may not have completed yet.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let voiceState: any = channel.voiceState;
+            if (!voiceState) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const ownerGroup = getOwnerGroup(channel) as any;
-                const voiceState = VoiceState.create(
+                voiceState = VoiceState.create(
                     { peers: VoicePeerList.create([], { owner: ownerGroup }) },
                     { owner: ownerGroup },
                 );
                 coSet(channel, "voiceState", voiceState);
             }
 
-            const voiceState = channel.voiceState;
-            if (!voiceState || !voiceState.peers) {
-                console.warn("[useVoiceChat] Voice state or peers not available");
+            // Ensure the peers list exists
+            if (!voiceState.peers) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const ownerGroup = getOwnerGroup(channel) as any;
+                coSet(voiceState, "peers", VoicePeerList.create([], { owner: ownerGroup }));
+            }
+
+            if (!voiceState.peers) {
+                console.warn("[useVoiceChat] Voice state peers still not available after creation");
+                // Clean up the stream to prevent mic leak
+                stream.getTracks().forEach((track) => track.stop());
+                localStreamRef.current = null;
                 isJoiningRef.current = false;
                 return;
             }

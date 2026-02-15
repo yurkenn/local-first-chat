@@ -309,9 +309,16 @@ function VoiceChannelItem({
                 ) : null}
             </button>
 
-            {/* Connected peers */}
-            {isConnected && voice.peers.length > 0 && (
+            {/* Connected users (self + remote peers) */}
+            {isConnected && (
                 <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mt-0.5 mb-1 space-y-0.5 animate-fade-in">
+                    {/* Self — always shown when connected to this channel */}
+                    <div className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-primary-color">
+                        <SpeakingAvatar name={userName || "U"} isSpeaking={voice.isSpeaking && !voice.isMuted} gradientFrom="var(--organic-sage)" gradientTo="var(--organic-green)" />
+                        <span className="truncate flex-1">{userName || "You"}</span>
+                        {voice.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
+                    </div>
+                    {/* Remote peers */}
                     {voice.peers.map((peer: any) => (
                         <div key={peer.peerId} className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-muted-color">
                             <SpeakingAvatar name={peer.peerName || "?"} isSpeaking={peer.isSpeaking} gradientFrom="var(--organic-sage)" gradientTo="#2B7A4B" />
@@ -319,17 +326,6 @@ function VoiceChannelItem({
                             {peer.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
                         </div>
                     ))}
-                </div>
-            )}
-
-            {/* Self as connected user */}
-            {isConnected && voice.isConnected && (
-                <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mb-1 space-y-0.5">
-                    <div className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-primary-color">
-                        <SpeakingAvatar name={userName || "U"} isSpeaking={voice.isSpeaking && !voice.isMuted} gradientFrom="var(--organic-sage)" gradientTo="var(--organic-green)" />
-                        <span className="truncate flex-1">{userName || "You"}</span>
-                        {voice.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
-                    </div>
                 </div>
             )}
         </div>
