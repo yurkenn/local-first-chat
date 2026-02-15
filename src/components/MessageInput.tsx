@@ -172,7 +172,7 @@ export function MessageInput({
         <div className="px-4 pb-4 pt-1">
             {/* Reply banner */}
             {replyTarget && (
-                <div className="flex items-center gap-2 px-3 py-1.5 mb-1.5 rounded-lg bg-surface text-xs">
+                <div className="flex items-center gap-2 px-3 py-1.5 mb-1.5 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-xs">
                     <Reply className="h-3 w-3 text-[var(--organic-sage)] shrink-0" />
                     <span className="text-muted-color">
                         Replying to{" "}
@@ -211,11 +211,11 @@ export function MessageInput({
                 </div>
             )}
 
-            <div className="flex items-end gap-2 rounded-xl surface-floating p-1.5 focus-glow transition-all duration-200">
+            <div className="flex items-end gap-2 rounded-[22px] bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] p-1.5 focus-glow transition-all duration-200">
                 {/* Image upload button */}
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-color hover:text-primary-color hover:bg-surface transition-colors shrink-0"
+                    className="h-9 w-9 flex items-center justify-center rounded-full text-muted-color hover:text-primary-color hover:bg-[rgba(255,255,255,0.06)] transition-colors shrink-0"
                     aria-label="Attach image"
                 >
                     <ImageIcon className="h-4 w-4" />
@@ -229,7 +229,7 @@ export function MessageInput({
                 />
 
                 <textarea
-                    className="flex-1 min-h-[36px] max-h-[120px] bg-transparent border-none outline-none resize-none text-sm text-primary-color placeholder:text-muted-color px-3 py-2"
+                    className="flex-1 min-h-[40px] max-h-[120px] bg-transparent border-none outline-none resize-none text-[15px] text-primary-color placeholder:text-muted-color px-3 py-2.5"
                     value={text}
                     onChange={(e) => {
                         setText(e.target.value);
@@ -251,7 +251,7 @@ export function MessageInput({
                 )}
                 <Button
                     size="icon"
-                    className="h-8 w-8 rounded-lg bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] hover:scale-110 hover:shadow-[var(--shadow-md)] shrink-0 disabled:opacity-30 disabled:hover:scale-100 disabled:hover:shadow-none transition-all duration-200 text-white"
+                    className="h-9 w-9 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.85)] hover:scale-105 shrink-0 disabled:opacity-25 disabled:hover:scale-100 transition-all duration-200 text-white press-effect shadow-[var(--shadow-sm)]"
                     onClick={handleSend}
                     disabled={!text.trim() && !pendingImage}
                     aria-label="Send message"

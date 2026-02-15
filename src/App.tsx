@@ -51,7 +51,7 @@ export default function App() {
   const logOut = useLogOut();
 
   // ── Layout & Modal State (custom hooks) ──
-  const { layout, isMobile, toggleSidebar, toggleChannelSidebar, toggleMemberPanel, openChannelSidebar, closeAllPanels } = useLayoutState();
+  const { layout, isMobile, toggleSidebar, toggleChannelSidebar, toggleMemberPanel, openChannelSidebar, mobileScreen, navigateToServers, navigateToChannels, navigateToChat } = useLayoutState();
   const { modals, openModal, closeModal } = useModalState();
   const { theme, setTheme } = useTheme();
 
@@ -90,11 +90,9 @@ export default function App() {
     activeChannel = channelArray[0] ?? null;
   }
 
-  // ── Loading gate ──
-  if (!loaded) return null;
-
   // ── Notification / Unread Tracking ──
   const notificationChannels = useMemo(() => {
+    if (!loaded) return [];
     return channelArray.map((c) => ({
       id: getCoId(c) || '',
       name: c?.name || '',
@@ -102,7 +100,7 @@ export default function App() {
       messages: c?.messages ? Array.from(c.messages as any).filter(Boolean) : [],
       channelType: c?.channelType || 'text',
     }));
-  }, [channelArray]);
+  }, [loaded, channelArray]);
 
   const { getUnreadCount, totalUnread } = useNotifications({
     channels: notificationChannels,
@@ -146,6 +144,10 @@ export default function App() {
     isVoiceConnected: voice.isConnected,
   });
 
+  // ── Loading gate ──
+  if (!loaded) return null;
+
+
   // ── Shared sidebar props ──
   const serverSidebarJsx = (
     <ErrorBoundary section="ServerSidebar">
@@ -156,8 +158,7 @@ export default function App() {
           setActiveServerId(id);
           setActiveChannelId(null);
           if (isMobile) {
-            closeAllPanels();
-            toggleChannelSidebar();
+            navigateToChannels();
           } else {
             openChannelSidebar();
           }
@@ -177,7 +178,7 @@ export default function App() {
         activeChannelId={activeChannelId}
         onSelectChannel={(id) => {
           setActiveChannelId(id);
-          if (isMobile) closeAllPanels();
+          if (isMobile) navigateToChat();
         }}
         onCreateChannel={() => openModal("createChannel")}
         onInvite={() => openModal("invite")}
@@ -217,7 +218,36 @@ export default function App() {
       <OfflineBanner />
 
       {isMobile ? (
-        <MobileLayout {...layoutProps} onCloseAllPanels={closeAllPanels} />
+        <MobileLayout
+          mobileScreen={mobileScreen}
+          onNavigateToServers={navigateToServers}
+          onNavigateToChannels={navigateToChannels}
+          onNavigateToChat={navigateToChat}
+          memberPanelOpen={layout.memberPanelOpen}
+          onToggleMemberPanel={toggleMemberPanel}
+          activeChannel={activeChannel}
+          activeServer={activeServer}
+          userName={profileName}
+          servers={serverArray.map((s) => ({ id: s.$jazz.id, name: s.name ?? 'Unnamed', iconEmoji: s.iconEmoji ?? undefined }))}
+          activeServerId={activeServerId}
+          onSelectServer={(id) => {
+            setActiveServerId(id);
+            setActiveChannelId(null);
+            if (isMobile) {
+              navigateToChannels();
+            } else {
+              openChannelSidebar();
+            }
+          }}
+          onCreateServer={() => openModal("createServer")}
+          onJoinServer={() => openModal("joinServer")}
+          channelSidebar={channelSidebarJsx}
+          memberPanel={memberPanelJsx}
+          sidebarOpen={layout.sidebarOpen}
+          channelSidebarOpen={layout.channelSidebarOpen}
+          onToggleSidebar={toggleSidebar}
+          onToggleChannelSidebar={toggleChannelSidebar}
+        />
       ) : (
         <DesktopLayout {...layoutProps} />
       )}

@@ -130,12 +130,20 @@ export const MessageListView = memo(function MessageListView({ channel, userName
     if (msgArray.length === 0) {
         return (
             <div className="flex-1 flex items-center justify-center overflow-y-auto" ref={parentRef} role="status" aria-label="No messages in channel">
-                <div className="flex flex-col items-center gap-3 animate-fade-in">
-                    <div className="text-4xl">✨</div>
-                    <h3 className="text-lg font-heading font-semibold text-primary-color">No messages yet</h3>
-                    <p className="text-xs text-muted-color">
-                        Be the first to send a message in this channel!
-                    </p>
+                <div className="flex flex-col items-center gap-4 animate-fade-in max-w-[280px]">
+                    <div className="w-16 h-16 rounded-[18px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] flex items-center justify-center shadow-[var(--shadow-sm)]">
+                        <span className="text-3xl animate-[pulse_3s_ease-in-out_infinite]">🪷</span>
+                    </div>
+                    <div className="text-center space-y-1.5">
+                        <h3 className="text-[17px] font-semibold text-[hsl(var(--foreground))] tracking-[-0.01em]">Start the conversation</h3>
+                        <p className="text-[13px] text-[hsl(var(--muted-foreground))] leading-relaxed">
+                            Be the first to send a message in this channel. Your messages are end-to-end encrypted.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[rgba(48,209,88,0.08)] text-[11px] font-medium text-[var(--organic-green)]">
+                        <div className="w-[5px] h-[5px] rounded-full bg-[var(--organic-green)]" />
+                        End-to-End Encrypted
+                    </div>
                 </div>
             </div>
         );
@@ -186,12 +194,12 @@ export const MessageListView = memo(function MessageListView({ channel, userName
                             }}
                             ref={virtualizer.measureElement}
                             data-index={virtualItem.index}
-                            className={cn("group relative px-2 py-0.5 rounded-md hover:bg-[hsl(var(--secondary))/0.3] transition-colors", isDeleted && "opacity-50")}
+                            className={cn("group relative px-3 py-0.5 rounded-xl hover:bg-[rgba(255,255,255,0.03)] transition-colors", isDeleted && "opacity-50")}
                         >
                             <div className={cn("flex gap-3", isGrouped && "pl-[44px]")}>
                                 {/* Avatar — only for ungrouped (first message in group) */}
                                 {!isGrouped && (
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5">
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-0.5">
                                         {(msg.senderName || "?").charAt(0).toUpperCase()}
                                     </div>
                                 )}
@@ -200,8 +208,8 @@ export const MessageListView = memo(function MessageListView({ channel, userName
                                     {/* Sender name + timestamp — only for ungrouped */}
                                     {!isGrouped && (
                                         <div className="flex items-baseline gap-2">
-                                            <span className="text-sm font-semibold text-primary-color">{msg.senderName || "Unknown"}</span>
-                                            <span className="text-[10px] text-muted-color">{formatTimestamp(msg.createdAt)}</span>
+                                            <span className="text-[13px] font-semibold text-primary-color">{msg.senderName || "Unknown"}</span>
+                                            <span className="text-[11px] text-muted-color">{formatTimestamp(msg.createdAt)}</span>
                                         </div>
                                     )}
 
@@ -259,9 +267,9 @@ function MessageContent({
 
     return (
         <>
-            <div className="text-sm prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[var(--organic-sage)]">
+            <div className="text-[13px] prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[hsl(var(--primary))]">
                 {msg.replyToSender && (
-                    <div className="flex items-center gap-1.5 mb-1 pl-2 border-l-2 border-[var(--organic-sage)] text-xs text-muted-color">
+                    <div className="flex items-center gap-1.5 mb-1 pl-2 border-l-2 border-[hsl(var(--primary))] text-xs text-muted-color">
                         <Reply className="h-3 w-3 shrink-0" />
                         <span className="font-semibold">{msg.replyToSender}</span>
                         <span className="truncate">{(msg.replyToContent || '').slice(0, 80)}</span>
@@ -294,7 +302,7 @@ const MessageActions = memo(function MessageActions({
     isOwn: boolean;
 }) {
     return (
-        <div className="absolute right-2 top-0 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 rounded-md surface-elevated px-1 py-0.5 shadow-lg z-10">
+        <div className="absolute right-3 top-0 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 rounded-[10px] glass-strong px-1 py-0.5 shadow-[var(--shadow-lg)] z-10">
             <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-color hover:text-primary-color" onClick={onReact} title="Add reaction">
                 <Smile className="h-3.5 w-3.5" />
             </Button>

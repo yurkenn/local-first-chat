@@ -65,7 +65,7 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
                         </h3>
 
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-lg font-bold text-white shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-lg font-bold text-white shrink-0">
                                 {(currentName || "U").charAt(0).toUpperCase()}
                             </div>
                             <div>

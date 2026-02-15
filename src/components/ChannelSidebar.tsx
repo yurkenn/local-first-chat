@@ -44,8 +44,8 @@ export const ChannelSidebar = memo(function ChannelSidebar({
 }: ChannelSidebarProps) {
     if (!server) {
         return (
-            <div className="flex flex-col h-full overflow-hidden bg-card-surface border-r border-[hsl(var(--border))]">
-                <div className="h-12 flex items-center px-4 gap-2 border-b border-[hsl(var(--border))]">
+            <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-r border-[rgba(255,255,255,0.06)]">
+                <div className="h-[52px] flex items-center px-4 gap-2 border-b border-[rgba(255,255,255,0.06)]">
                     <span className="text-lg leading-none">🪷</span>
                     <span className="font-heading font-semibold text-sm brand-title">Lotus</span>
                 </div>
@@ -68,11 +68,11 @@ export const ChannelSidebar = memo(function ChannelSidebar({
     const connectedChannelId = voice.connectedChannel?.$jazz?.id;
 
     return (
-        <div className="flex flex-col h-full overflow-hidden bg-card-surface border-r border-[hsl(var(--border))]">
+        <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-r border-[rgba(255,255,255,0.06)]">
             {/* Server name header */}
-            <div className="h-12 flex items-center px-4 gap-2 border-b border-[hsl(var(--border))] group">
+            <div className="h-[52px] flex items-center px-4 gap-2 border-b border-[rgba(255,255,255,0.06)] group">
                 <span
-                    className="flex-1 font-heading font-semibold text-sm truncate cursor-pointer hover:text-primary-color"
+                    className="flex-1 font-heading font-semibold text-[15px] tracking-[-0.01em] truncate cursor-pointer hover:text-primary-color"
                     onClick={onInvite}
                 >
                     {server.name}
@@ -97,10 +97,10 @@ export const ChannelSidebar = memo(function ChannelSidebar({
             {/* ✨ Invite People — always visible CTA */}
             <div className="px-2 pt-2">
                 <button
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all
-                        bg-[hsl(var(--primary)/0.08)] hover:bg-[hsl(var(--primary)/0.15)]
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-[10px] text-[13px] font-medium cursor-pointer transition-all
+                        bg-[hsl(var(--primary)/0.08)] hover:bg-[hsl(var(--primary)/0.14)]
                         text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]
-                        border border-[hsl(var(--primary)/0.2)] hover:border-[hsl(var(--primary)/0.4)]
+                        border border-[hsl(var(--primary)/0.15)] hover:border-[hsl(var(--primary)/0.3)]
                         hover:shadow-[var(--shadow-sm)]"
                     onClick={onInvite}
                     aria-label="Invite people to this server"
@@ -114,7 +114,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
             <ScrollArea className="flex-1">
                 <div className="p-2">
                     {/* Text channels */}
-                    <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-color">
+                    <div className="px-2 py-1.5 label-section">
                         Text Channels
                     </div>
                     {textChannels.length === 0 && (
@@ -136,13 +136,18 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     })}
 
                     {/* Voice channels */}
-                    <div className="px-2 py-1.5 mt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-color">
+                    <div className="px-2 py-1.5 mt-3 label-section">
                         Voice Channels
                     </div>
                     {voiceChannels.length === 0 && (
-                        <p className="px-2 py-2 text-xs text-[hsl(var(--muted-foreground))/0.6] italic">
-                            No voice channels — create one to talk!
-                        </p>
+                        <div className="mx-2 my-1.5 px-3 py-2.5 rounded-[10px] bg-[hsl(var(--muted)/0.3)] border border-[hsl(var(--border)/0.5)]">
+                            <p className="text-[11px] text-muted-color leading-snug">
+                                No voice channels yet.
+                            </p>
+                            <p className="text-[10px] text-[hsl(var(--muted-foreground))/0.5] mt-0.5">
+                                Use <span className="font-medium text-muted-color">+ Add Channel</span> to create one.
+                            </p>
+                        </div>
                     )}
                     {voiceChannels.map((channel: LoadedChannel) => {
                         if (!channel) return null;
@@ -241,7 +246,7 @@ function TextChannelItem({
     return (
         <button
             className={cn(
-                "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm cursor-pointer transition-all duration-200",
+                "w-full flex items-center gap-2 px-2.5 py-[7px] rounded-lg text-[13px] cursor-pointer transition-all duration-200",
                 isActive
                     ? "bg-surface text-primary-color active-channel-bar"
                     : unread > 0
@@ -254,7 +259,7 @@ function TextChannelItem({
             <Hash className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--organic-sage)] opacity-100" : "opacity-60")} />
             <span className="truncate">{channel.name}</span>
             {unread > 0 && !isActive && (
-                <span className="ml-auto shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[var(--organic-warm)] text-white text-[10px] font-bold px-1">
+                <span className="ml-auto shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[hsl(var(--primary))] text-white text-[10px] font-bold px-1">
                     {unread > 99 ? '99+' : unread}
                 </span>
             )}
@@ -309,7 +314,7 @@ function VoiceChannelItem({
                 <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mt-0.5 mb-1 space-y-0.5 animate-fade-in">
                     {voice.peers.map((peer: any) => (
                         <div key={peer.peerId} className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-muted-color">
-                            <SpeakingAvatar name={peer.peerName || "?"} isSpeaking={peer.isSpeaking} gradientFrom="var(--organic-sage)" gradientTo="var(--organic-blue)" />
+                            <SpeakingAvatar name={peer.peerName || "?"} isSpeaking={peer.isSpeaking} gradientFrom="var(--organic-sage)" gradientTo="#2B7A4B" />
                             <span className="truncate flex-1">{peer.peerName || "Unknown"}</span>
                             {peer.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
                         </div>
@@ -415,8 +420,8 @@ function VoiceStatusBar({
 
 function UserPanel({ userName, onLogout, onUserSettings }: { userName: string; onLogout?: () => void; onUserSettings?: () => void }) {
     return (
-        <div className="flex items-center gap-2 px-2 py-2 surface-elevated border-t border-[hsl(var(--border))]">
-            <div className="group/avatar relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[var(--organic-blue)] flex items-center justify-center text-xs font-bold text-white transition-shadow hover:shadow-[var(--shadow-md)]">
+        <div className="flex items-center gap-2.5 px-3 py-2.5 glass-strong border-t border-[rgba(255,255,255,0.06)]">
+            <div className="group/avatar relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-bold text-white transition-shadow hover:shadow-[var(--shadow-md)]">
                 {userName.charAt(0).toUpperCase()}
                 <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[var(--organic-green)] border-2 border-[hsl(var(--card))]" />
             </div>

@@ -30,7 +30,7 @@ export const ServerSidebar = memo(function ServerSidebar({
     return (
         <TooltipProvider delayDuration={200}>
             <nav
-                className="flex flex-col items-center gap-2 py-3 overflow-hidden bg-card-surface border-r border-[hsl(var(--border))]"
+                className="flex flex-col items-center gap-1.5 py-3 overflow-hidden bg-[hsl(var(--sidebar))] border-r border-[rgba(255,255,255,0.06)]"
                 aria-label="Servers"
             >
                 {/* Home / DM icon */}
@@ -39,15 +39,15 @@ export const ServerSidebar = memo(function ServerSidebar({
                         <div className="relative flex items-center">
                             {/* Active pill indicator */}
                             {!activeServerId && (
-                                <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-[var(--organic-sage)] transition-all duration-200" />
+                                <div className="absolute -left-[3px] w-[4px] h-5 rounded-r-full bg-[hsl(var(--primary))] transition-all duration-200" />
                             )}
                             <div
                                 className={cn(
-                                    "w-11 h-11 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
-                                    "hover:rounded-xl hover:scale-105 hover:shadow-[var(--shadow-md)]",
+                                    "w-[44px] h-[44px] rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
+                                    "hover:rounded-xl",
                                     !activeServerId
-                                        ? "rounded-xl bg-[hsl(var(--primary))] shadow-[var(--shadow-md)]"
-                                        : "bg-surface hover:bg-[hsl(var(--primary))]"
+                                        ? "rounded-xl bg-[hsl(var(--primary))] text-white shadow-[var(--shadow-md)]"
+                                        : "bg-[rgba(255,255,255,0.06)] hover:bg-[hsl(var(--primary))] hover:text-white"
                                 )}
                                 onClick={() => onSelectServer("")}
                                 onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(""))}
@@ -62,7 +62,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                     <TooltipContent side="right">Direct Messages</TooltipContent>
                 </Tooltip>
 
-                <Separator className="w-8 bg-[hsl(var(--border))]" />
+                <Separator className="w-8 bg-[rgba(255,255,255,0.04)] h-[0.5px]" />
 
                 {/* Server list */}
                 {servers.map((server) => {
@@ -74,15 +74,15 @@ export const ServerSidebar = memo(function ServerSidebar({
                                 <div className="relative flex items-center">
                                     {/* Active pill indicator */}
                                     {isActive && (
-                                        <div className="absolute -left-1 w-[3px] h-5 rounded-r-full bg-[var(--organic-sage)] transition-all duration-200" />
+                                        <div className="absolute -left-[3px] w-[4px] h-5 rounded-r-full bg-[hsl(var(--primary))] transition-all duration-200" />
                                     )}
                                     <div
                                         className={cn(
-                                            "w-11 h-11 rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
-                                            "hover:rounded-xl hover:scale-105 hover:shadow-[var(--shadow-md)]",
+                                            "w-[44px] h-[44px] rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-300",
+                                            "hover:rounded-xl",
                                             isActive
-                                                ? "rounded-xl bg-[hsl(var(--primary))] shadow-[var(--shadow-md)]"
-                                                : "bg-surface hover:bg-[hsl(var(--primary))]"
+                                                ? "rounded-xl bg-[hsl(var(--primary))] text-white shadow-[var(--shadow-md)]"
+                                                : "bg-[rgba(255,255,255,0.06)] hover:bg-[hsl(var(--primary))] hover:text-white"
                                         )}
                                         onClick={() => onSelectServer(server.$jazz.id)}
                                         onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(server.$jazz.id))}
@@ -99,13 +99,13 @@ export const ServerSidebar = memo(function ServerSidebar({
                     );
                 })}
 
-                <Separator className="w-8 bg-[hsl(var(--border))]" />
+                <Separator className="w-8 bg-[rgba(255,255,255,0.04)] h-[0.5px]" />
 
                 {/* Create server button */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[var(--organic-green)] bg-surface hover:rounded-xl hover:bg-[var(--organic-green)] hover:text-black hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
+                            className="w-[44px] h-[44px] rounded-2xl flex items-center justify-center text-[var(--organic-green)] bg-[rgba(255,255,255,0.04)] hover:rounded-xl hover:bg-[var(--organic-green)] hover:text-black transition-all duration-300 cursor-pointer"
                             onClick={onCreateServer}
                             aria-label="Create a server"
                         >
@@ -119,7 +119,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
-                            className="w-11 h-11 rounded-2xl flex items-center justify-center text-muted-color bg-surface hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white hover:scale-105 hover:shadow-[var(--shadow-md)] transition-all duration-300 cursor-pointer"
+                            className="w-[44px] h-[44px] rounded-2xl flex items-center justify-center text-muted-color bg-[rgba(255,255,255,0.04)] hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white transition-all duration-300 cursor-pointer"
                             onClick={onJoinServer}
                             aria-label="Join a server"
                         >

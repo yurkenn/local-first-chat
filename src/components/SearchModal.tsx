@@ -122,26 +122,26 @@ export function SearchModal({
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-2xl overflow-hidden"
+                className="w-full max-w-lg bg-[hsl(var(--card))] border border-[rgba(255,255,255,0.06)] rounded-[20px] shadow-[var(--shadow-xl)] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Search input */}
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-[hsl(var(--border))]">
-                    <Search className="h-5 w-5 text-muted-color shrink-0" />
+                <div className="flex items-center gap-3 px-5 py-4 border-b border-[rgba(255,255,255,0.06)]">
+                    <Search className="h-5 w-5 text-[hsl(var(--muted-foreground))] shrink-0" />
                     <input
                         ref={inputRef}
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Search messages…"
-                        className="flex-1 bg-transparent text-primary-color placeholder-[hsl(var(--muted-foreground))] outline-none text-sm"
+                        className="flex-1 bg-transparent text-[hsl(var(--foreground))] placeholder-[hsl(var(--muted-foreground))] outline-none text-[15px]"
                     />
                     {query && (
                         <button
                             onClick={() => setQuery("")}
-                            className="text-muted-color hover:text-primary-color transition-colors"
+                            className="rounded-full w-6 h-6 flex items-center justify-center bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-all"
                         >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3" />
                         </button>
                     )}
                 </div>
@@ -196,10 +196,10 @@ export function SearchModal({
                 </div>
 
                 {/* Footer shortcut hint */}
-                <div className="px-4 py-2 border-t border-[hsl(var(--border))] flex items-center gap-3 text-[10px] text-muted-color">
-                    <kbd className="px-1.5 py-0.5 bg-surface rounded text-[10px] font-mono">↵</kbd>
+                <div className="px-5 py-2.5 border-t border-[rgba(255,255,255,0.06)] flex items-center gap-3 text-[10px] text-[hsl(var(--muted-foreground))]">
+                    <kbd className="px-1.5 py-0.5 bg-[rgba(255,255,255,0.04)] rounded-md text-[10px] font-mono border border-[rgba(255,255,255,0.06)]">↵</kbd>
                     <span>Select</span>
-                    <kbd className="px-1.5 py-0.5 bg-surface rounded text-[10px] font-mono">Esc</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-[rgba(255,255,255,0.04)] rounded-md text-[10px] font-mono border border-[rgba(255,255,255,0.06)]">Esc</kbd>
                     <span>Close</span>
                 </div>
             </div>

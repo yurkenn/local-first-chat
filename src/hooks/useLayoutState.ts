@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 
+export type MobileScreen = "servers" | "channels" | "chat";
+
 interface LayoutState {
     sidebarOpen: boolean;
     channelSidebarOpen: boolean;
@@ -7,7 +9,7 @@ interface LayoutState {
 }
 
 const initialState: LayoutState = {
-    sidebarOpen: false,
+    sidebarOpen: true,
     channelSidebarOpen: false,
     memberPanelOpen: false,
 };
@@ -15,7 +17,7 @@ const initialState: LayoutState = {
 /**
  * useLayoutState — Manages visibility of the 3 app panels.
  *
- * On mobile (≤768px): panels become overlays, only one can be open at a time.
+ * On mobile (≤768px): uses a page-stack navigation (servers → channels → chat).
  * On desktop: panels are inline and can all be open simultaneously.
  */
 export function useLayoutState() {
@@ -24,12 +26,14 @@ export function useLayoutState() {
         typeof window !== "undefined" ? window.innerWidth <= 768 : false
     );
 
+    // ── Mobile page navigation ──
+    const [mobileScreen, setMobileScreen] = useState<MobileScreen>("servers");
+
     // Listen for resize to update isMobile
     useEffect(() => {
         const mql = window.matchMedia("(max-width: 768px)");
         const handler = (e: MediaQueryListEvent) => {
             setIsMobile(e.matches);
-            // Close all panels when switching to mobile to avoid visual glitches
             if (e.matches) {
                 setLayout(initialState);
             }
@@ -38,11 +42,11 @@ export function useLayoutState() {
         return () => mql.removeEventListener("change", handler);
     }, []);
 
+    // ── Desktop panel toggles (unchanged) ──
     const toggleSidebar = useCallback(() => {
         setLayout((prev) => {
             const next = !prev.sidebarOpen;
             if (isMobile) {
-                // On mobile: close others when opening this
                 return {
                     sidebarOpen: next,
                     channelSidebarOpen: next ? false : prev.channelSidebarOpen,
@@ -98,6 +102,19 @@ export function useLayoutState() {
         setLayout(initialState);
     }, []);
 
+    // ── Mobile navigation ──
+    const navigateToServers = useCallback(() => {
+        setMobileScreen("servers");
+    }, []);
+
+    const navigateToChannels = useCallback(() => {
+        setMobileScreen("channels");
+    }, []);
+
+    const navigateToChat = useCallback(() => {
+        setMobileScreen("chat");
+    }, []);
+
     return {
         layout,
         isMobile,
@@ -106,5 +123,10 @@ export function useLayoutState() {
         toggleMemberPanel,
         openChannelSidebar,
         closeAllPanels,
+        // Mobile navigation
+        mobileScreen,
+        navigateToServers,
+        navigateToChannels,
+        navigateToChat,
     };
 }

@@ -13,6 +13,8 @@ interface ChatAreaProps {
     onToggleSidebar: () => void;
     onToggleChannelSidebar: () => void;
     onToggleMemberPanel: () => void;
+    /** When true, skip rendering ChatHeader (mobile provides its own) */
+    hideHeader?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export const ChatArea = memo(function ChatArea({
     onToggleSidebar,
     onToggleChannelSidebar,
     onToggleMemberPanel,
+    hideHeader,
 }: ChatAreaProps) {
     const { typingUsers, notifyTyping } = useTypingIndicator(channel, userName);
     const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
@@ -47,16 +50,18 @@ export const ChatArea = memo(function ChatArea({
 
     return (
         <div className="flex flex-col min-w-0 h-full">
-            <ChatHeader
-                channelName={channel.name}
-                channelType={channel.channelType}
-                sidebarOpen={sidebarOpen}
-                channelSidebarOpen={channelSidebarOpen}
-                memberPanelOpen={memberPanelOpen}
-                onToggleSidebar={onToggleSidebar}
-                onToggleChannelSidebar={onToggleChannelSidebar}
-                onToggleMemberPanel={onToggleMemberPanel}
-            />
+            {!hideHeader && (
+                <ChatHeader
+                    channelName={channel.name}
+                    channelType={channel.channelType}
+                    sidebarOpen={sidebarOpen}
+                    channelSidebarOpen={channelSidebarOpen}
+                    memberPanelOpen={memberPanelOpen}
+                    onToggleSidebar={onToggleSidebar}
+                    onToggleChannelSidebar={onToggleChannelSidebar}
+                    onToggleMemberPanel={onToggleMemberPanel}
+                />
+            )}
             <MessageListView
                 channel={channel}
                 userName={userName}
