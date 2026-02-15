@@ -111,31 +111,33 @@ export function useVoiceChat(channel: any, userName: string) {
             audioAnalysis.setupLocalAnalyser(stream);
 
             // Ensure voice state exists on channel
-            // Important: use the direct reference after creation, not channel.voiceState,
-            // because Jazz CoValue sync may not have completed yet.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let voiceState: any = channel.voiceState;
-            console.log("[useVoiceChat] voiceState exists?", !!voiceState);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let peersList: any = voiceState?.peers;
+            console.log("[useVoiceChat] voiceState exists?", !!voiceState, "peers exists?", !!peersList);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const ownerGroup = getOwnerGroup(channel) as any;
+
             if (!voiceState) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const ownerGroup = getOwnerGroup(channel) as any;
+                // Create both VoicePeerList and VoiceState, keep direct references
+                peersList = VoicePeerList.create([], { owner: ownerGroup });
                 voiceState = VoiceState.create(
-                    { peers: VoicePeerList.create([], { owner: ownerGroup }) },
+                    { peers: peersList },
                     { owner: ownerGroup },
                 );
                 coSet(channel, "voiceState", voiceState);
+                console.log("[useVoiceChat] Created new VoiceState + PeerList");
+            } else if (!peersList) {
+                // VoiceState exists but peers list doesn't
+                peersList = VoicePeerList.create([], { owner: ownerGroup });
+                coSet(voiceState, "peers", peersList);
+                console.log("[useVoiceChat] Created new PeerList on existing VoiceState");
             }
 
-            // Ensure the peers list exists
-            if (!voiceState.peers) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const ownerGroup = getOwnerGroup(channel) as any;
-                coSet(voiceState, "peers", VoicePeerList.create([], { owner: ownerGroup }));
-            }
-
-            if (!voiceState.peers) {
+            if (!peersList) {
                 console.warn("[useVoiceChat] Voice state peers still not available after creation");
-                // Clean up the stream to prevent mic leak
                 stream.getTracks().forEach((track) => track.stop());
                 localStreamRef.current = null;
                 isJoiningRef.current = false;
@@ -145,10 +147,8 @@ export function useVoiceChat(channel: any, userName: string) {
             // Generate a fresh peerId for this join session
             myPeerIdRef.current = crypto.randomUUID();
             console.log("[useVoiceChat] My peerId:", myPeerIdRef.current);
-            cleanupStalePeerEntries(voiceState, myPeerIdRef.current);
+            cleanupStalePeerEntries({ peers: peersList }, myPeerIdRef.current);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ownerGroup = getOwnerGroup(channel) as any;
             const voicePeer = VoicePeer.create(
                 {
                     peerId: myPeerIdRef.current,
@@ -160,11 +160,11 @@ export function useVoiceChat(channel: any, userName: string) {
                 { owner: ownerGroup },
             );
             myPeerCoValueRef.current = voicePeer;
-            coPush(voiceState.peers, voicePeer);
+            coPush(peersList, voicePeer);
 
             // Log existing peers in the list
             try {
-                const existingPeers = Array.from(voiceState.peers).filter(Boolean);
+                const existingPeers = Array.from(peersList).filter(Boolean);
                 console.log("[useVoiceChat] Peers in voice state:", existingPeers.length,
                     existingPeers.map((p: any) => ({ peerId: p?.peerId?.slice(0, 8), name: p?.peerName })));
             } catch { /* ignore */ }
