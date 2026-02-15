@@ -57,41 +57,68 @@ export default function App() {
     invitedObjectSchema: ChatServer,
     forValueHint: "server",
     onAccept: useCallback(async (serverId: string) => {
+      console.log("[App] 🎉 Invite accepted! Server ID:", serverId);
+      toast.info("Processing invite link...");
+
       try {
-        // Load the server we just got access to
+        // Wait a moment for Jazz to sync the data
+        await new Promise((r) => setTimeout(r, 1500));
+
+        // Load the invited server
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const server = await (ChatServer as any).load(serverId, {
+        let server = await (ChatServer as any).load(serverId, {
           resolve: { channels: { $each: true } },
         });
 
+        // Retry once if first load fails (sync might be slow)
         if (!server) {
-          toast.error("Could not load the invited server. Please try again.");
+          console.log("[App] Server not loaded yet, retrying in 2s...");
+          await new Promise((r) => setTimeout(r, 2000));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          server = await (ChatServer as any).load(serverId, {
+            resolve: { channels: { $each: true } },
+          });
+        }
+
+        if (!server) {
+          console.error("[App] Failed to load server after retry");
+          toast.error("Could not load server. Please try the link again.");
           return;
         }
 
-        // Check if already in server list
-        const servers = me ? getServerArray(me) : [];
-        const alreadyJoined = servers.some(
-          (s) => getCoId(s) === serverId
-        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        console.log("[App] Server loaded:", (server as any)?.name);
 
-        if (!alreadyJoined && me) {
-          // Add server to user's server list
+        // Add to user's server list if not already there
+        if (me) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const serverList = (me as any)?.root?.servers;
+          const meAny = me as any;
+          const serverList = meAny?.root?.servers;
+          console.log("[App] Server list exists?", !!serverList);
+
           if (serverList) {
-            coPush(serverList, server);
+            // Check if already joined
+            const existingServers = getServerArray(me);
+            const alreadyJoined = existingServers.some(
+              (s) => getCoId(s) === serverId
+            );
+            console.log("[App] Already joined?", alreadyJoined);
+
+            if (!alreadyJoined) {
+              coPush(serverList, server);
+              console.log("[App] ✅ Server added to list");
+            }
           }
         }
 
-        // Navigate to the joined server
+        // Navigate to the server
         setActiveServerId(serverId);
         setActiveChannelId(null);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        toast.success(`Joined "${(server as any)?.name || 'server'}"`);
+        toast.success(`Joined "${(server as any)?.name || 'server'}" 🎉`);
       } catch (err) {
-        console.error("[App] Failed to process invite link:", err);
-        toast.error("Failed to join server from invite link.");
+        console.error("[App] ❌ Invite error:", err);
+        toast.error("Failed to join. Please try again.");
       }
     }, [me]),
   });
