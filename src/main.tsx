@@ -5,6 +5,39 @@ import "./globals.css";
 
 console.log("[LocalChat] Starting application...");
 
+// Auto-reload on stale chunk errors (happens after new deploys when cached HTML references old chunk filenames)
+window.addEventListener("error", (event) => {
+  if (
+    event.message?.includes("Failed to fetch dynamically imported module") ||
+    event.message?.includes("Importing a module script failed")
+  ) {
+    const reloadKey = "lotus_chunk_reload";
+    const lastReload = sessionStorage.getItem(reloadKey);
+    // Only auto-reload once per session to avoid infinite loops
+    if (!lastReload) {
+      sessionStorage.setItem(reloadKey, Date.now().toString());
+      console.warn("[LocalChat] Stale chunk detected, reloading...");
+      window.location.reload();
+    }
+  }
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  const msg = event.reason?.message || String(event.reason);
+  if (
+    msg.includes("Failed to fetch dynamically imported module") ||
+    msg.includes("Importing a module script failed")
+  ) {
+    const reloadKey = "lotus_chunk_reload";
+    const lastReload = sessionStorage.getItem(reloadKey);
+    if (!lastReload) {
+      sessionStorage.setItem(reloadKey, Date.now().toString());
+      console.warn("[LocalChat] Stale chunk detected (promise), reloading...");
+      window.location.reload();
+    }
+  }
+});
+
 /**
  * Application entry point with comprehensive error handling.
  *
