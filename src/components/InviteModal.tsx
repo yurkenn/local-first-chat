@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { createInviteLink } from "jazz-tools";
 import {
@@ -10,7 +10,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Loader2 } from "lucide-react";
 import type { LoadedServer } from "@/lib/jazz-types";
 
 interface InviteModalProps {
@@ -20,18 +20,39 @@ interface InviteModalProps {
 
 export function InviteModal({ server, onClose }: InviteModalProps) {
     const [copied, setCopied] = useState(false);
+    const [inviteLink, setInviteLink] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(true);
 
-    // Generate a proper Jazz invite link using the server's owning Group
-    const inviteLink = useMemo(() => {
-        try {
-            // createInviteLink(coValue, role, baseURL?, valueHint?)
-            const baseURL = window.location.origin + "/";
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return createInviteLink(server as any, "writer", baseURL, "server");
-        } catch (err) {
-            console.error("[InviteModal] Failed to create invite link:", err);
-            return null;
-        }
+    // Generate invite link asynchronously to prevent blocking the main thread
+    useEffect(() => {
+        let cancelled = false;
+        setIsGenerating(true);
+
+        // Use requestIdleCallback / setTimeout to yield to the browser
+        const timer = setTimeout(() => {
+            try {
+                const baseURL = window.location.origin + "/";
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const link = createInviteLink(server as any, "writer", baseURL, "server");
+                if (!cancelled) {
+                    setInviteLink(link);
+                }
+            } catch (err) {
+                console.error("[InviteModal] Failed to create invite link:", err);
+                if (!cancelled) {
+                    setInviteLink(null);
+                }
+            } finally {
+                if (!cancelled) {
+                    setIsGenerating(false);
+                }
+            }
+        }, 50);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
     }, [server]);
 
     const handleCopy = async () => {
@@ -73,7 +94,12 @@ export function InviteModal({ server, onClose }: InviteModalProps) {
                     </DialogDescription>
                 </DialogHeader>
 
-                {inviteLink ? (
+                {isGenerating ? (
+                    <div className="flex items-center justify-center gap-2 rounded-lg bg-surface border border-[hsl(var(--border))] p-4">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-color" />
+                        <span className="text-sm text-muted-color">Generating invite link...</span>
+                    </div>
+                ) : inviteLink ? (
                     <div className="flex items-center gap-2 rounded-lg bg-surface border border-[hsl(var(--border))] p-3">
                         <code
                             className="flex-1 text-xs font-mono text-[var(--organic-sage)] select-all break-all leading-relaxed"
