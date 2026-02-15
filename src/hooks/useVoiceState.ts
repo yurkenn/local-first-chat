@@ -21,6 +21,8 @@ export interface VoiceStateReturn {
     isSpeaking: boolean;
     /** List of peers in the voice channel */
     peers: Array<{ peerId: string; peerName: string; isMuted: boolean; isSpeaking: boolean }>;
+    /** Map of remote peer IDs to their audio streams */
+    remoteStreams: Map<string, MediaStream>;
     /** Join a voice channel (auto-leaves current if any) */
     joinVoice: (channel: any) => void;
     /** Leave the current voice channel */
@@ -34,7 +36,7 @@ export function useVoiceState(userName: string): VoiceStateReturn {
     const [isJoining, setIsJoining] = useState(false);
     const joiningRef = useRef(false); // Ref mirror to avoid stale closures
 
-    const { isConnected, isMuted, isSpeaking, peers, join, leave, toggleMute } =
+    const { isConnected, isMuted, isSpeaking, peers, remoteStreams, join, leave, toggleMute } =
         useVoiceChat(connectedChannel, userName);
 
     // Keep ref in sync
@@ -112,6 +114,7 @@ export function useVoiceState(userName: string): VoiceStateReturn {
         isMuted,
         isSpeaking,
         peers,
+        remoteStreams,
         joinVoice,
         leaveVoice,
         toggleMute,

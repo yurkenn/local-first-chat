@@ -1,4 +1,4 @@
-import { memo } from "react";
+import React, { memo } from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -67,8 +67,18 @@ export const ChannelSidebar = memo(function ChannelSidebar({
 
     const connectedChannelId = voice.connectedChannel?.$jazz?.id;
 
+    // Render Audio elements for remote streams
+    const audioElements = voice.remoteStreams
+        ? Array.from(voice.remoteStreams.entries()).map(([peerId, stream]) => (
+            <AudioRef key={peerId} stream={stream} />
+        ))
+        : null;
+
     return (
         <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-r border-[rgba(255,255,255,0.06)]">
+            {/* Hidden audio elements for voice chat */}
+            {audioElements}
+
             {/* Server name header */}
             <div className="h-[52px] flex items-center px-4 gap-2 border-b border-[rgba(255,255,255,0.06)] group">
                 <span
@@ -462,4 +472,21 @@ function UserPanel({ userName, onLogout, onUserSettings, onAudioSettings }: { us
             )}
         </div>
     );
+}
+
+/**
+ * AudioRef — Renders an <audio> element for a remote stream.
+ * Handles the srcObject reference and play() call.
+ */
+function AudioRef({ stream }: { stream: MediaStream }) {
+    const audioRef = React.useRef<HTMLAudioElement>(null);
+
+    React.useEffect(() => {
+        if (audioRef.current && stream) {
+            audioRef.current.srcObject = stream;
+            audioRef.current.play().catch(err => console.error("Audio playback failed:", err));
+        }
+    }, [stream]);
+
+    return <audio ref={audioRef} autoPlay playsInline controls={false} className="hidden" />;
 }

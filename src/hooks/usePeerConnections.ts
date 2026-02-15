@@ -16,6 +16,8 @@ import type { useAudioAnalysis } from "./useAudioAnalysis";
  */
 export function usePeerConnections(
     audioAnalysis: ReturnType<typeof useAudioAnalysis>,
+    onRemoteStream: (peerId: string, stream: MediaStream) => void,
+    onRemoteStreamRemoved: (peerId: string) => void,
 ) {
     const peerConnectionsRef = useRef<Map<string, Peer.Instance>>(new Map());
     // Track which signals we've already processed (by CoValue ID)
@@ -116,6 +118,8 @@ export function usePeerConnections(
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         voicePeers as any,
                         audioAnalysis,
+                        onRemoteStream,
+                        onRemoteStreamRemoved,
                     );
                     peerConnectionsRef.current.set(remotePeerId, peer);
                     console.log("[usePeerConnections] Created non-initiator peer for", remotePeerId.slice(0, 8));
@@ -151,6 +155,8 @@ export function usePeerConnections(
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     voicePeers as any,
                     audioAnalysis,
+                    onRemoteStream,
+                    onRemoteStreamRemoved,
                 );
                 peerConnectionsRef.current.set(remotePeerId, peer);
                 console.log("[usePeerConnections] Created initiator peer for", remotePeerId.slice(0, 8));
@@ -190,6 +196,8 @@ function createPeerConnection(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     voicePeers: any,
     audioAnalysis: ReturnType<typeof useAudioAnalysis>,
+    onRemoteStream: (peerId: string, stream: MediaStream) => void,
+    onRemoteStreamRemoved: (peerId: string) => void,
 ): Peer.Instance {
     const peer = new Peer({
         initiator: isInitiator,
@@ -252,13 +260,8 @@ function createPeerConnection(
 
     peer.on("stream", (remoteStream: MediaStream) => {
         console.log("[usePeerConnections] 🔊 Got remote stream from", remotePeerId.slice(0, 8));
-        // Play remote audio
-        const audio = new Audio();
-        audio.srcObject = remoteStream;
-        audio.autoplay = true;
-        audio.play().catch(() => {
-            /* autoplay may be blocked */
-        });
+        // Pass stream up to UI for rendering in <audio> tag
+        onRemoteStream(remotePeerId, remoteStream);
 
         // Create analyser for this remote peer's audio
         audioAnalysis.addRemoteAnalyser(remotePeerId, remoteStream);
@@ -270,6 +273,7 @@ function createPeerConnection(
 
     peer.on("close", () => {
         console.log("[usePeerConnections] Peer closed:", remotePeerId.slice(0, 8));
+        onRemoteStreamRemoved(remotePeerId);
         audioAnalysis.removeRemoteAnalyser(remotePeerId);
     });
 

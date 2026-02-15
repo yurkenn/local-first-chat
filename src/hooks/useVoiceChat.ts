@@ -26,6 +26,7 @@ export function useVoiceChat(channel: any, userName: string) {
     const [isMuted, setIsMuted] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [peers, setPeers] = useState<PeerInfo[]>([]);
+    const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
 
     // Refs for stable references across renders
     const localStreamRef = useRef<MediaStream | null>(null);
@@ -41,9 +42,26 @@ export function useVoiceChat(channel: any, userName: string) {
         channelRef.current = channel;
     }, [channel]);
 
+    // Cleanup callbacks for usePeerConnections
+    const addRemoteStream = useCallback((peerId: string, stream: MediaStream) => {
+        setRemoteStreams(prev => {
+            const newMap = new Map(prev);
+            newMap.set(peerId, stream);
+            return newMap;
+        });
+    }, []);
+
+    const removeRemoteStream = useCallback((peerId: string) => {
+        setRemoteStreams(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(peerId);
+            return newMap;
+        });
+    }, []);
+
     // Composed hooks
     const audioAnalysis = useAudioAnalysis();
-    const peerConnections = usePeerConnections(audioAnalysis);
+    const peerConnections = usePeerConnections(audioAnalysis, addRemoteStream, removeRemoteStream);
 
     /**
      * Remove stale VoicePeer entries for a peerId from the channel's voice state.
@@ -77,6 +95,12 @@ export function useVoiceChat(channel: any, userName: string) {
     const join = useCallback(async () => {
         // Use the ref to get the absolute latest channel instance
         const currentChannel = channelRef.current;
+
+        // Guard: If already connected, do not join again.
+        if (isConnected) {
+            console.log("[useVoiceChat] Already connected, ignoring join request");
+            return;
+        }
 
         if (!currentChannel) return;
         if (isJoiningRef.current) {
@@ -217,7 +241,7 @@ export function useVoiceChat(channel: any, userName: string) {
         } finally {
             isJoiningRef.current = false;
         }
-    }, [userName, audioAnalysis, cleanupStalePeerEntries]); // Removed `channel` dependency to rely on ref
+    }, [userName, audioAnalysis, cleanupStalePeerEntries, isConnected]); // Added isConnected dep
 
     /**
      * Start polling for peers and establishing WebRTC connections.
@@ -289,6 +313,7 @@ export function useVoiceChat(channel: any, userName: string) {
         // Cleanup audio + peers
         audioAnalysis.cleanupAll();
         peerConnections.destroyAll();
+        setRemoteStreams(new Map()); // Clear streams
 
         // Stop local audio stream
         if (localStreamRef.current) {
@@ -370,6 +395,7 @@ export function useVoiceChat(channel: any, userName: string) {
         isMuted,
         isSpeaking,
         peers,
+        remoteStreams,
         join,
         leave,
         toggleMute,
