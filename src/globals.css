@@ -705,6 +705,18 @@ input[type="range"].range-green::-moz-range-thumb {
     }
 }
 
+@keyframes speaking-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 6px var(--organic-green);
+    }
+
+    50% {
+        box-shadow: 0 0 12px var(--organic-green), 0 0 4px var(--organic-green);
+    }
+}
+
 @keyframes breathe {
 
     0%,

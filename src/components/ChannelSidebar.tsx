@@ -78,14 +78,14 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     {server.name}
                 </span>
                 <ChevronDown
-                    className="h-3.5 w-3.5 text-muted-color cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-3.5 w-3.5 text-muted-color cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                     onClick={onInvite}
                 />
                 {onServerSettings && (
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-color hover:text-primary-color"
+                        className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-color hover:text-primary-color"
                         onClick={onServerSettings}
                         aria-label="Server settings"
                     >
@@ -193,7 +193,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
 });
 
 /**
- * SpeakingAvatar — Small avatar with soft glow ring when speaking.
+ * SpeakingAvatar — Avatar with a visible animated green border ring when speaking.
  */
 function SpeakingAvatar({
     name,
@@ -208,12 +208,14 @@ function SpeakingAvatar({
     gradientTo: string;
     size?: "sm" | "md";
 }) {
-    const sizeClasses = size === "sm" ? "w-5 h-5 text-[8px]" : "w-6 h-6 text-[9px]";
+    const sizeClasses = size === "sm" ? "w-6 h-6 text-[9px]" : "w-7 h-7 text-[10px]";
     return (
         <div
             className={cn(
-                "relative rounded-full shrink-0 transition-shadow duration-200",
-                isSpeaking && "shadow-[0_0_0_2px_var(--organic-green),0_0_6px_var(--organic-green)]"
+                "relative rounded-full shrink-0 transition-all duration-200",
+                isSpeaking
+                    ? "ring-2 ring-[var(--organic-green)] shadow-[0_0_8px_var(--organic-green)] animate-[speaking-pulse_1.5s_ease-in-out_infinite]"
+                    : "ring-2 ring-transparent"
             )}
         >
             <div
