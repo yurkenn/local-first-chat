@@ -52,9 +52,11 @@ export type MessageList = co.loaded<typeof MessageList>;
  * exchanged via Jazz sync — no separate signaling server needed.
  */
 export const VoicePeer = co.map({
-  /** Unique identifier for the simple-peer instance */
+  /** Unique peer identifier for this voice session */
   peerId: z.string(),
-  /** Serialized WebRTC signal data (SDP/ICE) — JSON-stringified */
+  /** Target peer ID for signal routing (empty = announcement, not a signal) */
+  targetPeerId: z.string(),
+  /** WebRTC signaling data (JSON-encoded offer/answer with ICE candidates) */
   signalData: z.string(),
   /** Display name of the peer */
   peerName: z.string(),

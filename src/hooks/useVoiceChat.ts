@@ -80,7 +80,7 @@ export function useVoiceChat(channel: any, userName: string) {
                 myPeerCoValueRef.current,
                 setPeers,
             );
-        }, 2000);
+        }, 1000); // 1s polling for faster signal exchange
     }, [channel, peerConnections]);
 
     /**
@@ -152,6 +152,7 @@ export function useVoiceChat(channel: any, userName: string) {
             const voicePeer = VoicePeer.create(
                 {
                     peerId: myPeerIdRef.current,
+                    targetPeerId: "", // Empty = announcement entry (not a signal)
                     signalData: "",
                     peerName: userName,
                     isMuted: false,
