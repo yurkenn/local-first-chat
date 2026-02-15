@@ -106,7 +106,22 @@ export function useVoiceChat(channel: any, userName: string) {
             let voiceState: any = currentChannel.voiceState;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let peersList: any = voiceState?.peers;
-            console.log("[useVoiceChat] voiceState exists?", !!voiceState, "peers exists?", !!peersList);
+
+            // DEBUG: Log CoValue IDs to check for split-brain
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const channelId = (currentChannel as any)?.$jazz?.id;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const voiceStateId = (voiceState as any)?.$jazz?.id;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const peersListId = (peersList as any)?.$jazz?.id;
+
+            console.log("[useVoiceChat] DEBUG IDs:", {
+                channelId,
+                voiceStateId,
+                peersListId,
+                voiceStateExists: !!voiceState,
+                peersListExists: !!peersList
+            });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const ownerGroup = getOwnerGroup(currentChannel) as any;
@@ -119,7 +134,10 @@ export function useVoiceChat(channel: any, userName: string) {
                     { owner: ownerGroup },
                 );
                 coSet(currentChannel, "voiceState", voiceState);
-                console.log("[useVoiceChat] Created new VoiceState + PeerList");
+                console.log("[useVoiceChat] Created new VoiceState + PeerList", {
+                    newVoiceStateId: (voiceState as any)?.$jazz?.id,
+                    newPeersListId: (peersList as any)?.$jazz?.id
+                });
             } else if (!peersList) {
                 // VoiceState exists but peers not loaded yet (Jazz lazy loading)
                 // Wait with retries for Jazz to sync the nested CoValue
@@ -130,7 +148,9 @@ export function useVoiceChat(channel: any, userName: string) {
                     voiceState = currentChannel.voiceState;
                     peersList = voiceState?.peers;
                     if (peersList) {
-                        console.log("[useVoiceChat] Peers loaded after retry", retry + 1);
+                        console.log("[useVoiceChat] Peers loaded after retry", retry + 1, {
+                            loadedPeersListId: (peersList as any)?.$jazz?.id
+                        });
                         break;
                     }
                     console.log("[useVoiceChat] Retry", retry + 1, "- peers still null");
@@ -142,6 +162,9 @@ export function useVoiceChat(channel: any, userName: string) {
                     try {
                         peersList = VoicePeerList.create([], { owner: ownerGroup });
                         coSet(voiceState, "peers", peersList);
+                        console.log("[useVoiceChat] Created replacement PeerList", {
+                            replacementPeersListId: (peersList as any)?.$jazz?.id
+                        });
                     } catch (err) {
                         console.error("[useVoiceChat] Failed to create PeerList:", err);
                     }
@@ -178,7 +201,12 @@ export function useVoiceChat(channel: any, userName: string) {
             try {
                 const existingPeers = Array.from(peersList).filter(Boolean);
                 console.log("[useVoiceChat] Peers in voice state:", existingPeers.length,
-                    existingPeers.map((p: any) => ({ peerId: p?.peerId?.slice(0, 8), name: p?.peerName })));
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    existingPeers.map((p: any) => ({
+                        peerId: p?.peerId?.slice(0, 8),
+                        name: p?.peerName,
+                        target: p?.targetPeerId ? p.targetPeerId.slice(0, 8) : 'BROADCAST'
+                    })));
             } catch { /* ignore */ }
 
             setIsConnected(true);

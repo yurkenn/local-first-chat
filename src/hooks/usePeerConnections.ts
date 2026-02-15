@@ -69,10 +69,23 @@ export function usePeerConnections(
             setPeers(Array.from(uniquePeers.values()));
 
             // Debug: log discovered peers
-            if (remotePeerIds.size > 0) {
+            if (remotePeerIds.size > 0 || items.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const signalCounts = items.reduce((acc: any, item: any) => {
+                    if (item?.targetPeerId) {
+                        const target = item.targetPeerId.slice(0, 8);
+                        acc[target] = (acc[target] || 0) + 1;
+                    } else {
+                        acc['BROADCAST'] = (acc['BROADCAST'] || 0) + 1;
+                    }
+                    return acc;
+                }, {});
+
                 console.log("[usePeerConnections] polling — remote peers:",
                     Array.from(remotePeerIds).map(id => id.slice(0, 8)),
-                    "total entries:", items.length);
+                    "total entries:", items.length,
+                    "signals breakdown:", signalCounts
+                );
             }
 
             // Process signals addressed to me
