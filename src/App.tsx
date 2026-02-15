@@ -54,8 +54,13 @@ export default function App() {
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const logOut = useLogOut();
 
-  // ── Pending invite state (for confirmation modal) ──
-  const [pendingInvite, setPendingInvite] = useState<PendingInvite | null>(null);
+  // ── Pending invite (sessionStorage-backed to survive re-renders) ──
+  const [pendingInvite, setPendingInvite] = useState<PendingInvite | null>(() => {
+    try {
+      const stored = sessionStorage.getItem("pendingInvite");
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pendingServerRef = useRef<any>(null);
 
@@ -65,11 +70,24 @@ export default function App() {
     forValueHint: "server",
     onAccept: useCallback(async (serverId: string) => {
       console.log("[App] 🎉 Invite accepted! Server ID:", serverId);
+      // Store in sessionStorage so it survives re-renders/remounts
+      sessionStorage.setItem("pendingInviteServerId", serverId);
       toast.info("Loading server info...");
+    }, []),
+  });
 
+  // ── Load pending invite from sessionStorage ──
+  useEffect(() => {
+    const serverId = sessionStorage.getItem("pendingInviteServerId");
+    if (!serverId || !me || !isAccountLoaded(me)) return;
+
+    // Clear immediately to prevent re-triggering
+    sessionStorage.removeItem("pendingInviteServerId");
+    console.log("[App] Loading pending invite server:", serverId);
+
+    (async () => {
       try {
-        // Wait for Jazz to sync, then load the server
-        await new Promise((r) => setTimeout(r, 1500));
+        await new Promise((r) => setTimeout(r, 1000));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let server = await (ChatServer as any).load(serverId, {
           resolve: { channels: { $each: true } },
@@ -84,38 +102,39 @@ export default function App() {
         }
 
         if (!server) {
-          toast.error("Could not load server. Please try again.");
+          toast.error("Could not load server.");
           return;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const serverAny = server as any;
-        console.log("[App] Server loaded:", serverAny?.name);
+        console.log("[App] ✅ Server loaded for modal:", serverAny?.name);
 
-        // Store the server reference and show confirmation modal
         pendingServerRef.current = server;
-        setPendingInvite({
+        const invite: PendingInvite = {
           serverId,
           serverName: serverAny?.name || "Unknown Server",
           serverIcon: serverAny?.iconUrl || "",
-        });
+        };
+        sessionStorage.setItem("pendingInvite", JSON.stringify(invite));
+        setPendingInvite(invite);
       } catch (err) {
-        console.error("[App] ❌ Invite error:", err);
-        toast.error("Failed to load server. Please try again.");
+        console.error("[App] ❌ Invite load error:", err);
+        toast.error("Failed to load server.");
       }
-    }, []),
-  });
+    })();
+  }, [me]);
 
   // ── Handle invite accept/decline ──
   const handleInviteAccept = useCallback(() => {
     const server = pendingServerRef.current;
     const invite = pendingInvite;
-    if (!server || !invite || !me) return;
+    if (!invite || !me) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const meAny = me as any;
     const serverList = meAny?.root?.servers;
-    if (serverList) {
+    if (serverList && server) {
       const existingServers = getServerArray(me);
       const alreadyJoined = existingServers.some((s) => getCoId(s) === invite.serverId);
       if (!alreadyJoined) {
@@ -128,11 +147,13 @@ export default function App() {
     toast.success(`Joined "${invite.serverName}" 🎉`);
     setPendingInvite(null);
     pendingServerRef.current = null;
+    sessionStorage.removeItem("pendingInvite");
   }, [me, pendingInvite]);
 
   const handleInviteDecline = useCallback(() => {
     setPendingInvite(null);
     pendingServerRef.current = null;
+    sessionStorage.removeItem("pendingInvite");
     toast.info("Invite declined.");
   }, []);
 
