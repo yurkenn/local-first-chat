@@ -482,11 +482,33 @@ function AudioRef({ stream }: { stream: MediaStream }) {
     const audioRef = React.useRef<HTMLAudioElement>(null);
 
     React.useEffect(() => {
-        if (audioRef.current && stream) {
+        if (!stream) return;
+
+        // Diagnostic logging for the stream
+        const tracks = stream.getAudioTracks();
+        console.log(`[AudioRef] Rendering stream id=${stream.id}`, {
+            tracks: tracks.length,
+            enabled: tracks[0]?.enabled,
+            muted: tracks[0]?.muted,
+            readyState: tracks[0]?.readyState
+        });
+
+        if (audioRef.current) {
             audioRef.current.srcObject = stream;
-            audioRef.current.play().catch(err => console.error("Audio playback failed:", err));
+            audioRef.current.play()
+                .then(() => console.log(`[AudioRef] Playing stream ${stream.id}`))
+                .catch(err => console.error(`[AudioRef] Playback failed for ${stream.id}:`, err));
         }
     }, [stream]);
 
-    return <audio ref={audioRef} autoPlay playsInline controls={false} className="hidden" />;
+    return (
+        <audio
+            ref={audioRef}
+            autoPlay
+            playsInline
+            controls={false}
+            className="hidden"
+            onVolumeChange={(e) => console.log("[AudioRef] Volume changed", e.currentTarget.volume, e.currentTarget.muted)}
+        />
+    );
 }

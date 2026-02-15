@@ -121,6 +121,17 @@ export function usePeerConnections(
                         onRemoteStream,
                         onRemoteStreamRemoved,
                     );
+
+                    // CRITICAL FIX: Clean up peer from map on close/error so we can reconnect
+                    const cleanup = () => {
+                        console.log("[usePeerConnections] Removing closed/error peer", remotePeerId.slice(0, 8));
+                        if (peerConnectionsRef.current.get(remotePeerId) === peer) {
+                            peerConnectionsRef.current.delete(remotePeerId);
+                        }
+                    };
+                    peer.on("close", cleanup);
+                    peer.on("error", cleanup);
+
                     peerConnectionsRef.current.set(remotePeerId, peer);
                     console.log("[usePeerConnections] Created non-initiator peer for", remotePeerId.slice(0, 8));
                 }
@@ -158,6 +169,17 @@ export function usePeerConnections(
                     onRemoteStream,
                     onRemoteStreamRemoved,
                 );
+
+                // CRITICAL FIX: Clean up peer from map on close/error so we can reconnect
+                const cleanup = () => {
+                    console.log("[usePeerConnections] Removing closed/error peer", remotePeerId.slice(0, 8));
+                    if (peerConnectionsRef.current.get(remotePeerId) === peer) {
+                        peerConnectionsRef.current.delete(remotePeerId);
+                    }
+                };
+                peer.on("close", cleanup);
+                peer.on("error", cleanup);
+
                 peerConnectionsRef.current.set(remotePeerId, peer);
                 console.log("[usePeerConnections] Created initiator peer for", remotePeerId.slice(0, 8));
             }

@@ -115,7 +115,7 @@ export function useVoiceChat(channel: any, userName: string) {
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
-                    autoGainControl: true,
+                    autoGainControl: false, // Disabled to reduce hissing/feedback
                 },
                 video: false,
             });
