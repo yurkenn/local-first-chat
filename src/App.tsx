@@ -41,7 +41,11 @@ export default function App() {
         servers: {
           $each: {
             channels: {
-              $each: true,
+              $each: {
+                voiceState: {
+                  peers: { $each: true },
+                },
+              },
             },
           },
         },

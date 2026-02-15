@@ -121,7 +121,7 @@ export function useVoiceChat(channel: any, userName: string) {
             const ownerGroup = getOwnerGroup(channel) as any;
 
             if (!voiceState) {
-                // Create both VoicePeerList and VoiceState, keep direct references
+                // No voice state at all — create fresh VoiceState + PeerList
                 peersList = VoicePeerList.create([], { owner: ownerGroup });
                 voiceState = VoiceState.create(
                     { peers: peersList },
@@ -130,14 +130,35 @@ export function useVoiceChat(channel: any, userName: string) {
                 coSet(channel, "voiceState", voiceState);
                 console.log("[useVoiceChat] Created new VoiceState + PeerList");
             } else if (!peersList) {
-                // VoiceState exists but peers list doesn't
-                peersList = VoicePeerList.create([], { owner: ownerGroup });
-                coSet(voiceState, "peers", peersList);
-                console.log("[useVoiceChat] Created new PeerList on existing VoiceState");
+                // VoiceState exists but peers not loaded yet (Jazz lazy loading)
+                // Wait with retries for Jazz to sync the nested CoValue
+                console.log("[useVoiceChat] Waiting for peers to load...");
+                for (let retry = 0; retry < 10; retry++) {
+                    await new Promise((r) => setTimeout(r, 500));
+                    // Re-read from channel in case Jazz synced it
+                    voiceState = channel.voiceState;
+                    peersList = voiceState?.peers;
+                    if (peersList) {
+                        console.log("[useVoiceChat] Peers loaded after retry", retry + 1);
+                        break;
+                    }
+                    console.log("[useVoiceChat] Retry", retry + 1, "- peers still null");
+                }
+
+                // If still null after retries, create a new peersList
+                if (!peersList) {
+                    console.log("[useVoiceChat] Creating new PeerList after retries exhausted");
+                    try {
+                        peersList = VoicePeerList.create([], { owner: ownerGroup });
+                        coSet(voiceState, "peers", peersList);
+                    } catch (err) {
+                        console.error("[useVoiceChat] Failed to create PeerList:", err);
+                    }
+                }
             }
 
             if (!peersList) {
-                console.warn("[useVoiceChat] Voice state peers still not available after creation");
+                console.warn("[useVoiceChat] Voice state peers still not available — giving up");
                 stream.getTracks().forEach((track) => track.stop());
                 localStreamRef.current = null;
                 isJoiningRef.current = false;
