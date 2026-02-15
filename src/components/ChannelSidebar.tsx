@@ -57,7 +57,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                         </p>
                     </div>
                 </div>
-                <UserPanel userName={userName} onLogout={onLogout} onUserSettings={onUserSettings} />
+                <UserPanel userName={userName} onLogout={onLogout} onUserSettings={onUserSettings} onAudioSettings={onAudioSettings} />
             </div >
         );
     }
@@ -187,7 +187,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
             )}
 
             {/* User panel */}
-            <UserPanel userName={userName} onLogout={onLogout} onUserSettings={onUserSettings} />
+            <UserPanel userName={userName} onLogout={onLogout} onUserSettings={onUserSettings} onAudioSettings={onAudioSettings} />
         </div>
     );
 });
@@ -416,7 +416,7 @@ function VoiceStatusBar({
     );
 }
 
-function UserPanel({ userName, onLogout, onUserSettings }: { userName: string; onLogout?: () => void; onUserSettings?: () => void }) {
+function UserPanel({ userName, onLogout, onUserSettings, onAudioSettings }: { userName: string; onLogout?: () => void; onUserSettings?: () => void; onAudioSettings?: () => void }) {
     return (
         <div className="flex items-center gap-2.5 px-3 py-2.5 glass-strong border-t border-[rgba(255,255,255,0.06)]">
             <div className="group/avatar relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-bold text-white transition-shadow hover:shadow-[var(--shadow-md)]">
@@ -427,6 +427,17 @@ function UserPanel({ userName, onLogout, onUserSettings }: { userName: string; o
                 <div className="text-xs font-medium truncate">{userName}</div>
                 <div className="text-[10px] text-[var(--organic-green)]">Online</div>
             </div>
+            {onAudioSettings && (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-color hover:text-primary-color"
+                    onClick={onAudioSettings}
+                    aria-label="Audio settings"
+                >
+                    <Mic className="h-3.5 w-3.5" />
+                </Button>
+            )}
             {onUserSettings && (
                 <Button
                     variant="ghost"
