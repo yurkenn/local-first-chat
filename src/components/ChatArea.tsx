@@ -49,7 +49,7 @@ export const ChatArea = memo(function ChatArea({
     }
 
     return (
-        <div className="flex flex-col min-w-0 h-full">
+        <div className="flex flex-col min-w-0 h-full min-h-0">
             {!hideHeader && (
                 <ChatHeader
                     channelName={channel.name}
