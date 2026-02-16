@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, KeyboardEvent, ClipboardEvent } from "react";
+import { useState, useCallback, useRef, useEffect, KeyboardEvent, ClipboardEvent } from "react";
 import { toast } from "sonner";
 import { ChatMessage, MessageList } from "@/schema";
 import {
@@ -9,6 +9,7 @@ import {
     Sticker,
     Smile
 } from "lucide-react";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { messageRateLimiter } from "@/lib/rate-limiter";
 import { getOwnerGroup, coPush, coSet } from "@/lib/jazz-helpers";
 import { MAX_MESSAGE_LENGTH, isValidImageDataUrl } from "@/lib/validators";
@@ -30,6 +31,8 @@ interface MessageInputProps {
     replyTarget?: ReplyTarget | null;
     /** Clear the reply target */
     onClearReply?: () => void;
+    /** Called when user presses Arrow Up on empty input — edit last own message */
+    onEditLast?: () => void;
 }
 
 /** Max image file size (2MB) */
@@ -53,10 +56,25 @@ export function MessageInput({
     onTyping,
     replyTarget,
     onClearReply,
+    onEditLast,
 }: MessageInputProps) {
     const [text, setText] = useState("");
     const [pendingImage, setPendingImage] = useState<string | null>(null);
+    const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-resize textarea to fit content
+    const autoResize = useCallback(() => {
+        const ta = textareaRef.current;
+        if (!ta) return;
+        ta.style.height = 'auto';
+        ta.style.height = `${Math.min(ta.scrollHeight, 144)}px`;
+    }, []);
+
+    useEffect(() => {
+        autoResize();
+    }, [text, autoResize]);
 
     const handleSend = useCallback(() => {
         const trimmed = text.trim();
@@ -116,6 +134,10 @@ export function MessageInput({
             setText("");
             setPendingImage(null);
             onClearReply?.();
+            // Reset textarea height
+            if (textareaRef.current) {
+                textareaRef.current.style.height = 'auto';
+            }
             messageRateLimiter.record();
         } catch (err) {
             handleError(err, { context: "MessageInput", toast: "Failed to send message" });
@@ -126,6 +148,23 @@ export function MessageInput({
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSend();
+        }
+
+        // Arrow Up on empty input → edit last own message
+        if (e.key === "ArrowUp" && !text.trim() && !pendingImage) {
+            e.preventDefault();
+            onEditLast?.();
+        }
+
+        // Escape → close emoji picker, then clear reply, then blur
+        if (e.key === "Escape") {
+            if (emojiPickerOpen) {
+                setEmojiPickerOpen(false);
+            } else if (replyTarget) {
+                onClearReply?.();
+            } else {
+                textareaRef.current?.blur();
+            }
         }
     };
 
@@ -241,7 +280,8 @@ export function MessageInput({
                 />
 
                 <textarea
-                    className="flex-1 min-h-[44px] max-h-[144px] bg-transparent border-none outline-none resize-none text-[16px] text-[#dbdee1] placeholder:text-[#80848e] px-2 py-[11px] leading-tight"
+                    ref={textareaRef}
+                    className="flex-1 min-h-[44px] max-h-[144px] bg-transparent border-none outline-none resize-none text-[16px] text-[#dbdee1] placeholder:text-[#80848e] px-2 py-[11px] leading-[1.375]"
                     value={text}
                     onChange={(e) => {
                         setText(e.target.value);
@@ -271,9 +311,42 @@ export function MessageInput({
                     <button className="h-8 w-8 flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors hidden sm:flex">
                         <Sticker className="h-5 w-5" />
                     </button>
-                    <button className="h-8 w-8 flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors">
-                        <Smile className="h-5 w-5" />
-                    </button>
+                    <div className="relative">
+                        <button
+                            className={cn(
+                                "h-8 w-8 flex items-center justify-center transition-colors",
+                                emojiPickerOpen ? "text-[#dbdee1]" : "text-[#b5bac1] hover:text-[#dbdee1]"
+                            )}
+                            onClick={() => setEmojiPickerOpen(!emojiPickerOpen)}
+                            aria-label="Open emoji picker"
+                        >
+                            <Smile className="h-5 w-5" />
+                        </button>
+                        {emojiPickerOpen && (
+                            <div className="absolute bottom-full right-0 mb-2">
+                                <EmojiPicker
+                                    onSelect={(emoji) => {
+                                        // Insert emoji at cursor position
+                                        const ta = textareaRef.current;
+                                        if (ta) {
+                                            const start = ta.selectionStart;
+                                            const end = ta.selectionEnd;
+                                            const newText = text.slice(0, start) + emoji + text.slice(end);
+                                            setText(newText);
+                                            // Restore cursor after emoji
+                                            requestAnimationFrame(() => {
+                                                ta.selectionStart = ta.selectionEnd = start + emoji.length;
+                                                ta.focus();
+                                            });
+                                        } else {
+                                            setText(text + emoji);
+                                        }
+                                    }}
+                                    onClose={() => setEmojiPickerOpen(false)}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

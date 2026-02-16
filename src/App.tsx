@@ -326,6 +326,7 @@ export default function App() {
     serverSidebar: serverSidebarJsx,
     channelSidebar: channelSidebarJsx,
     memberPanel: memberPanelJsx,
+    onSearch: () => openModal("search"),
   };
 
   return (

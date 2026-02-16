@@ -1,10 +1,11 @@
-import React, { memo } from "react";
+import React, { memo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import {
     Hash, Volume2, Plus, Settings, LogOut, ChevronDown,
-    Mic, MicOff, PhoneOff, UserPlus, SlidersHorizontal, Loader2, Headphones, HelpCircle
+    Mic, MicOff, PhoneOff, UserPlus, SlidersHorizontal, Loader2, Headphones,
+    Trash2, Copy
 } from "lucide-react";
 import {
     Tooltip,
@@ -22,6 +23,13 @@ import {
     ContextMenuSeparator,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { coSplice } from "@/lib/jazz-helpers";
 
 interface ChannelSidebarProps {
@@ -153,30 +161,61 @@ export const ChannelSidebar = memo(function ChannelSidebar({
             {/* Hidden audio elements for voice chat */}
             {audioElements}
 
-            {/* Server name header */}
-            <div className="h-[52px] flex items-center px-4 gap-2 border-b border-[rgba(255,255,255,0.06)] group">
-                <span
-                    className="flex-1 font-heading font-semibold text-[15px] tracking-[-0.01em] truncate cursor-pointer hover:text-primary-color"
-                    onClick={onInvite}
+            {/* Server name header — Dropdown Menu */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <div className="h-[52px] flex items-center px-4 gap-2 border-b border-[rgba(255,255,255,0.06)] group cursor-pointer hover:bg-[#35373c]/50 transition-colors">
+                        <span
+                            className="flex-1 font-heading font-semibold text-[15px] tracking-[-0.01em] truncate"
+                        >
+                            {server.name}
+                        </span>
+                        <ChevronDown
+                            className="h-3.5 w-3.5 text-muted-color transition-transform data-[state=open]:rotate-180"
+                        />
+                    </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                    className="w-56 bg-[#111214] border-[rgba(255,255,255,0.08)] p-1.5 shadow-xl"
+                    align="start"
+                    sideOffset={0}
                 >
-                    {server.name}
-                </span>
-                <ChevronDown
-                    className="h-3.5 w-3.5 text-muted-color cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                    onClick={onInvite}
-                />
-                {onServerSettings && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-color hover:text-primary-color"
-                        onClick={onServerSettings}
-                        aria-label="Server settings"
+                    <DropdownMenuItem
+                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#949dfd] hover:text-white cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                        onClick={onInvite}
                     >
-                        <Settings className="h-3.5 w-3.5" />
-                    </Button>
-                )}
-            </div>
+                        <UserPlus className="h-4 w-4" />
+                        <span className="font-medium">Invite People</span>
+                    </DropdownMenuItem>
+
+                    {onServerSettings && (
+                        <DropdownMenuItem
+                            className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                            onClick={onServerSettings}
+                        >
+                            <Settings className="h-4 w-4" />
+                            <span>Server Settings</span>
+                        </DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuItem
+                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                        onClick={onCreateChannel}
+                    >
+                        <Plus className="h-4 w-4" />
+                        <span>Create Channel</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator className="bg-[rgba(255,255,255,0.06)] my-1" />
+
+                    <DropdownMenuItem
+                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#f23f42] cursor-pointer focus:bg-[#f23f42] focus:text-white"
+                    >
+                        <LogOut className="h-4 w-4" />
+                        <span>Leave Server</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* ✨ Invite People — always visible CTA */}
             <div className="px-2 pt-2">
@@ -343,33 +382,66 @@ function TextChannelItem({
     onSelect: () => void;
 }) {
     return (
-        <div className="relative flex items-center group/channel">
-            {/* Active/Unread pill indicator */}
-            <div className={cn(
-                "absolute -left-[8px] w-[4px] rounded-r-full bg-white transition-all duration-200 origin-left",
-                isActive ? "h-[32px] scale-100" : (unread > 0 ? "h-[8px] scale-100" : "h-[8px] scale-0 group-hover/channel:scale-100")
-            )} />
-            <button
-                className={cn(
-                    "w-full flex items-center gap-2 px-2.5 py-[6px] rounded-lg text-[15px] cursor-pointer transition-all duration-100",
-                    isActive
-                        ? "bg-[#3f4147] text-white"
-                        : unread > 0
-                            ? "text-white font-semibold hover:bg-[#34373c]"
-                            : "text-[#949ba4] hover:bg-[#34373c] hover:text-[#dbdee1]"
-                )}
-                onClick={onSelect}
-                aria-label={`Text channel: ${channel.name}${unread > 0 ? `, ${unread} unread` : ''}`}
-            >
-                <Hash className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "opacity-60")} />
-                <span className="truncate">{channel.name}</span>
-                {unread > 0 && !isActive && (
-                    <span className="ml-auto shrink-0 min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[hsl(var(--destructive))] text-white text-[11px] font-bold px-1">
-                        {unread > 99 ? '99+' : unread}
-                    </span>
-                )}
-            </button>
-        </div>
+        <ContextMenu>
+            <ContextMenuTrigger asChild>
+                <div className="relative flex items-center group/channel">
+                    {/* Active/Unread pill indicator */}
+                    <div className={cn(
+                        "absolute -left-[8px] w-[4px] rounded-r-full bg-white transition-all duration-200 origin-left",
+                        isActive ? "h-[32px] scale-100" : (unread > 0 ? "h-[8px] scale-100" : "h-[8px] scale-0 group-hover/channel:scale-100")
+                    )} />
+                    <button
+                        className={cn(
+                            "w-full flex items-center gap-2 px-2.5 py-[6px] rounded-lg text-[15px] cursor-pointer transition-all duration-100",
+                            isActive
+                                ? "bg-[#3f4147] text-white"
+                                : unread > 0
+                                    ? "text-white font-semibold hover:bg-[#34373c]"
+                                    : "text-[#949ba4] hover:bg-[#34373c] hover:text-[#dbdee1]"
+                        )}
+                        onClick={onSelect}
+                        aria-label={`Text channel: ${channel.name}${unread > 0 ? `, ${unread} unread` : ''}`}
+                    >
+                        <Hash className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "opacity-60")} />
+                        <span className="truncate">{channel.name}</span>
+                        {unread > 0 && !isActive && (
+                            <span className="ml-auto shrink-0 min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[hsl(var(--destructive))] text-white text-[11px] font-bold px-1">
+                                {unread > 99 ? '99+' : unread}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-48 bg-[#111214] border-[rgba(255,255,255,0.08)] p-1 shadow-xl">
+                <ContextMenuItem
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                    onClick={onSelect}
+                >
+                    <Hash className="h-4 w-4" />
+                    <span>Mark as Read</span>
+                </ContextMenuItem>
+
+                <ContextMenuItem
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                    onClick={() => {
+                        navigator.clipboard.writeText(channel.$jazz.id);
+                        import("sonner").then(({ toast }) => toast.success("Channel ID copied"));
+                    }}
+                >
+                    <Copy className="h-4 w-4" />
+                    <span>Copy Channel ID</span>
+                </ContextMenuItem>
+
+                <ContextMenuSeparator className="bg-[rgba(255,255,255,0.06)] my-1" />
+
+                <ContextMenuItem
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#f23f42] cursor-pointer focus:bg-[#f23f42] focus:text-white"
+                >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete Channel</span>
+                </ContextMenuItem>
+            </ContextMenuContent>
+        </ContextMenu>
     );
 }
 
@@ -650,30 +722,40 @@ function VoiceStatusBar({
     return (
         <div className="flex flex-col gap-2 p-2 bg-[#232428] border-t border-[rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between px-1">
-                <div className="flex flex-col min-w-0">
-                    <div className={cn(
-                        "text-[13px] font-bold leading-tight transition-colors duration-200",
-                        isJoining ? "text-[#949ba4]" : "text-[#23a559]"
-                    )}>
-                        {isJoining ? "Connecting..." : "Voice Connected"}
-                    </div>
-                    <div className="text-[12px] text-[#b5bac1] truncate hover:underline cursor-pointer">
-                        {channelName}
+                <div className="flex items-center gap-2 min-w-0">
+                    {/* Signal bars indicator */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div className="flex items-end gap-[2px] h-4 cursor-pointer">
+                                {[1, 2, 3, 4, 5].map((bar) => (
+                                    <div
+                                        key={bar}
+                                        className={cn(
+                                            "w-[3px] rounded-sm transition-all duration-300",
+                                            isJoining
+                                                ? "bg-[#949ba4] animate-pulse"
+                                                : "bg-[#23a559]"
+                                        )}
+                                        style={{ height: `${bar * 3}px` }}
+                                    />
+                                ))}
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>{isJoining ? "Connecting..." : "Connection: Excellent"}</TooltipContent>
+                    </Tooltip>
+                    <div className="flex flex-col min-w-0">
+                        <div className={cn(
+                            "text-[13px] font-bold leading-tight transition-colors duration-200",
+                            isJoining ? "text-[#949ba4]" : "text-[#23a559]"
+                        )}>
+                            {isJoining ? "Connecting..." : "Voice Connected"}
+                        </div>
+                        <div className="text-[12px] text-[#b5bac1] truncate hover:underline cursor-pointer">
+                            {channelName}
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-0.5">
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-[#b5bac1] hover:text-[#dbdee1] hover:bg-[#3f4147]/50"
-                            >
-                                <HelpCircle className="h-5 w-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Connection Info</TooltipContent>
-                    </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
@@ -718,6 +800,15 @@ function VoiceStatusBar({
     );
 }
 
+type UserStatus = 'online' | 'idle' | 'dnd' | 'invisible';
+
+const STATUS_CONFIG: Record<UserStatus, { color: string; label: string; emoji: string }> = {
+    online: { color: 'bg-[#23a559]', label: 'Online', emoji: '🟢' },
+    idle: { color: 'bg-[#f0b232]', label: 'Idle', emoji: '🌙' },
+    dnd: { color: 'bg-[#f23f42]', label: 'Do Not Disturb', emoji: '⛔' },
+    invisible: { color: 'bg-[#80848e]', label: 'Invisible', emoji: '👻' },
+};
+
 function UserPanel({
     userName,
     isMuted,
@@ -733,16 +824,50 @@ function UserPanel({
     onToggleDeafen: () => void;
     onAudioSettings?: () => void;
 }) {
+    const [status, setStatus] = useState<UserStatus>(() => {
+        return (localStorage.getItem('lotus-user-status') as UserStatus) || 'online';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('lotus-user-status', status);
+    }, [status]);
+
+    const statusColor = isDeafened ? 'bg-[#80848e]' : STATUS_CONFIG[status].color;
+
     return (
         <div className="flex items-center gap-2 px-2 py-1 bg-[#232428] shrink-0">
             <div className="flex items-center gap-2 p-1 rounded-md hover:bg-[#3f4147]/50 transition-colors cursor-pointer flex-1 min-w-0">
-                <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-bold text-white shrink-0">
-                    {userName.charAt(0).toUpperCase()}
-                    <div className={cn(
-                        "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-[3px] border-[#232428]",
-                        isDeafened ? "bg-[#80848e]" : "bg-[#23a559]"
-                    )} />
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-bold text-white shrink-0 cursor-pointer">
+                            {userName.charAt(0).toUpperCase()}
+                            <div className={cn(
+                                "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-[3px] border-[#232428] transition-colors duration-200",
+                                statusColor
+                            )} />
+                        </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        className="w-48 bg-[#111214] border-[rgba(255,255,255,0.08)] p-1.5 shadow-xl"
+                        side="top"
+                        align="start"
+                        sideOffset={8}
+                    >
+                        {(Object.entries(STATUS_CONFIG) as [UserStatus, typeof STATUS_CONFIG.online][]).map(([key, cfg]) => (
+                            <DropdownMenuItem
+                                key={key}
+                                className={cn(
+                                    "flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] cursor-pointer",
+                                    status === key ? "text-white bg-[#5865f2]/20" : "text-[#b5bac1] focus:bg-[#5865f2] focus:text-white"
+                                )}
+                                onClick={() => setStatus(key)}
+                            >
+                                <div className={cn("w-2.5 h-2.5 rounded-full", cfg.color)} />
+                                <span>{cfg.label}</span>
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 <div className="flex flex-col min-w-0">
                     <div className="text-[13px] font-bold text-[#f2f3f5] truncate leading-tight">
                         {userName}

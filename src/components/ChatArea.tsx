@@ -1,6 +1,6 @@
-import { memo, useState } from "react";
+import { memo, useState, useRef } from "react";
 import { ChatHeader } from "@/components/ChatHeader";
-import { MessageListView } from "@/components/MessageListView";
+import { MessageListView, MessageListViewHandle } from "@/components/MessageListView";
 import { MessageInput, ReplyTarget } from "@/components/MessageInput";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 
@@ -16,6 +16,8 @@ interface ChatAreaProps {
     onToggleMemberPanel: () => void;
     /** When true, skip rendering ChatHeader (mobile provides its own) */
     hideHeader?: boolean;
+    /** Callback to open the search modal */
+    onSearch?: () => void;
 }
 
 /**
@@ -34,9 +36,11 @@ export const ChatArea = memo(function ChatArea({
     onToggleChannelSidebar,
     onToggleMemberPanel,
     hideHeader,
+    onSearch,
 }: ChatAreaProps) {
     const { typingUsers, notifyTyping } = useTypingIndicator(channel, userName);
     const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+    const messageListRef = useRef<MessageListViewHandle>(null);
 
     if (!channel) {
         return (
@@ -62,19 +66,23 @@ export const ChatArea = memo(function ChatArea({
                     onToggleSidebar={onToggleSidebar}
                     onToggleChannelSidebar={onToggleChannelSidebar}
                     onToggleMemberPanel={onToggleMemberPanel}
+                    onSearch={onSearch}
                 />
             )}
-            <MessageListView
-                channel={channel}
-                serverName={serverName}
-                userName={userName}
-                onReply={(msg) => setReplyTarget(msg)}
-            />
+            <div className="relative flex-1 min-h-0">
+                <MessageListView
+                    ref={messageListRef}
+                    channel={channel}
+                    serverName={serverName}
+                    userName={userName}
+                    onReply={(msg) => setReplyTarget(msg)}
+                />
 
-            {/* Typing indicator */}
-            {typingUsers.length > 0 && (
-                <TypingIndicator users={typingUsers} />
-            )}
+                {/* Typing indicator — floats above input */}
+                {typingUsers.length > 0 && (
+                    <TypingIndicator users={typingUsers} />
+                )}
+            </div>
 
             <MessageInput
                 channel={channel}
@@ -82,12 +90,13 @@ export const ChatArea = memo(function ChatArea({
                 onTyping={notifyTyping}
                 replyTarget={replyTarget}
                 onClearReply={() => setReplyTarget(null)}
+                onEditLast={() => messageListRef.current?.editLastOwnMessage()}
             />
         </div>
     );
 });
 
-/** Typing indicator — shows animated dots with user names */
+/** Typing indicator — Discord-style compact overlay bar */
 function TypingIndicator({ users }: { users: string[] }) {
     let text = "";
     if (users.length === 1) {
@@ -101,20 +110,22 @@ function TypingIndicator({ users }: { users: string[] }) {
     }
 
     return (
-        <div className="px-4 py-1.5 text-xs text-muted-color animate-fade-in flex items-center gap-2">
-            <span className="flex items-center gap-[3px]">
-                {[0, 1, 2].map((i) => (
-                    <span
-                        key={i}
-                        className="w-[6px] h-[6px] rounded-full bg-[var(--organic-sage)]"
-                        style={{
-                            animation: "typing-bounce 1.2s ease-in-out infinite",
-                            animationDelay: `${i * 160}ms`,
-                        }}
-                    />
-                ))}
-            </span>
-            <span className="text-[11px]">{text}</span>
+        <div className="absolute bottom-0 left-0 right-0 px-4 py-1 bg-[hsl(var(--background)/0.92)] backdrop-blur-sm z-10 animate-fade-in">
+            <div className="flex items-center gap-2">
+                <span className="flex items-center gap-[3px]">
+                    {[0, 1, 2].map((i) => (
+                        <span
+                            key={i}
+                            className="w-[5px] h-[5px] rounded-full bg-white/70"
+                            style={{
+                                animation: "typing-bounce 1.2s ease-in-out infinite",
+                                animationDelay: `${i * 160}ms`,
+                            }}
+                        />
+                    ))}
+                </span>
+                <span className="text-[11px] font-medium text-white/70">{text}</span>
+            </div>
         </div>
     );
 }

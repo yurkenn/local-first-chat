@@ -10,7 +10,8 @@ import {
     Pin,
     MessageSquare,
     HelpCircle,
-    Inbox
+    Inbox,
+    Search
 } from "lucide-react";
 import { memo } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -24,6 +25,10 @@ interface ChatHeaderProps {
     onToggleSidebar: () => void;
     onToggleChannelSidebar: () => void;
     onToggleMemberPanel: () => void;
+    /** Optional channel topic/description */
+    topic?: string;
+    /** Callback to open search modal */
+    onSearch?: () => void;
 }
 
 export const ChatHeader = memo(function ChatHeader({
@@ -35,6 +40,8 @@ export const ChatHeader = memo(function ChatHeader({
     onToggleSidebar,
     onToggleChannelSidebar: _onToggleChannelSidebar,
     onToggleMemberPanel,
+    topic,
+    onSearch,
 }: ChatHeaderProps) {
     return (
         <div className="relative flex items-center h-[48px] px-2 gap-0.5 bg-[var(--background)] shrink-0 shadow-sm z-10">
@@ -65,10 +72,35 @@ export const ChatHeader = memo(function ChatHeader({
                 <span className="text-[16px] font-bold text-white truncate leading-tight">
                     {channelName}
                 </span>
+
+                {/* Channel topic */}
+                {topic && (
+                    <>
+                        <div className="w-[1px] h-5 bg-[#3f4147] shrink-0 mx-1 hidden sm:block" />
+                        <span className="text-[13px] text-[#949ba4] truncate hidden sm:block" title={topic}>
+                            {topic}
+                        </span>
+                    </>
+                )}
             </div>
 
             {/* Spacer for desktop header icons */}
             <div className="flex-1" />
+
+            {/* Search pill — ⌘K */}
+            {onSearch && (
+                <button
+                    onClick={onSearch}
+                    className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#1e1f22] hover:bg-[#2b2d31] border border-[rgba(255,255,255,0.06)] transition-colors cursor-pointer min-w-[140px] max-w-[220px] mr-2"
+                    aria-label="Search (Ctrl+K)"
+                >
+                    <Search className="h-3.5 w-3.5 text-[#949ba4] shrink-0" />
+                    <span className="text-[13px] text-[#949ba4] truncate flex-1 text-left">Search</span>
+                    <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#2b2d31] border border-[rgba(255,255,255,0.06)] text-[10px] text-[#949ba4] font-mono shrink-0">
+                        ⌘K
+                    </kbd>
+                </button>
+            )}
 
             {/* Desktop Action Icons (Discord-accurate stack) */}
             <div className="flex items-center gap-2 pr-2">

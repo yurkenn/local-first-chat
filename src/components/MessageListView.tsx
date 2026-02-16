@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState, useMemo, memo } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo, memo, forwardRef, useImperativeHandle } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -6,6 +6,7 @@ import rehypeSanitize from "rehype-sanitize";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { EmojiPicker, parseReactions, toggleReaction } from "@/components/EmojiPicker";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Smile, Pencil, Trash2, Reply, ChevronDown } from "lucide-react";
@@ -31,6 +32,31 @@ function formatTimestamp(ts: number): string {
     return `${date.toLocaleDateString([], { month: "short", day: "numeric" })} at ${time}`;
 }
 
+/** Format a compact time for hover gutter (e.g. "9:42 AM") */
+function formatCompactTime(ts: number): string {
+    return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+/** Format a date label for separators (e.g. "February 16, 2026") */
+function formatDateLabel(ts: number): string {
+    const date = new Date(ts);
+    const now = new Date();
+    if (date.toDateString() === now.toDateString()) return "Today";
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+    return date.toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" });
+}
+
+/** Check if a date separator should appear before this message */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function shouldShowDateSeparator(prev: any, curr: any): boolean {
+    if (!prev || !curr) return !!curr; // first message gets a separator
+    const prevDate = new Date(prev.createdAt).toDateString();
+    const currDate = new Date(curr.createdAt).toDateString();
+    return prevDate !== currDate;
+}
+
 /** Check if two messages should be grouped */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function shouldGroup(prev: any, curr: any): boolean {
@@ -47,7 +73,11 @@ interface MessageListViewProps {
     onReply?: (msg: { senderName: string; content: string }) => void;
 }
 
-export const MessageListView = memo(function MessageListView({ channel, serverName, userName, onReply }: MessageListViewProps) {
+export interface MessageListViewHandle {
+    editLastOwnMessage: () => void;
+}
+
+export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageListViewProps>(function MessageListView({ channel, serverName, userName, onReply }, ref) {
     const messages = channel.messages;
     const parentRef = useRef<HTMLDivElement>(null);
     const msgArray = useMemo(
@@ -60,13 +90,26 @@ export const MessageListView = memo(function MessageListView({ channel, serverNa
     const [editText, setEditText] = useState("");
     const [pickerOpenIndex, setPickerOpenIndex] = useState<number | null>(null);
     const [isAtBottom, setIsAtBottom] = useState(true);
+    const [newMsgCount, setNewMsgCount] = useState(0);
+    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
     const isFirstRender = useRef(true);
+    const prevMsgCountRef = useRef(msgArray.length);
 
     const onScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
         const { scrollHeight, scrollTop, clientHeight } = e.currentTarget;
         const atBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
         setIsAtBottom(atBottom);
+        if (atBottom) setNewMsgCount(0);
     }, []);
+
+    // Track new messages arriving while scrolled up
+    useEffect(() => {
+        const diff = msgArray.length - prevMsgCountRef.current;
+        if (diff > 0 && !isAtBottom) {
+            setNewMsgCount((c) => c + diff);
+        }
+        prevMsgCountRef.current = msgArray.length;
+    }, [msgArray.length, isAtBottom]);
 
     const virtualizer = useVirtualizer({
         count: msgArray.length,
@@ -80,6 +123,8 @@ export const MessageListView = memo(function MessageListView({ channel, serverNa
             if (curr?.imageDataUrl) height += 220;
             // Account for reply quote block
             if (curr?.replyToContent) height += 40;
+            // Account for date separator
+            if (shouldShowDateSeparator(prev, curr)) height += 40;
             return height;
         },
         overscan: 5,
@@ -105,6 +150,20 @@ export const MessageListView = memo(function MessageListView({ channel, serverNa
         setEditingIndex(index);
         setEditText(content);
     };
+
+    // Expose editLastOwnMessage for keyboard shortcuts
+    useImperativeHandle(ref, () => ({
+        editLastOwnMessage: () => {
+            // Find the last message from this user
+            for (let i = msgArray.length - 1; i >= 0; i--) {
+                const msg = msgArray[i] as any;
+                if (msg?.senderName === userName && !msg.isDeleted) {
+                    startEdit(i, msg.content);
+                    return;
+                }
+            }
+        },
+    }), [msgArray, userName]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const saveEdit = (msg: any) => {
@@ -154,121 +213,152 @@ export const MessageListView = memo(function MessageListView({ channel, serverNa
     }
 
     return (
-        <div
-            className="flex-1 overflow-y-auto px-4 py-2"
-            ref={parentRef}
-            onScroll={onScroll}
-            role="log"
-            aria-live="polite"
-            aria-label="Message history"
-        >
+        <>
             <div
-                style={{
-                    height: `${virtualizer.getTotalSize()}px`,
-                    width: "100%",
-                    position: "relative",
-                }}
+                className="flex-1 overflow-y-auto px-4 py-2"
+                ref={parentRef}
+                onScroll={onScroll}
+                role="log"
+                aria-live="polite"
+                aria-label="Message history"
             >
-                {virtualizer.getVirtualItems().map((virtualItem) => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const msg = msgArray[virtualItem.index] as any;
-                    if (!msg) return null;
+                <div
+                    style={{
+                        height: `${virtualizer.getTotalSize()}px`,
+                        width: "100%",
+                        position: "relative",
+                    }}
+                >
+                    {virtualizer.getVirtualItems().map((virtualItem) => {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const msg = msgArray[virtualItem.index] as any;
+                        if (!msg) return null;
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const prev = virtualItem.index > 0 ? msgArray[virtualItem.index - 1] as any : null;
-                    const isGrouped = shouldGroup(prev, msg);
-                    const isOwnMessage = msg.senderName === userName;
-                    const isEditing = editingIndex === virtualItem.index;
-                    const isDeleted = msg.isDeleted;
-                    const showPicker = pickerOpenIndex === virtualItem.index;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const prev = virtualItem.index > 0 ? msgArray[virtualItem.index - 1] as any : null;
+                        const isGrouped = shouldGroup(prev, msg);
+                        const isOwnMessage = msg.senderName === userName;
+                        const isEditing = editingIndex === virtualItem.index;
+                        const isDeleted = msg.isDeleted;
+                        const showPicker = pickerOpenIndex === virtualItem.index;
+                        const showDateSep = shouldShowDateSeparator(prev, msg);
 
-                    // Shared actions passed to both grouped and ungrouped renders
-                    const sharedActions = !isDeleted && !isEditing ? (
-                        <MessageActions
-                            onEdit={() => startEdit(virtualItem.index, msg.content)}
-                            onDelete={() => deleteMessage(msg)}
-                            onReact={() => setPickerOpenIndex(showPicker ? null : virtualItem.index)}
-                            onReply={() => onReply?.({ senderName: msg.senderName, content: msg.content })}
-                            isOwn={isOwnMessage}
-                        />
-                    ) : null;
+                        // Shared actions passed to both grouped and ungrouped renders
+                        const sharedActions = !isDeleted && !isEditing ? (
+                            <MessageActions
+                                onEdit={() => startEdit(virtualItem.index, msg.content)}
+                                onDelete={() => deleteMessage(msg)}
+                                onReact={() => setPickerOpenIndex(showPicker ? null : virtualItem.index)}
+                                onReply={() => onReply?.({ senderName: msg.senderName, content: msg.content })}
+                                isOwn={isOwnMessage}
+                            />
+                        ) : null;
 
-                    return (
-                        <div
-                            key={virtualItem.key}
-                            style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                transform: `translateY(${virtualItem.start}px)`,
-                            }}
-                            ref={virtualizer.measureElement}
-                            data-index={virtualItem.index}
-                            className={cn(
-                                "group relative px-4 py-0.5 transition-colors duration-75",
-                                "hover:bg-[#2e3338]/40", // Discord message hover
-                                isDeleted && "opacity-50"
-                            )}
-                        >
-                            <div className={cn("flex gap-3", isGrouped && "pl-[44px]")}>
-                                {/* Avatar — only for ungrouped (first message in group) */}
-                                {!isGrouped && (
-                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-0.5">
-                                        {(msg.senderName || "?").charAt(0).toUpperCase()}
+                        return (
+                            <div
+                                key={virtualItem.key}
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    transform: `translateY(${virtualItem.start}px)`,
+                                }}
+                                ref={virtualizer.measureElement}
+                                data-index={virtualItem.index}
+                                className={cn(
+                                    "group relative px-4 py-0.5 transition-colors duration-75",
+                                    "hover:bg-[#2e3338]/40", // Discord message hover
+                                    isDeleted && "opacity-50"
+                                )}
+                            >
+                                {/* Date separator */}
+                                {showDateSep && (
+                                    <div className="flex items-center gap-3 py-2 px-4">
+                                        <div className="flex-1 h-px bg-[#3f4147]" />
+                                        <span className="text-[11px] font-semibold text-muted-color uppercase tracking-wide shrink-0">
+                                            {formatDateLabel(msg.createdAt)}
+                                        </span>
+                                        <div className="flex-1 h-px bg-[#3f4147]" />
                                     </div>
                                 )}
-
-                                <div className="flex-1 min-w-0">
-                                    {/* Sender name + timestamp — only for ungrouped */}
+                                <div className={cn("flex gap-3", isGrouped && !showDateSep && "pl-[44px]")}
+                                >
+                                    {/* Hover timestamp for grouped messages */}
+                                    {isGrouped && !showDateSep && (
+                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-color opacity-0 group-hover:opacity-100 transition-opacity duration-100 font-mono pointer-events-none select-none">
+                                            {formatCompactTime(msg.createdAt)}
+                                        </span>
+                                    )}
+                                    {/* Avatar — only for ungrouped (first message in group) */}
                                     {!isGrouped && (
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-[13px] font-semibold text-primary-color">{msg.senderName || "Unknown"}</span>
-                                            <span className="text-[11px] text-muted-color">{formatTimestamp(msg.createdAt)}</span>
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-0.5">
+                                            {(msg.senderName || "?").charAt(0).toUpperCase()}
                                         </div>
                                     )}
 
-                                    {/* Message content — shared for both grouped and ungrouped */}
-                                    <MessageContent
-                                        msg={msg}
-                                        isEditing={isEditing}
-                                        isDeleted={isDeleted}
-                                        editText={editText}
-                                        onEditChange={setEditText}
-                                        onSave={() => saveEdit(msg)}
-                                        onCancel={cancelEdit}
-                                    />
-                                </div>
+                                    <div className="flex-1 min-w-0">
+                                        {/* Sender name + timestamp — only for ungrouped */}
+                                        {!isGrouped && (
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-[13px] font-semibold text-primary-color">{msg.senderName || "Unknown"}</span>
+                                                <span className="text-[11px] text-muted-color">{formatTimestamp(msg.createdAt)}</span>
+                                            </div>
+                                        )}
 
-                                <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
-                                {sharedActions}
-                                {showPicker && (
-                                    <EmojiPicker onSelect={(emoji) => handleReaction(msg, emoji)} onClose={() => setPickerOpenIndex(null)} />
-                                )}
+                                        {/* Message content — shared for both grouped and ungrouped */}
+                                        <MessageContent
+                                            msg={msg}
+                                            isEditing={isEditing}
+                                            isDeleted={isDeleted}
+                                            editText={editText}
+                                            onEditChange={setEditText}
+                                            onSave={() => saveEdit(msg)}
+                                            onCancel={cancelEdit}
+                                            onImageClick={setLightboxSrc}
+                                        />
+                                    </div>
+
+                                    <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
+                                    {sharedActions}
+                                    {showPicker && (
+                                        <EmojiPicker onSelect={(emoji) => handleReaction(msg, emoji)} onClose={() => setPickerOpenIndex(null)} />
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
+
+                {/* Scroll to Bottom Button with new message badge */}
+                {!isAtBottom && (
+                    <Button
+                        size="icon"
+                        className="absolute bottom-6 right-8 rounded-full shadow-lg bg-primary-color text-primary-foreground hover:bg-primary-color/90 animate-in fade-in zoom-in duration-200 z-10 flex items-center gap-1.5 px-3 h-9"
+                        onClick={() => {
+                            scrollToBottom();
+                            setNewMsgCount(0);
+                            setTimeout(scrollToBottom, 50);
+                        }}
+                        aria-label={newMsgCount > 0 ? `${newMsgCount} new messages, scroll to bottom` : "Scroll to bottom"}
+                    >
+                        {newMsgCount > 0 && (
+                            <span className="text-xs font-medium">
+                                {newMsgCount} new
+                            </span>
+                        )}
+                        <ChevronDown className="h-5 w-5" />
+                    </Button>
+                )}
             </div>
 
-            {/* Scroll to Bottom Button */}
-            {!isAtBottom && (
-                <Button
-                    size="icon"
-                    className="absolute bottom-6 right-8 w-9 h-9 rounded-full shadow-lg bg-primary-color text-primary-foreground hover:bg-primary-color/90 animate-in fade-in zoom-in duration-200 z-10"
-                    onClick={() => {
-                        scrollToBottom();
-                        // Force a small timeout to allow virtualizer to catch up if needed
-                        setTimeout(scrollToBottom, 50);
-                    }}
-                    aria-label="Scroll to bottom"
-                >
-                    <ChevronDown className="h-5 w-5" />
-                </Button>
-            )}
-        </div>
+            {lightboxSrc && (
+                <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+            )
+            }
+        </>
     );
-});
+}));
 
 /** MessageContent — Shared message body rendering (edit, delete, reply, markdown, image) */
 function MessageContent({
@@ -279,6 +369,7 @@ function MessageContent({
     onEditChange,
     onSave,
     onCancel,
+    onImageClick,
 }: {
     msg: any;
     isEditing: boolean;
@@ -287,6 +378,7 @@ function MessageContent({
     onEditChange: (v: string) => void;
     onSave: () => void;
     onCancel: () => void;
+    onImageClick?: (src: string) => void;
 }) {
     if (isEditing) {
         return <EditBox text={editText} onChange={onEditChange} onSave={onSave} onCancel={onCancel} />;
@@ -334,7 +426,7 @@ function MessageContent({
                     {msg.content}
                 </ReactMarkdown>
                 {msg.imageDataUrl && isValidImageDataUrl(msg.imageDataUrl) && (
-                    <img src={msg.imageDataUrl} alt="Attachment" className="mt-1 max-w-[300px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => window.open(msg.imageDataUrl, '_blank')} />
+                    <img src={msg.imageDataUrl} alt="Attachment" className="mt-1 max-w-[300px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:brightness-110 transition-all" onClick={() => onImageClick?.(msg.imageDataUrl)} />
                 )}
             </div>
             {msg.editedAt && (

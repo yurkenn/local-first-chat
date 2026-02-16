@@ -1,9 +1,10 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users, Wifi, Radio, Crown, Shield, Pen } from "lucide-react";
 import { getOwnerGroup } from "@/lib/jazz-helpers";
 import type { LoadedServer } from "@/lib/jazz-types";
 import { cn } from "@/lib/utils";
+import { UserPopover } from "@/components/UserPopover";
 
 interface MemberPanelProps {
     server: LoadedServer | null;
@@ -78,6 +79,8 @@ export const MemberPanel = memo(function MemberPanel({
     const admins = members.filter((m) => m.role === "admin");
     const writers = members.filter((m) => m.role !== "admin");
 
+    const [popover, setPopover] = useState<{ name: string; role: string; rect: DOMRect } | null>(null);
+
     return (
         <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-l border-[rgba(255,255,255,0.06)]">
             <div className="h-[48px] flex items-center px-4 font-bold text-[14px] text-white border-b border-[rgba(255,255,255,0.06)]">
@@ -98,6 +101,7 @@ export const MemberPanel = memo(function MemberPanel({
                                     name={member.name}
                                     role={member.role}
                                     isCurrentUser={member.name === userName}
+                                    onClick={(rect) => setPopover({ name: member.name, role: member.role, rect })}
                                 />
                             ))}
                         </>
@@ -115,6 +119,7 @@ export const MemberPanel = memo(function MemberPanel({
                                     name={member.name}
                                     role={member.role}
                                     isCurrentUser={member.name === userName}
+                                    onClick={(rect) => setPopover({ name: member.name, role: member.role, rect })}
                                 />
                             ))}
                         </>
@@ -130,6 +135,7 @@ export const MemberPanel = memo(function MemberPanel({
                                 name={userName}
                                 role="writer"
                                 isCurrentUser={true}
+                                onClick={(rect) => setPopover({ name: userName, role: "writer", rect })}
                             />
                         </>
                     )}
@@ -152,6 +158,16 @@ export const MemberPanel = memo(function MemberPanel({
                     </div>
                 </div>
             </div>
+
+            {/* User Popover */}
+            {popover && (
+                <UserPopover
+                    name={popover.name}
+                    role={popover.role}
+                    anchorRect={popover.rect}
+                    onClose={() => setPopover(null)}
+                />
+            )}
         </div>
     );
 });
@@ -161,16 +177,26 @@ function MemberRow({
     name,
     role,
     isCurrentUser,
+    onClick,
 }: {
     name: string;
     role: string;
     isCurrentUser: boolean;
+    onClick?: (rect: DOMRect) => void;
 }) {
     const badge = getRoleBadge(role);
     const BadgeIcon = badge?.icon;
 
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        onClick?.(rect);
+    };
+
     return (
-        <div className="group flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-[#34373c]/40 transition-all duration-75 cursor-pointer">
+        <div
+            className="group flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-[#34373c]/40 transition-all duration-75 cursor-pointer"
+            onClick={handleClick}
+        >
             <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-[13px] font-semibold text-white shrink-0">
                 {(name || "?").charAt(0).toUpperCase()}
                 <div className={cn(

@@ -37,10 +37,10 @@ describe("useLayoutState", () => {
         window.matchMedia = createMatchMedia(false);
     });
 
-    it("initializes all panels as closed", () => {
+    it("initializes with sidebar open, others closed", () => {
         const { result } = renderHook(() => useLayoutState());
 
-        expect(result.current.layout.sidebarOpen).toBe(false);
+        expect(result.current.layout.sidebarOpen).toBe(true);
         expect(result.current.layout.channelSidebarOpen).toBe(false);
         expect(result.current.layout.memberPanelOpen).toBe(false);
     });
@@ -63,11 +63,13 @@ describe("useLayoutState", () => {
         it("toggles sidebar independently", () => {
             const { result } = renderHook(() => useLayoutState());
 
-            act(() => result.current.toggleSidebar());
-            expect(result.current.layout.sidebarOpen).toBe(true);
-
+            // Starts as true, toggle to false
             act(() => result.current.toggleSidebar());
             expect(result.current.layout.sidebarOpen).toBe(false);
+
+            // Toggle back to true
+            act(() => result.current.toggleSidebar());
+            expect(result.current.layout.sidebarOpen).toBe(true);
         });
 
         it("toggles channel sidebar independently", () => {
@@ -87,8 +89,8 @@ describe("useLayoutState", () => {
         it("allows multiple panels open simultaneously", () => {
             const { result } = renderHook(() => useLayoutState());
 
+            // sidebar starts true; toggle channel + member open
             act(() => {
-                result.current.toggleSidebar();
                 result.current.toggleChannelSidebar();
                 result.current.toggleMemberPanel();
             });
@@ -107,18 +109,19 @@ describe("useLayoutState", () => {
         expect(result.current.layout.channelSidebarOpen).toBe(true);
     });
 
-    it("closeAllPanels closes everything", () => {
+    it("closeAllPanels resets to initial state", () => {
         const { result } = renderHook(() => useLayoutState());
 
+        // Open all panels
         act(() => {
-            result.current.toggleSidebar();
             result.current.toggleChannelSidebar();
             result.current.toggleMemberPanel();
         });
 
         act(() => result.current.closeAllPanels());
 
-        expect(result.current.layout.sidebarOpen).toBe(false);
+        // Resets to initialState: sidebarOpen=true, rest=false
+        expect(result.current.layout.sidebarOpen).toBe(true);
         expect(result.current.layout.channelSidebarOpen).toBe(false);
         expect(result.current.layout.memberPanelOpen).toBe(false);
     });
