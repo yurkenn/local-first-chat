@@ -90,11 +90,11 @@
                 <span class="nav-title">Lotus</span>
             </a>
             <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#download">Download</a>
+                <a href="#features" data-i18n="nav.features">Features</a>
+                <a href="#download" data-i18n="nav.download">Download</a>
                 <a href="https://github.com/yurkenn/local-first-chat" target="_blank" rel="noopener">GitHub</a>
             </div>
-            <a href="/app" class="nav-cta">Open App</a>
+            <a href="/app" class="nav-cta" data-i18n="nav.openApp">Open App</a>
         </div>
     </nav>
 
@@ -104,13 +104,13 @@
         <div class="hero-content">
             <div class="hero-badge">
                 <span class="badge-dot"></span>
-                End-to-End Encrypted
+                <span data-i18n="hero.badge">End-to-End Encrypted</span>
             </div>
-            <h1 class="hero-title">
+            <h1 class="hero-title" data-i18n-html="hero.title">
                 Messaging that<br />
                 <span class="gradient-text">respects your privacy</span>
             </h1>
-            <p class="hero-subtitle">
+            <p class="hero-subtitle" data-i18n="hero.subtitle">
                 Lotus is a secure, local-first messaging app. Your conversations stay on your devices —
                 encrypted, peer-to-peer, and always available offline.
             </p>
@@ -123,7 +123,7 @@
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    Download for Windows
+                    <span data-i18n="hero.downloadBtn">Download for Windows</span>
                 </a>
                 <a href="/app" class="btn btn-secondary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -132,23 +132,23 @@
                         <polyline points="12 16 16 12 12 8" />
                         <line x1="8" y1="12" x2="16" y2="12" />
                     </svg>
-                    Open in Browser
+                    <span data-i18n="hero.browserBtn">Open in Browser</span>
                 </a>
             </div>
             <div class="hero-stats">
                 <div class="stat">
                     <span class="stat-value">E2EE</span>
-                    <span class="stat-label">Encryption</span>
+                    <span class="stat-label" data-i18n="hero.statEncryption">Encryption</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat">
                     <span class="stat-value">P2P</span>
-                    <span class="stat-label">Direct Connect</span>
+                    <span class="stat-label" data-i18n="hero.statP2P">Direct Connect</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat">
                     <span class="stat-value">100%</span>
-                    <span class="stat-label">Offline Ready</span>
+                    <span class="stat-label" data-i18n="hero.statOffline">Offline Ready</span>
                 </div>
             </div>
         </div>
@@ -158,10 +158,10 @@
     <section class="features" id="features">
         <div class="section-container">
             <div class="section-header">
-                <span class="section-tag">Why Lotus?</span>
-                <h2 class="section-title">Built for privacy.<br />Designed for you.</h2>
-                <p class="section-subtitle">Every feature in Lotus is designed with your security and experience in
-                    mind.</p>
+                <span class="section-tag" data-i18n="features.tag">Why Lotus?</span>
+                <h2 class="section-title" data-i18n-html="features.title">Built for privacy.<br />Designed for you.</h2>
+                <p class="section-subtitle" data-i18n="features.subtitle">Every feature in Lotus is designed with your
+                    security and experience in mind.</p>
             </div>
 
             <div class="features-grid">
@@ -173,8 +173,9 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                     </div>
-                    <h3>End-to-End Encrypted</h3>
-                    <p>Messages are encrypted on your device before they leave. Not even we can read them.</p>
+                    <h3 data-i18n="features.e2ee.title">End-to-End Encrypted</h3>
+                    <p data-i18n="features.e2ee.desc">Messages are encrypted on your device before they leave. Not even
+                        we can read them.</p>
                 </div>
 
                 <div class="feature-card">
@@ -184,8 +185,9 @@
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                         </svg>
                     </div>
-                    <h3>Local-First</h3>
-                    <p>Your data lives on your device. No central server storing your conversations.</p>
+                    <h3 data-i18n="features.local.title">Local-First</h3>
+                    <p data-i18n="features.local.desc">Your data lives on your device. No central server storing your
+                        conversations.</p>
                 </div>
 
                 <div class="feature-card">
@@ -198,8 +200,9 @@
                             <circle cx="12" cy="20" r="1" />
                         </svg>
                     </div>
-                    <h3>Offline Support</h3>
-                    <p>Keep chatting even without internet. Messages sync automatically when you're back online.</p>
+                    <h3 data-i18n="features.offline.title">Offline Support</h3>
+                    <p data-i18n="features.offline.desc">Keep chatting even without internet. Messages sync
+                        automatically when you're back online.</p>
                 </div>
 
                 <div class="feature-card">
@@ -212,8 +215,9 @@
                             <line x1="8" y1="23" x2="16" y2="23" />
                         </svg>
                     </div>
-                    <h3>Voice Channels</h3>
-                    <p>Crystal-clear encrypted voice chat with noise suppression and echo cancellation.</p>
+                    <h3 data-i18n="features.voice.title">Voice Channels</h3>
+                    <p data-i18n="features.voice.desc">Crystal-clear encrypted voice chat with noise suppression and
+                        echo cancellation.</p>
                 </div>
 
                 <div class="feature-card">
@@ -225,8 +229,9 @@
                             <line x1="12" y1="17" x2="12" y2="21" />
                         </svg>
                     </div>
-                    <h3>Cross-Platform</h3>
-                    <p>Available as a desktop app for macOS, Windows, Linux — and in your web browser.</p>
+                    <h3 data-i18n="features.cross.title">Cross-Platform</h3>
+                    <p data-i18n="features.cross.desc">Available as a desktop app for macOS, Windows, Linux — and in
+                        your web browser.</p>
                 </div>
 
                 <div class="feature-card">
@@ -237,8 +242,9 @@
                             <polyline points="8 6 2 12 8 18" />
                         </svg>
                     </div>
-                    <h3>Open Source</h3>
-                    <p>Fully open-source and auditable. Trust through transparency, not promises.</p>
+                    <h3 data-i18n="features.open.title">Open Source</h3>
+                    <p data-i18n="features.open.desc">Fully open-source and auditable. Trust through transparency, not
+                        promises.</p>
                 </div>
             </div>
         </div>
@@ -248,9 +254,10 @@
     <section class="download" id="download">
         <div class="section-container">
             <div class="section-header">
-                <span class="section-tag">Get Started</span>
-                <h2 class="section-title">Download Lotus</h2>
-                <p class="section-subtitle">Choose your platform or use Lotus directly in your browser.</p>
+                <span class="section-tag" data-i18n="download.tag">Get Started</span>
+                <h2 class="section-title" data-i18n="download.title">Download Lotus</h2>
+                <p class="section-subtitle" data-i18n="download.subtitle">Choose your platform or use Lotus directly in
+                    your browser.</p>
             </div>
 
             <div class="download-grid">
@@ -265,7 +272,7 @@
                         <span class="download-platform">macOS</span>
                         <span class="download-detail">Apple Silicon &amp; Intel</span>
                     </div>
-                    <span class="download-badge">Coming Soon</span>
+                    <span class="download-badge" data-i18n="download.comingSoon">Coming Soon</span>
                 </div>
 
                 <a href="https://github.com/yurkenn/local-first-chat/releases/download/v0.1.0/Lotus_0.1.0_x64-setup.exe"
@@ -280,7 +287,8 @@
                         <span class="download-platform">Windows</span>
                         <span class="download-detail">Windows 10+</span>
                     </div>
-                    <span class="download-badge download-badge--live">Download .exe</span>
+                    <span class="download-badge download-badge--live" data-i18n="download.downloadExe">Download
+                        .exe</span>
                 </a>
 
 
@@ -295,10 +303,10 @@
                         </svg>
                     </div>
                     <div class="download-info">
-                        <span class="download-platform">Web Browser</span>
-                        <span class="download-detail">No download needed</span>
+                        <span class="download-platform" data-i18n="download.webPlatform">Web Browser</span>
+                        <span class="download-detail" data-i18n="download.webDetail">No download needed</span>
                     </div>
-                    <span class="download-badge download-badge--live">Open Now →</span>
+                    <span class="download-badge download-badge--live" data-i18n="download.openNow">Open Now →</span>
                 </a>
             </div>
         </div>
@@ -308,10 +316,10 @@
     <section class="features" id="alternative" style="border-top: none;">
         <div class="section-container">
             <div class="section-header">
-                <span class="section-tag">Switch to Lotus</span>
-                <h2 class="section-title">The best free<br />Discord alternative</h2>
-                <p class="section-subtitle">Everything you love about Discord — with privacy you deserve. No bans, no
-                    data collection, no compromises.</p>
+                <span class="section-tag" data-i18n="alt.tag">Switch to Lotus</span>
+                <h2 class="section-title" data-i18n-html="alt.title">The best free<br />Discord alternative</h2>
+                <p class="section-subtitle" data-i18n="alt.subtitle">Everything you love about Discord — with privacy
+                    you deserve. No bans, no data collection, no compromises.</p>
             </div>
 
             <div style="max-width: 700px; margin: 0 auto;">
@@ -321,9 +329,8 @@
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                         <thead>
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <th
-                                    style="padding: 16px 20px; text-align: left; font-family: var(--font-heading); font-weight: 700;">
-                                    Feature</th>
+                                <th style="padding: 16px 20px; text-align: left; font-family: var(--font-heading); font-weight: 700;"
+                                    data-i18n="alt.featureCol">Feature</th>
                                 <th style="padding: 16px 20px; text-align: center; color: var(--text-tertiary);">Discord
                                 </th>
                                 <th style="padding: 16px 20px; text-align: center; color: var(--accent);">Lotus</th>
@@ -331,37 +338,44 @@
                         </thead>
                         <tbody>
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <td style="padding: 14px 20px; color: var(--text-secondary);">End-to-End Encryption</td>
+                                <td style="padding: 14px 20px; color: var(--text-secondary);" data-i18n="alt.row.e2ee">
+                                    End-to-End Encryption</td>
                                 <td style="padding: 14px 20px; text-align: center;">❌</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <td style="padding: 14px 20px; color: var(--text-secondary);">Works Offline</td>
+                                <td style="padding: 14px 20px; color: var(--text-secondary);"
+                                    data-i18n="alt.row.offline">Works Offline</td>
                                 <td style="padding: 14px 20px; text-align: center;">❌</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <td style="padding: 14px 20px; color: var(--text-secondary);">No Data Collection</td>
+                                <td style="padding: 14px 20px; color: var(--text-secondary);"
+                                    data-i18n="alt.row.noData">No Data Collection</td>
                                 <td style="padding: 14px 20px; text-align: center;">❌</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <td style="padding: 14px 20px; color: var(--text-secondary);">Voice Channels</td>
+                                <td style="padding: 14px 20px; color: var(--text-secondary);" data-i18n="alt.row.voice">
+                                    Voice Channels</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <td style="padding: 14px 20px; color: var(--text-secondary);">Text Channels</td>
+                                <td style="padding: 14px 20px; color: var(--text-secondary);" data-i18n="alt.row.text">
+                                    Text Channels</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <td style="padding: 14px 20px; color: var(--text-secondary);">Open Source</td>
+                                <td style="padding: 14px 20px; color: var(--text-secondary);"
+                                    data-i18n="alt.row.openSource">Open Source</td>
                                 <td style="padding: 14px 20px; text-align: center;">❌</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                             </tr>
                             <tr>
-                                <td style="padding: 14px 20px; color: var(--text-secondary);">Free Forever</td>
+                                <td style="padding: 14px 20px; color: var(--text-secondary);" data-i18n="alt.row.free">
+                                    Free Forever</td>
                                 <td style="padding: 14px 20px; text-align: center;">⚠️</td>
                                 <td style="padding: 14px 20px; text-align: center;">✅</td>
                             </tr>
@@ -369,20 +383,21 @@
                     </table>
                 </div>
 
-                <!-- Turkish Content for SEO -->
+                <!-- Turkish / Localized CTA -->
                 <div
                     style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; text-align: center;">
-                    <h3
-                        style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; margin-bottom: 12px;">
-                        🇹🇷 Discord Alternatifi Arıyorsanız</h3>
-                    <p style="font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 20px;">
+                    <h3 style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; margin-bottom: 12px;"
+                        data-i18n-html="alt.cta.title">🇹🇷 Discord Alternatifi Arıyorsanız</h3>
+                    <p style="font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 20px;"
+                        data-i18n="alt.cta.desc">
                         Lotus, Discord'un tüm özelliklerini sunan güvenli ve ücretsiz bir alternatiftir.
                         Uçtan uca şifreleme, sesli sohbet ve çevrimdışı destek ile verileriniz tamamen sizin
                         kontrolünüzde kalır.
                         VPN'e gerek yok — tarayıcınızdan hemen kullanmaya başlayın.
                     </p>
                     <a href="/app"
-                        style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--accent-gradient); color: white; border-radius: var(--radius-md); font-family: var(--font-heading); font-weight: 600; font-size: 15px; transition: all 0.2s;">
+                        style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--accent-gradient); color: white; border-radius: var(--radius-md); font-family: var(--font-heading); font-weight: 600; font-size: 15px; transition: all 0.2s;"
+                        data-i18n="alt.cta.btn">
                         Hemen Başla →
                     </a>
                 </div>
@@ -396,21 +411,128 @@
             <div class="footer-brand">
                 <img src="/lotus-logo.png" alt="Lotus" class="footer-logo" />
                 <span class="footer-title">Lotus</span>
-                <p class="footer-desc">Secure, local-first messaging.<br />Your data stays yours.</p>
+                <p class="footer-desc" data-i18n-html="footer.desc">Secure, local-first messaging.<br />Your data stays
+                    yours.</p>
             </div>
             <div class="footer-links">
-                <a href="/app">Open App</a>
-                <a href="#features">Features</a>
-                <a href="#download">Download</a>
+                <a href="/app" data-i18n="footer.openApp">Open App</a>
+                <a href="#features" data-i18n="footer.features">Features</a>
+                <a href="#download" data-i18n="footer.download">Download</a>
                 <a href="https://github.com/yurkenn/local-first-chat" target="_blank" rel="noopener">GitHub</a>
             </div>
             <div class="footer-bottom">
-                <p>© 2026 Lotus. Open Source & Privacy First.</p>
+                <p data-i18n="footer.copyright">© 2026 Lotus. Open Source & Privacy First.</p>
             </div>
         </div>
     </footer>
 
     <script>
+        // ═══════════════ i18n TRANSLATIONS ═══════════════
+        const translations = {
+            tr: {
+                // Navbar
+                'nav.features': 'Özellikler',
+                'nav.download': 'İndir',
+                'nav.openApp': 'Uygulamayı Aç',
+
+                // Hero
+                'hero.badge': 'Uçtan Uca Şifreli',
+                'hero.title': 'Gizliliğinize<br/><span class="gradient-text">saygı duyan mesajlaşma</span>',
+                'hero.subtitle': 'Lotus, güvenli ve yerel öncelikli bir mesajlaşma uygulamasıdır. Sohbetleriniz cihazınızda kalır — şifreli, eşler arası ve her zaman çevrimdışı kullanılabilir.',
+                'hero.downloadBtn': 'Windows için İndir',
+                'hero.browserBtn': 'Tarayıcıda Aç',
+                'hero.statEncryption': 'Şifreleme',
+                'hero.statP2P': 'Doğrudan Bağlantı',
+                'hero.statOffline': 'Çevrimdışı Hazır',
+
+                // Features
+                'features.tag': 'Neden Lotus?',
+                'features.title': 'Gizlilik için tasarlandı.<br/>Sizin için geliştirildi.',
+                'features.subtitle': 'Lotus\'taki her özellik güvenliğiniz ve deneyiminiz düşünülerek tasarlanmıştır.',
+                'features.e2ee.title': 'Uçtan Uca Şifreli',
+                'features.e2ee.desc': 'Mesajlar cihazınızda şifrelenir. Biz bile okuyamayız.',
+                'features.local.title': 'Yerel Öncelikli',
+                'features.local.desc': 'Verileriniz cihazınızda yaşar. Konuşmalarınızı saklayan merkezi sunucu yok.',
+                'features.offline.title': 'Çevrimdışı Destek',
+                'features.offline.desc': 'İnternet olmadan da sohbet edin. Çevrimiçi olduğunuzda mesajlar otomatik senkronize olur.',
+                'features.voice.title': 'Sesli Kanallar',
+                'features.voice.desc': 'Gürültü bastırma ve yankı iptali ile kristal netliğinde şifreli sesli sohbet.',
+                'features.cross.title': 'Çoklu Platform',
+                'features.cross.desc': 'macOS, Windows, Linux için masaüstü uygulaması ve web tarayıcınızda kullanılabilir.',
+                'features.open.title': 'Açık Kaynak',
+                'features.open.desc': 'Tamamen açık kaynak ve denetlenebilir. Sözlere değil, şeffaflığa güvenin.',
+
+                // Download
+                'download.tag': 'Başlayın',
+                'download.title': 'Lotus\'u İndir',
+                'download.subtitle': 'Platformunuzu seçin veya Lotus\'u doğrudan tarayıcınızda kullanın.',
+                'download.comingSoon': 'Yakında',
+                'download.downloadExe': '.exe İndir',
+                'download.webPlatform': 'Web Tarayıcı',
+                'download.webDetail': 'İndirme gerekmez',
+                'download.openNow': 'Şimdi Aç →',
+
+                // Discord Alternative
+                'alt.tag': 'Lotus\'a Geçin',
+                'alt.title': 'En iyi ücretsiz<br/>Discord alternatifi',
+                'alt.subtitle': 'Discord\'daki her şeyi — hak ettiğiniz gizlilikle birlikte. Yasak yok, veri toplama yok, taviz yok.',
+                'alt.featureCol': 'Özellik',
+                'alt.row.e2ee': 'Uçtan Uca Şifreleme',
+                'alt.row.offline': 'Çevrimdışı Çalışır',
+                'alt.row.noData': 'Veri Toplamaz',
+                'alt.row.voice': 'Sesli Kanallar',
+                'alt.row.text': 'Metin Kanalları',
+                'alt.row.openSource': 'Açık Kaynak',
+                'alt.row.free': 'Sonsuza Kadar Ücretsiz',
+                'alt.cta.title': '🇹🇷 Discord Alternatifi Arıyorsanız',
+                'alt.cta.desc': 'Lotus, Discord\'un tüm özelliklerini sunan güvenli ve ücretsiz bir alternatiftir. Uçtan uca şifreleme, sesli sohbet ve çevrimdışı destek ile verileriniz tamamen sizin kontrolünüzde kalır. VPN\'e gerek yok — tarayıcınızdan hemen kullanmaya başlayın.',
+                'alt.cta.btn': 'Hemen Başla →',
+
+                // Footer
+                'footer.desc': 'Güvenli, yerel öncelikli mesajlaşma.<br/>Verileriniz sizin kalır.',
+                'footer.openApp': 'Uygulamayı Aç',
+                'footer.features': 'Özellikler',
+                'footer.download': 'İndir',
+                'footer.copyright': '© 2026 Lotus. Açık Kaynak & Gizlilik Öncelikli.',
+            }
+        };
+
+        // Detect language and apply translations
+        function applyLanguage() {
+            const lang = navigator.language || navigator.userLanguage || 'en';
+            const isTurkish = lang.startsWith('tr');
+
+            if (isTurkish) {
+                document.documentElement.lang = 'tr';
+
+                // Update page title
+                document.title = 'Lotus — Ücretsiz Discord Alternatifi | Güvenli, Şifreli Mesajlaşma';
+
+                // Update meta description
+                const metaDesc = document.querySelector('meta[name="description"]');
+                if (metaDesc) {
+                    metaDesc.setAttribute('content',
+                        'Lotus, uçtan uca şifreleme, sesli sohbet ve çevrimdışı destek sunan en iyi ücretsiz Discord alternatifidir. Verileriniz tamamen sizde kalır. VPN gerekmez.');
+                }
+
+                // Apply text translations
+                const tr = translations.tr;
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (tr[key]) el.textContent = tr[key];
+                });
+
+                // Apply HTML translations (for elements with <br/> and inner tags)
+                document.querySelectorAll('[data-i18n-html]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-html');
+                    if (tr[key]) el.innerHTML = tr[key];
+                });
+            }
+        }
+
+        // Run i18n immediately
+        applyLanguage();
+
         // Navbar scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
