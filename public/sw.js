@@ -11,7 +11,7 @@ const STATIC_ASSETS = [
     "/index.html",
     "/manifest.json",
     "/lotus-192.png",
-    "/lotus-512.png",
+    "/lotus-logo.png",
 ];
 
 // Install: precache static shell

@@ -33,6 +33,10 @@ export default defineConfig(async () => ({
   build: {
     chunkSizeWarningLimit: 800,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, "index.html"),
+        landing: path.resolve(__dirname, "landing.html"),
+      },
       output: {
         manualChunks(id) {
           // Core cojson CRDT engine (largest part)
