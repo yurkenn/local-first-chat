@@ -202,9 +202,9 @@ function VoiceVideoSettings({ audio }: { audio: AudioSettings }) {
 
             <SliderRow
                 label="Input Sensitivity"
-                value={Math.round(audio.sensitivity * 100)}
+                value={Math.round(audio.sensitivity)}
                 max={100}
-                onChange={(v) => audio.setSensitivity(v / 100)}
+                onChange={(v) => audio.setSensitivity(v)}
                 icon={<Mic className="h-3.5 w-3.5 text-[#b5bac1]" />}
             />
 
