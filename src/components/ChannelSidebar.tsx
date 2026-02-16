@@ -282,6 +282,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                                 isConnected={connectedChannelId === channel.$jazz.id}
                                 voice={voice}
                                 userName={userName}
+                                isDeafened={audio?.isDeafened ?? false}
                                 // New props
                                 peerVolumes={peerVolumes}
                                 peerMutes={peerMutes}
@@ -453,6 +454,7 @@ interface VoiceChannelItemProps {
     isConnected: boolean;
     voice: VoiceStateReturn;
     userName: string;
+    isDeafened: boolean;
     peerVolumes: Record<string, number>;
     peerMutes: Record<string, boolean>;
     onVolumeChange: (peerId: string, volume: number) => void;
@@ -465,6 +467,7 @@ function VoiceChannelItem({
     isConnected,
     voice,
     userName,
+    isDeafened,
     peerVolumes,
     peerMutes,
     onVolumeChange,
@@ -482,8 +485,8 @@ function VoiceChannelItem({
                 {
                     peerId: "me",
                     peerName: userName || "You",
-                    isMuted: voice.isMuted,
-                    isSpeaking: voice.isSpeaking && !voice.isMuted,
+                    isMuted: voice.isMuted || isDeafened,
+                    isSpeaking: voice.isSpeaking && !voice.isMuted && !isDeafened,
                     isSelf: true
                 },
                 // Remote peers
@@ -514,7 +517,7 @@ function VoiceChannelItem({
                     isSelf: false
                 }));
         }
-    }, [isConnected, voice.peers, voice.isMuted, voice.isSpeaking, channel, userName]);
+    }, [isConnected, voice.peers, voice.isMuted, voice.isSpeaking, isDeafened, channel, userName]);
 
     return (
         <div className="relative group/channel">
