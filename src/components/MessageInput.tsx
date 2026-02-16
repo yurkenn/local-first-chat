@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, KeyboardEvent, ClipboardEvent } from "react";
+import { useState, useCallback, useRef, useEffect, KeyboardEvent, ClipboardEvent, type RefObject } from "react";
 import { toast } from "sonner";
 import { ChatMessage, MessageList } from "@/schema";
 import {
@@ -33,6 +33,8 @@ interface MessageInputProps {
     onClearReply?: () => void;
     /** Called when user presses Arrow Up on empty input — edit last own message */
     onEditLast?: () => void;
+    /** External ref to the textarea for programmatic focus */
+    inputRef?: RefObject<HTMLTextAreaElement | null>;
 }
 
 /** Max image file size (2MB) */
@@ -57,12 +59,14 @@ export function MessageInput({
     replyTarget,
     onClearReply,
     onEditLast,
+    inputRef,
 }: MessageInputProps) {
     const [text, setText] = useState("");
     const [pendingImage, setPendingImage] = useState<string | null>(null);
     const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const internalTextareaRef = useRef<HTMLTextAreaElement>(null);
+    const textareaRef = inputRef || internalTextareaRef;
 
     // Auto-resize textarea to fit content
     const autoResize = useCallback(() => {
@@ -231,10 +235,10 @@ export function MessageInput({
                     </span>
                     <button
                         onClick={onClearReply}
-                        className="text-[#dbdee1] hover:text-white transition-colors shrink-0 p-1"
+                        className="text-[#dbdee1] hover:text-white transition-colors shrink-0 p-2 -mr-1"
                         aria-label="Cancel reply"
                     >
-                        <PlusCircle className="h-4 w-4 rotate-45" />
+                        <PlusCircle className="h-5 w-5 rotate-45" />
                     </button>
                 </div>
             )}
@@ -250,7 +254,7 @@ export function MessageInput({
                         />
                         <button
                             onClick={() => setPendingImage(null)}
-                            className="absolute top-1 right-1 h-6 w-6 flex items-center justify-center rounded-md bg-[#2b2d31] text-[#dbdee1] hover:text-[#f23f42] shadow-md transition-colors"
+                            className="absolute -top-2 -right-2 h-8 w-8 flex items-center justify-center rounded-full bg-[#2b2d31] text-[#dbdee1] hover:text-[#f23f42] shadow-md transition-colors border border-[rgba(255,255,255,0.1)]"
                             aria-label="Remove image"
                         >
                             <X className="h-4 w-4" />

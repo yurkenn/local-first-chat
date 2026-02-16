@@ -48,7 +48,7 @@ window.addEventListener("unhandledrejection", (event) => {
 function LoadingScreen() {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-[hsl(var(--background))] text-primary-color font-sans gap-4">
-      <div className="brand-logo">🪷</div>
+      <div className="brand-logo"><img src="/lotus-logo.png" alt="Lotus" /></div>
       <h1 className="brand-title text-2xl">Lotus</h1>
       <p className="text-sm text-muted-color">
         Connecting to secure network…

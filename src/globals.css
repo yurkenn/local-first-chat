@@ -428,6 +428,7 @@ input[type="range"].range-green::-moz-range-thumb {
         background: hsl(var(--card));
         border: 1px solid rgba(255, 255, 255, 0.06);
         border-radius: var(--radius);
+        cursor: pointer;
         transition: background var(--transition-fast), transform var(--transition-fast);
     }
 
@@ -480,12 +481,17 @@ input[type="range"].range-green::-moz-range-thumb {
         width: 4.5rem;
         height: 4.5rem;
         border-radius: 1.25rem;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.08);
         font-size: 2.25rem;
         line-height: 1;
         position: relative;
+        overflow: hidden;
         transition: transform 0.4s var(--ease-spring), box-shadow 0.4s var(--ease-smooth);
+    }
+
+    .brand-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .brand-logo:hover {

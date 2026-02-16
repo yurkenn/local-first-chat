@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "LocalChat",
+  "productName": "Lotus",
   "version": "0.1.0",
-  "identifier": "com.oguzyurken.localchat",
+  "identifier": "com.oguzyurken.lotus",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "LocalChat — Secure P2P Messaging",
+        "title": "Lotus",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -32,7 +32,7 @@
         "media-src": "'self' blob:",
         "worker-src": "'self' blob:"
       },
-      "freezePrototype": true
+      "freezePrototype": false
     }
   },
   "bundle": {
@@ -55,6 +55,12 @@
       "icons/Square284x284Logo.png",
       "icons/Square310x310Logo.png",
       "icons/StoreLogo.png"
-    ]
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    },
+    "category": "SocialNetworking",
+    "shortDescription": "Secure, local-first encrypted messaging",
+    "longDescription": "Lotus is a secure, encrypted, local-first messaging app. Chat with end-to-end encryption, peer-to-peer connectivity, and full offline support. Your data stays yours."
   }
 }

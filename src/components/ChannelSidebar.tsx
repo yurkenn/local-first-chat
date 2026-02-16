@@ -69,7 +69,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
         return (
             <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-r border-[rgba(255,255,255,0.06)]">
                 <div className="h-[52px] flex items-center px-4 gap-2 border-b border-[rgba(255,255,255,0.06)]">
-                    <span className="text-lg leading-none">🪷</span>
+                    <img src="/lotus-logo.png" alt="Lotus" className="w-5 h-5 rounded" />
                     <span className="font-heading font-semibold text-sm brand-title">Lotus</span>
                 </div>
                 <div className="flex-1 flex items-center justify-center p-6">
@@ -171,7 +171,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                             {server.name}
                         </span>
                         <ChevronDown
-                            className="h-3.5 w-3.5 text-muted-color transition-transform data-[state=open]:rotate-180"
+                            className="h-3.5 w-3.5 text-muted-color transition-transform duration-200 group-data-[state=open]:rotate-180"
                         />
                     </div>
                 </DropdownMenuTrigger>
@@ -209,7 +209,8 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     <DropdownMenuSeparator className="bg-[rgba(255,255,255,0.06)] my-1" />
 
                     <DropdownMenuItem
-                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#f23f42] cursor-pointer focus:bg-[#f23f42] focus:text-white"
+                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#f23f42]/40 cursor-not-allowed"
+                        disabled
                     >
                         <LogOut className="h-4 w-4" />
                         <span>Leave Server</span>
@@ -414,8 +415,8 @@ function TextChannelItem({
             </ContextMenuTrigger>
             <ContextMenuContent className="w-48 bg-[#111214] border-[rgba(255,255,255,0.08)] p-1 shadow-xl">
                 <ContextMenuItem
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
-                    onClick={onSelect}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#b5bac1]/40 cursor-not-allowed"
+                    disabled
                 >
                     <Hash className="h-4 w-4" />
                     <span>Mark as Read</span>
@@ -435,7 +436,8 @@ function TextChannelItem({
                 <ContextMenuSeparator className="bg-[rgba(255,255,255,0.06)] my-1" />
 
                 <ContextMenuItem
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#f23f42] cursor-pointer focus:bg-[#f23f42] focus:text-white"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#f23f42]/50 cursor-not-allowed"
+                    disabled
                 >
                     <Trash2 className="h-4 w-4" />
                     <span>Delete Channel</span>
@@ -639,7 +641,7 @@ function VoiceChannelItem({
                                                     step="1"
                                                     value={volume}
                                                     onChange={(e) => onVolumeChange(p.peerId, Number(e.target.value))}
-                                                    className="w-full h-1.5 bg-[hsl(var(--secondary))] rounded-full appearance-none cursor-pointer transition-all hover:brightness-110 active:brightness-90 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--organic-green)] [&::-webkit-slider-thumb]:shadow-md"
+                                                    className="w-full h-1.5 bg-[hsl(var(--secondary))] rounded-full appearance-none cursor-pointer transition-all hover:brightness-110 active:brightness-90 accent-[var(--organic-green)] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--organic-green)] [&::-webkit-slider-thumb]:shadow-md"
                                                 />
                                             </div>
 

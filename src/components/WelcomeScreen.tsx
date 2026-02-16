@@ -12,7 +12,12 @@ interface ActionCardProps {
 const ActionCard = ({ icon, iconBg, title, onClick }: ActionCardProps) => (
     <button
         onClick={onClick}
-        className="w-full flex items-center gap-4 p-4 rounded-lg bg-[#2b2d31] hover:bg-[#35373c] transition-all group border border-transparent hover:border-white/5 shadow-sm"
+        className={cn(
+            "w-full flex items-center gap-4 p-4 rounded-lg bg-[#2b2d31] transition-all group border border-transparent shadow-sm",
+            onClick
+                ? "hover:bg-[#35373c] hover:border-white/5 cursor-pointer"
+                : "opacity-50 cursor-not-allowed"
+        )}
     >
         <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white shrink-0", iconBg)}>
             {icon}
@@ -29,7 +34,6 @@ interface WelcomeScreenProps {
     onInvite?: () => void;
     onPersonalise?: () => void;
     onSendMessage?: () => void;
-    onDownload?: () => void;
 }
 
 export const WelcomeScreen = memo(function WelcomeScreen({
@@ -37,7 +41,6 @@ export const WelcomeScreen = memo(function WelcomeScreen({
     onInvite,
     onPersonalise,
     onSendMessage,
-    onDownload,
 }: WelcomeScreenProps) {
     return (
         <div className="flex flex-col items-center justify-center max-w-[480px] mx-auto py-12 px-4 animate-fade-in">
@@ -73,7 +76,6 @@ export const WelcomeScreen = memo(function WelcomeScreen({
                     icon={<Download className="h-6 w-6" />}
                     iconBg="bg-[#5865f2]"
                     title="Download the App (Coming Soon!)"
-                    onClick={onDownload}
                 />
             </div>
         </div>

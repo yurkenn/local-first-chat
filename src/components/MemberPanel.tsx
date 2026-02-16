@@ -29,6 +29,9 @@ export const MemberPanel = memo(function MemberPanel({
     server,
     userName,
 }: MemberPanelProps) {
+    // All hooks MUST be called before any early returns (Rules of Hooks)
+    const [popover, setPopover] = useState<{ name: string; role: string; rect: DOMRect } | null>(null);
+
     // Get real members from the server's Jazz Group
     const members = useMemo(() => {
         if (!server) return [];
@@ -75,11 +78,8 @@ export const MemberPanel = memo(function MemberPanel({
         );
     }
 
-    // Separate admins from regular members
     const admins = members.filter((m) => m.role === "admin");
     const writers = members.filter((m) => m.role !== "admin");
-
-    const [popover, setPopover] = useState<{ name: string; role: string; rect: DOMRect } | null>(null);
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-l border-[rgba(255,255,255,0.06)]">
@@ -111,7 +111,7 @@ export const MemberPanel = memo(function MemberPanel({
                     {writers.length > 0 && (
                         <>
                             <div className="px-2 py-3 text-[11px] font-bold uppercase text-[#949ba4] tracking-wide mt-2">
-                                Online — {writers.length}
+                                Members — {writers.length}
                             </div>
                             {writers.map((member) => (
                                 <MemberRow
@@ -129,7 +129,7 @@ export const MemberPanel = memo(function MemberPanel({
                     {members.length === 0 && (
                         <>
                             <div className="px-2 py-3 text-[11px] font-bold uppercase text-[#949ba4] tracking-wide">
-                                Online — 1
+                                Members — 1
                             </div>
                             <MemberRow
                                 name={userName}
@@ -201,7 +201,7 @@ function MemberRow({
                 {(name || "?").charAt(0).toUpperCase()}
                 <div className={cn(
                     "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-[3px] border-[#2b2d31]",
-                    isCurrentUser ? "bg-[#23a559]" : "bg-[#80848e]"
+                    isCurrentUser ? "bg-[#23a559]" : "bg-[#a3a6aa]"
                 )} />
             </div>
             <div className="flex-1 min-w-0">

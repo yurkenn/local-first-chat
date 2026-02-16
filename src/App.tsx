@@ -327,6 +327,8 @@ export default function App() {
     channelSidebar: channelSidebarJsx,
     memberPanel: memberPanelJsx,
     onSearch: () => openModal("search"),
+    onInvite: () => openModal("invite"),
+    onServerSettings: () => openModal("serverSettings"),
   };
 
   return (

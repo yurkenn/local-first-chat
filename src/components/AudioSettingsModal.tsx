@@ -89,7 +89,7 @@ export function AudioSettingsModal({ onClose, audio, me, theme = "dark", onTheme
                         </div>
                     ))}
                     <div className="mx-2.5 my-2 h-px bg-[#3f4147]" />
-                    <button className="w-full text-left px-2.5 py-[6px] rounded-[4px] text-[15px] font-medium text-[#ed4245] hover:bg-[#ed4245]/10 hover:text-[#ed4245] transition-colors flex items-center gap-2">
+                    <button className="w-full text-left px-2.5 py-[6px] rounded-[4px] text-[15px] font-medium text-[#ed4245]/40 cursor-not-allowed flex items-center gap-2" disabled title="Coming soon">
                         <FileText className="h-4 w-4" />
                         Log Out
                     </button>
@@ -238,7 +238,7 @@ function MyAccountSettings({ profileName }: { profileName: string }) {
                             <p className="text-xl font-semibold text-white">{profileName}</p>
                             <p className="text-sm text-[#b5bac1]">#{profileName.toLowerCase()}</p>
                         </div>
-                        <button className="px-4 py-1.5 mb-1 rounded text-sm font-medium bg-[#5865f2] text-white hover:bg-[#4752c4] transition-colors">
+                        <button className="px-4 py-1.5 mb-1 rounded text-sm font-medium bg-[#5865f2]/40 text-white/60 cursor-not-allowed" disabled title="Coming soon">
                             Edit User Profile
                         </button>
                     </div>
@@ -277,7 +277,7 @@ function InfoRow({ label, value, subtitle }: { label: string; value: string; sub
                 <p className="text-[15px] text-[#dbdee1]">{value}</p>
                 {subtitle && <p className="text-[12px] text-[#949ba4] mt-0.5">{subtitle}</p>}
             </div>
-            <button className="px-4 py-1.5 rounded text-sm font-medium bg-[#4e5058] text-white hover:bg-[#6d6f78] transition-colors">
+            <button className="px-4 py-1.5 rounded text-sm font-medium bg-[#4e5058]/40 text-white/40 cursor-not-allowed" disabled title="Coming soon">
                 Edit
             </button>
         </div>
@@ -325,8 +325,8 @@ function AppearanceSettings({ theme, onThemeChange }: { theme?: Theme; onThemeCh
 
             <Divider />
             <SectionHeader>Accessibility</SectionHeader>
-            <ToggleRow label="Reduce Motion" description="Disable animations and motion effects" checked={false} onChange={() => { }} />
-            <ToggleRow label="Sticker Animations" description="Show animated stickers and emojis" checked={true} onChange={() => { }} />
+            <ToggleRow label="Reduce Motion" description="Disable animations and motion effects" checked={false} onChange={() => { }} disabled badge="SOON" />
+            <ToggleRow label="Sticker Animations" description="Show animated stickers and emojis" checked={true} onChange={() => { }} disabled badge="SOON" />
 
             <div className="h-16" />
         </div>
@@ -387,14 +387,14 @@ function NotificationSettings() {
                 <p className="text-[13px] text-[#949ba4] mb-4">
                     Lotus can send you desktop notifications when you receive new messages. You can customize them below.
                 </p>
-                <ToggleRow label="Enable Desktop Notifications" description="Show native desktop notifications for new messages" checked={true} onChange={() => { }} />
-                <ToggleRow label="Enable Notification Sound" description="Play a sound when you receive a notification" checked={true} onChange={() => { }} />
-                <ToggleRow label="Unread Badge" description="Show unread message count on the app icon" checked={true} onChange={() => { }} />
+                <ToggleRow label="Enable Desktop Notifications" description="Show native desktop notifications for new messages" checked={true} onChange={() => { }} disabled badge="SOON" />
+                <ToggleRow label="Enable Notification Sound" description="Play a sound when you receive a notification" checked={true} onChange={() => { }} disabled badge="SOON" />
+                <ToggleRow label="Unread Badge" description="Show unread message count on the app icon" checked={true} onChange={() => { }} disabled badge="SOON" />
             </div>
 
             <SectionHeader>In-App Notifications</SectionHeader>
-            <ToggleRow label="Show Typing Indicators" description="See when other users are typing in a channel" checked={true} onChange={() => { }} />
-            <ToggleRow label="Flash Taskbar" description="Flash the taskbar when you receive a mention" checked={false} onChange={() => { }} />
+            <ToggleRow label="Show Typing Indicators" description="See when other users are typing in a channel" checked={true} onChange={() => { }} disabled badge="SOON" />
+            <ToggleRow label="Flash Taskbar" description="Flash the taskbar when you receive a mention" checked={false} onChange={() => { }} disabled badge="SOON" />
 
             <div className="h-16" />
         </div>
@@ -504,9 +504,9 @@ function StyledSelect({ value, onChange, options }: { value: string; onChange: (
     );
 }
 
-function ToggleRow({ label, description, checked, onChange, badge }: { label: string; description?: string; checked: boolean; onChange: () => void; badge?: string }) {
+function ToggleRow({ label, description, checked, onChange, badge, disabled }: { label: string; description?: string; checked: boolean; onChange: () => void; badge?: string; disabled?: boolean }) {
     return (
-        <div className="flex items-center justify-between py-4 border-b border-[#3f4147]/30 last:border-b-0">
+        <div className={cn("flex items-center justify-between py-4 border-b border-[#3f4147]/30 last:border-b-0", disabled && "opacity-50")}>
             <div className="flex-1 pr-4">
                 <div className="flex items-center gap-2">
                     <span className="text-[15px] text-[#dbdee1] font-medium">{label}</span>
@@ -516,18 +516,20 @@ function ToggleRow({ label, description, checked, onChange, badge }: { label: st
                 </div>
                 {description && <p className="text-[13px] text-[#949ba4] mt-0.5">{description}</p>}
             </div>
-            <ToggleSwitch checked={checked} onChange={onChange} />
+            <ToggleSwitch checked={checked} onChange={onChange} disabled={disabled} />
         </div>
     );
 }
 
-function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+function ToggleSwitch({ checked, onChange, disabled }: { checked: boolean; onChange: () => void; disabled?: boolean }) {
     return (
         <button
-            onClick={onChange}
+            onClick={disabled ? undefined : onChange}
+            disabled={disabled}
             className={cn(
                 "relative w-[42px] min-w-[42px] h-[24px] rounded-full transition-colors duration-200 outline-none focus:ring-2 focus:ring-[#5865f2]/50",
-                checked ? "bg-[#23a559]" : "bg-[#80848e]"
+                checked ? "bg-[#23a559]" : "bg-[#80848e]",
+                disabled && "cursor-not-allowed"
             )}
         >
             <div className={cn(
@@ -541,10 +543,10 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
 function RadioCard({ label, active, disabled }: { label: string; active?: boolean; disabled?: boolean }) {
     return (
         <div className={cn(
-            "flex items-center gap-3 p-3.5 rounded-lg border cursor-pointer transition-all",
-            active ? "border-[#5865f2] bg-[#5865f2]/5"
+            "flex items-center gap-3 p-3.5 rounded-lg border transition-all",
+            active ? "border-[#5865f2] bg-[#5865f2]/5 cursor-default"
                 : disabled ? "border-[#3f4147] opacity-50 cursor-not-allowed"
-                    : "border-[#3f4147] hover:border-[#4e5058]"
+                    : "border-[#3f4147] hover:border-[#4e5058] cursor-pointer"
         )}>
             <div className={cn(
                 "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",

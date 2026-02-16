@@ -1,4 +1,4 @@
-import { memo, useState, useRef } from "react";
+import { memo, useState, useRef, useCallback } from "react";
 import { ChatHeader } from "@/components/ChatHeader";
 import { MessageListView, MessageListViewHandle } from "@/components/MessageListView";
 import { MessageInput, ReplyTarget } from "@/components/MessageInput";
@@ -18,6 +18,10 @@ interface ChatAreaProps {
     hideHeader?: boolean;
     /** Callback to open the search modal */
     onSearch?: () => void;
+    /** Welcome screen: open invite modal */
+    onInvite?: () => void;
+    /** Welcome screen: open server settings */
+    onServerSettings?: () => void;
 }
 
 /**
@@ -37,15 +41,23 @@ export const ChatArea = memo(function ChatArea({
     onToggleMemberPanel,
     hideHeader,
     onSearch,
+    onInvite,
+    onServerSettings,
 }: ChatAreaProps) {
     const { typingUsers, notifyTyping } = useTypingIndicator(channel, userName);
     const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
     const messageListRef = useRef<MessageListViewHandle>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    const focusInput = useCallback(() => {
+        // Small delay to ensure input is rendered
+        setTimeout(() => inputRef.current?.focus(), 100);
+    }, []);
 
     if (!channel) {
         return (
             <div className="flex flex-col items-center justify-center min-w-0">
-                <div className="brand-logo brand-logo--lg mb-2">🪷</div>
+                <div className="brand-logo brand-logo--lg mb-2"><img src="/lotus-logo.png" alt="Lotus" /></div>
                 <h1 className="text-3xl brand-title mt-4">Lotus</h1>
                 <p className="text-sm text-muted-color text-center mt-2">
                     Select a channel to begin.
@@ -76,6 +88,9 @@ export const ChatArea = memo(function ChatArea({
                     serverName={serverName}
                     userName={userName}
                     onReply={(msg) => setReplyTarget(msg)}
+                    onInvite={onInvite}
+                    onPersonalise={onServerSettings}
+                    onSendMessage={focusInput}
                 />
 
                 {/* Typing indicator — floats above input */}
@@ -85,6 +100,7 @@ export const ChatArea = memo(function ChatArea({
             </div>
 
             <MessageInput
+                inputRef={inputRef}
                 channel={channel}
                 userName={userName}
                 onTyping={notifyTyping}

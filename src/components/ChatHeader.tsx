@@ -106,7 +106,7 @@ export const ChatHeader = memo(function ChatHeader({
             <div className="flex items-center gap-2 pr-2">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] opacity-40 pointer-events-none" aria-disabled="true">
                             <MessageSquare className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
@@ -115,7 +115,7 @@ export const ChatHeader = memo(function ChatHeader({
 
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] opacity-40 pointer-events-none" aria-disabled="true">
                             <Bell className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
@@ -124,7 +124,7 @@ export const ChatHeader = memo(function ChatHeader({
 
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] opacity-40 pointer-events-none" aria-disabled="true">
                             <Pin className="h-5 w-5 rotate-[45deg]" />
                         </Button>
                     </TooltipTrigger>
@@ -158,7 +158,7 @@ export const ChatHeader = memo(function ChatHeader({
 
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors hidden sm:flex">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] opacity-40 pointer-events-none hidden sm:flex" aria-disabled="true">
                             <Inbox className="h-6 w-6" />
                         </Button>
                     </TooltipTrigger>
@@ -167,7 +167,7 @@ export const ChatHeader = memo(function ChatHeader({
 
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors hidden sm:flex">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#b5bac1] opacity-40 pointer-events-none hidden sm:flex" aria-disabled="true">
                             <HelpCircle className="h-6 w-6" />
                         </Button>
                     </TooltipTrigger>

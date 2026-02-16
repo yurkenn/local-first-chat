@@ -70,9 +70,9 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
                             </div>
                             <div>
                                 <div className="text-sm font-semibold">{currentName}</div>
-                                <div className="text-xs text-[var(--organic-green)] flex items-center gap-1">
-                                    <div className="status-dot status-dot--xs" />
-                                    Online
+                                <div className="text-xs text-muted-color flex items-center gap-1">
+                                    <Shield className="h-3 w-3 text-[var(--organic-sage)]" />
+                                    Local-First
                                 </div>
                             </div>
                         </div>
@@ -147,7 +147,7 @@ export function UserSettingsModal({ onClose, theme, onThemeChange }: UserSetting
                     <Button
                         className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
                         onClick={handleSave}
-                        disabled={!name.trim()}
+                        disabled={!name.trim() || name.trim() === currentName}
                     >
                         Save Changes
                     </Button>

@@ -54,7 +54,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                                 Overview
                             </button>
                             {["Roles", "Emoji", "Stickers", "Soundboard", "Widget", "Server Template"].map((item) => (
-                                <button key={item} className="w-full text-left px-2 py-1.5 rounded-[4px] text-[#b5bac1] hover:bg-[#35373c] hover:text-[#dbdee1] text-sm font-medium transition-colors">
+                                <button key={item} className="w-full text-left px-2 py-1.5 rounded-[4px] text-[#b5bac1]/40 text-sm font-medium cursor-not-allowed" title="Coming soon" disabled>
                                     {item}
                                 </button>
                             ))}
@@ -65,7 +65,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                         </div>
                         <nav className="space-y-0.5 text-sm font-medium text-[#b5bac1]">
                             {["Members", "Invites", "Bans"].map((item) => (
-                                <button key={item} className="w-full text-left px-2 py-1.5 rounded-[4px] hover:bg-[#35373c] hover:text-[#dbdee1] transition-colors">
+                                <button key={item} className="w-full text-left px-2 py-1.5 rounded-[4px] text-[#b5bac1]/40 text-sm font-medium cursor-not-allowed" title="Coming soon" disabled>
                                     {item}
                                 </button>
                             ))}
@@ -202,9 +202,9 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                     {/* Exit button */}
                     <button
                         onClick={onClose}
-                        className="absolute right-8 top-8 w-9 h-9 border-2 border-[#b5bac1] rounded-full flex flex-col items-center justify-center text-[#b5bac1] group hover:border-white hover:text-white transition-all z-50 focus:outline-none"
+                        className="absolute right-4 top-4 w-9 h-9 border-2 border-[#b5bac1] rounded-full flex flex-col items-center justify-center text-[#b5bac1] group hover:border-white hover:text-white transition-all z-50 focus:outline-none"
                     >
-                        <X className="h-6 w-6" />
+                        <X className="h-5 w-5" />
                         <span className="text-[10px] font-bold mt-0.5 group-hover:scale-105 transition-transform leading-none shadow-sm">ESC</span>
                     </button>
                 </div>

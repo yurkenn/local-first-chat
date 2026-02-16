@@ -199,7 +199,7 @@ const MobileServerPage = memo(function MobileServerPage({
             {/* Header */}
             <div className="flex items-center h-[56px] px-4 shrink-0 border-b border-[hsl(var(--border)/0.5)]">
                 <div className="flex items-center gap-2.5">
-                    <span className="text-xl">🪷</span>
+                    <img src="/lotus-logo.png" alt="Lotus" className="w-6 h-6 rounded" />
                     <h1 className="text-lg font-semibold tracking-[-0.02em]">Lotus</h1>
                 </div>
                 <div className="flex-1" />
@@ -444,7 +444,7 @@ const MobileEmptyChat = memo(function MobileEmptyChat({
                     <div className="relative">
                         <div className="absolute inset-0 bg-[hsl(var(--primary)/0.15)] rounded-full blur-2xl scale-150" />
                         <div className="relative w-16 h-16 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border)/0.5)] flex items-center justify-center shadow-[var(--shadow-md)]">
-                            <span className="text-3xl">🪷</span>
+                            <img src="/lotus-logo.png" alt="Lotus" className="w-8 h-8 rounded-lg" />
                         </div>
                     </div>
                     <div className="text-center">

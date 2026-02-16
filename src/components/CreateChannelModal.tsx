@@ -130,8 +130,14 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                             <Lock className="h-4 w-4 text-[#b5bac1]" />
                             <span className="text-base font-medium text-white">Private Channel</span>
                         </div>
+                        <div
+                            className="w-10 h-[22px] rounded-full bg-[#72767d] relative cursor-not-allowed opacity-50"
+                            title="Coming soon"
+                        >
+                            <div className="absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform" />
+                        </div>
                     </div>
-                    <p className="text-[12px] text-[#b5bac1] -mt-5">
+                    <p className="text-[12px] text-[#b5bac1] -mt-1">
                         Only selected members and roles will be able to view this channel.
                     </p>
                 </div>

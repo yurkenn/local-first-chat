@@ -71,13 +71,19 @@ interface MessageListViewProps {
     userName: string;
     /** Called when user clicks Reply on a message */
     onReply?: (msg: { senderName: string; content: string }) => void;
+    /** Welcome screen: open invite modal */
+    onInvite?: () => void;
+    /** Welcome screen: open server settings */
+    onPersonalise?: () => void;
+    /** Welcome screen: focus message input */
+    onSendMessage?: () => void;
 }
 
 export interface MessageListViewHandle {
     editLastOwnMessage: () => void;
 }
 
-export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageListViewProps>(function MessageListView({ channel, serverName, userName, onReply }, ref) {
+export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageListViewProps>(function MessageListView({ channel, serverName, userName, onReply, onInvite, onPersonalise, onSendMessage }, ref) {
     const messages = channel.messages;
     const parentRef = useRef<HTMLDivElement>(null);
     const msgArray = useMemo(
@@ -207,7 +213,12 @@ export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageLis
     if (msgArray.length === 0) {
         return (
             <div className="flex-1 overflow-y-auto" ref={parentRef}>
-                <WelcomeScreen serverName={serverName} />
+                <WelcomeScreen
+                    serverName={serverName}
+                    onInvite={onInvite}
+                    onPersonalise={onPersonalise}
+                    onSendMessage={onSendMessage}
+                />
             </div>
         );
     }
@@ -317,9 +328,11 @@ export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageLis
                                             onCancel={cancelEdit}
                                             onImageClick={setLightboxSrc}
                                         />
+
+                                        {/* Reaction pills — below message content */}
+                                        <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
                                     </div>
 
-                                    <ReactionPills msg={msg} userName={userName} onToggle={(emoji) => handleReaction(msg, emoji)} />
                                     {sharedActions}
                                     {showPicker && (
                                         <EmojiPicker onSelect={(emoji) => handleReaction(msg, emoji)} onClose={() => setPickerOpenIndex(null)} />
@@ -334,7 +347,7 @@ export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageLis
                 {!isAtBottom && (
                     <Button
                         size="icon"
-                        className="absolute bottom-6 right-8 rounded-full shadow-lg bg-primary-color text-primary-foreground hover:bg-primary-color/90 animate-in fade-in zoom-in duration-200 z-10 flex items-center gap-1.5 px-3 h-9"
+                        className="absolute bottom-14 right-8 rounded-full shadow-lg bg-primary-color text-primary-foreground hover:bg-primary-color/90 animate-in fade-in zoom-in duration-200 z-10 flex items-center gap-1.5 px-3 h-9"
                         onClick={() => {
                             scrollToBottom();
                             setNewMsgCount(0);

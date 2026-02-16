@@ -19,6 +19,8 @@ interface DesktopLayoutProps {
     memberPanel: ReactNode;
     serverName: string;
     onSearch?: () => void;
+    onInvite?: () => void;
+    onServerSettings?: () => void;
 }
 
 /**
@@ -39,6 +41,8 @@ export const DesktopLayout = memo(function DesktopLayout({
     memberPanel,
     serverName,
     onSearch,
+    onInvite,
+    onServerSettings,
 }: DesktopLayoutProps) {
     return (
         <div
@@ -64,6 +68,8 @@ export const DesktopLayout = memo(function DesktopLayout({
                     onToggleMemberPanel={onToggleMemberPanel}
                     serverName={serverName}
                     onSearch={onSearch}
+                    onInvite={onInvite}
+                    onServerSettings={onServerSettings}
                 />
             ) : (
                 <EmptyState
@@ -112,9 +118,7 @@ const EmptyState = memo(function EmptyState({
             <div className="flex-1 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-6 animate-fade-in max-w-[320px]">
                     <div className="relative">
-                        <div className="w-20 h-20 rounded-[22px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] flex items-center justify-center shadow-[var(--shadow-sm)]">
-                            <span className="text-4xl">🪷</span>
-                        </div>
+                        <img src="/lotus-logo.png" alt="Lotus" className="w-20 h-20 rounded-[22px] shadow-[var(--shadow-sm)]" />
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--organic-green)] flex items-center justify-center shadow-[var(--shadow-sm)]">
                             <div className="w-2 h-2 rounded-full bg-white" />
                         </div>

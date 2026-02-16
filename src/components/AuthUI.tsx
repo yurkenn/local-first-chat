@@ -210,7 +210,7 @@ function AuthFormView({
             <div className="w-full max-w-[420px] bg-[hsl(var(--card))] border border-[rgba(255,255,255,0.06)] rounded-[20px] p-8 animate-scale-in shadow-[var(--shadow-xl)]">
                 {/* Brand header */}
                 <div className="flex flex-col items-center mb-8">
-                    <div className="brand-logo mb-5 shadow-[var(--shadow-lg)]">🪷</div>
+                    <div className="brand-logo mb-5 shadow-[var(--shadow-lg)]"><img src="/lotus-logo.png" alt="Lotus" /></div>
                     <h1 className="text-[28px] brand-title tracking-[-0.03em]">Lotus</h1>
                     <p className="text-[13px] text-muted-color mt-1.5">
                         Secure, local-first messaging
