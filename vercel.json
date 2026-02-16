@@ -1,6 +1,6 @@
 {
     "installCommand": "npm install --legacy-peer-deps",
-    "buildCommand": "npm run build",
+    "buildCommand": "npm run build && mv dist/index.html dist/app.html && cp dist/landing.html dist/index.html",
     "outputDirectory": "dist",
     "headers": [
         {
@@ -32,16 +32,12 @@
     ],
     "rewrites": [
         {
-            "source": "/app/(.*)",
-            "destination": "/index.html"
+            "source": "/app/:path*",
+            "destination": "/app.html"
         },
         {
             "source": "/app",
-            "destination": "/index.html"
-        },
-        {
-            "source": "/",
-            "destination": "/landing.html"
+            "destination": "/app.html"
         }
     ]
 }

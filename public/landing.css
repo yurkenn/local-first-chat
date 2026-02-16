@@ -12,10 +12,13 @@
     --text-primary: #f0f2f5;
     --text-secondary: rgba(240, 242, 245, 0.6);
     --text-tertiary: rgba(240, 242, 245, 0.4);
-    --accent: #3b9b68;
-    --accent-light: #4ec282;
-    --accent-glow: rgba(78, 194, 130, 0.15);
-    --accent-gradient: linear-gradient(135deg, #3b9b68 0%, #4ec282 50%, #6dd5a0 100%);
+    --accent: #E8789A;
+    --accent-light: #F2A7B3;
+    --accent-glow: rgba(232, 120, 154, 0.15);
+    --accent-gradient: linear-gradient(135deg, #E8789A 0%, #D4A843 50%, #E8B96A 100%);
+    --green: #5D8A3C;
+    --green-light: #7DB356;
+    --green-glow: rgba(93, 138, 60, 0.15);
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
@@ -177,12 +180,12 @@ a {
     align-items: center;
     gap: 8px;
     padding: 6px 16px;
-    background: var(--accent-glow);
-    border: 1px solid rgba(78, 194, 130, 0.2);
+    background: var(--green-glow);
+    border: 1px solid rgba(93, 138, 60, 0.25);
     border-radius: 100px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--accent-light);
+    color: var(--green-light);
     margin-bottom: 28px;
     animation: fadeInUp 0.6s ease-out;
 }
@@ -191,7 +194,7 @@ a {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--accent-light);
+    background: var(--green-light);
     animation: dotPulse 2s ease-in-out infinite;
 }
 
@@ -266,7 +269,7 @@ a {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 40px rgba(78, 194, 130, 0.3);
+    box-shadow: 0 8px 40px rgba(232, 120, 154, 0.3);
 }
 
 .btn-secondary {
@@ -403,12 +406,12 @@ a {
 .section-tag {
     display: inline-block;
     padding: 4px 14px;
-    background: var(--accent-glow);
-    border: 1px solid rgba(78, 194, 130, 0.15);
+    background: var(--green-glow);
+    border: 1px solid rgba(93, 138, 60, 0.2);
     border-radius: 100px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--accent-light);
+    color: var(--green-light);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 16px;
@@ -466,13 +469,13 @@ a {
 }
 
 .feature-card--highlight {
-    background: linear-gradient(135deg, rgba(59, 155, 104, 0.08) 0%, var(--bg-card) 100%);
-    border-color: rgba(78, 194, 130, 0.15);
+    background: linear-gradient(135deg, rgba(232, 120, 154, 0.06) 0%, var(--bg-card) 100%);
+    border-color: rgba(232, 120, 154, 0.15);
 }
 
 .feature-card--highlight:hover {
-    border-color: rgba(78, 194, 130, 0.3);
-    box-shadow: 0 12px 40px rgba(78, 194, 130, 0.08);
+    border-color: rgba(232, 120, 154, 0.3);
+    box-shadow: 0 12px 40px rgba(232, 120, 154, 0.08);
 }
 
 .feature-icon {
@@ -541,18 +544,18 @@ a {
 }
 
 .download-card--active {
-    border-color: rgba(78, 194, 130, 0.3);
-    background: linear-gradient(180deg, rgba(59, 155, 104, 0.06) 0%, var(--bg-card) 100%);
+    border-color: rgba(232, 120, 154, 0.3);
+    background: linear-gradient(180deg, rgba(232, 120, 154, 0.06) 0%, var(--bg-card) 100%);
 }
 
 .download-card--web {
-    border-color: rgba(78, 194, 130, 0.2);
-    background: linear-gradient(180deg, rgba(59, 155, 104, 0.08) 0%, var(--bg-card) 100%);
+    border-color: rgba(93, 138, 60, 0.25);
+    background: linear-gradient(180deg, rgba(93, 138, 60, 0.08) 0%, var(--bg-card) 100%);
 }
 
 .download-card--web:hover {
-    border-color: rgba(78, 194, 130, 0.4);
-    box-shadow: 0 12px 40px rgba(78, 194, 130, 0.1);
+    border-color: rgba(93, 138, 60, 0.4);
+    box-shadow: 0 12px 40px rgba(93, 138, 60, 0.1);
 }
 
 .download-icon {
@@ -595,8 +598,8 @@ a {
 }
 
 .download-badge--live {
-    background: var(--accent-glow);
-    color: var(--accent-light);
+    background: var(--green-glow);
+    color: var(--green-light);
 }
 
 /* ═══════ FOOTER ═══════ */
