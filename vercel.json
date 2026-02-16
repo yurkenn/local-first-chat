@@ -2,7 +2,6 @@
     "installCommand": "npm install --legacy-peer-deps",
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
-    "framework": "vite",
     "headers": [
         {
             "source": "/((?!assets/).*)",
@@ -31,21 +30,18 @@
             ]
         }
     ],
-    "routes": [
+    "rewrites": [
         {
-            "handle": "filesystem"
+            "source": "/app/(.*)",
+            "destination": "/index.html"
         },
         {
-            "src": "^/$",
-            "dest": "/landing.html"
+            "source": "/app",
+            "destination": "/index.html"
         },
         {
-            "src": "^/app(.*)",
-            "dest": "/index.html"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/index.html"
+            "source": "/",
+            "destination": "/landing.html"
         }
     ]
 }
