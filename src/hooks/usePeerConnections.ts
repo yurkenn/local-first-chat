@@ -62,6 +62,7 @@ export function usePeerConnections(
                             peerId: vpAny.peerId,
                             peerName: vpAny.peerName || "Unknown",
                             isMuted: vpAny.isMuted ?? false,
+                            isDeafened: vpAny.isDeafened ?? false,
                             isSpeaking: existingAnalyser ? existingAnalyser.isSpeaking() : false,
                         });
                     }

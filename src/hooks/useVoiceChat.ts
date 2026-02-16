@@ -449,15 +449,39 @@ export function useVoiceChat(channel: any, userName: string, userId: string, aud
         };
     }, [isConnected]);
 
-    // Handle Deafen state (mute all incoming remote streams)
+    // Handle Deafen state (mute remote streams + sync to CoValue for peers)
     useEffect(() => {
         if (!audioSettings) return;
+        const deafened = audioSettings.isDeafened;
+
+        // 1. Mute/unmute all incoming remote streams
         remoteStreams.forEach((stream) => {
             stream.getAudioTracks().forEach((track) => {
-                track.enabled = !audioSettings.isDeafened;
+                track.enabled = !deafened;
             });
         });
-    }, [remoteStreams, audioSettings?.isDeafened]);
+
+        // 2. Disable local mic tracks when deafened
+        if (localStreamRef.current) {
+            localStreamRef.current.getAudioTracks().forEach((track) => {
+                track.enabled = deafened ? false : !isMuted;
+            });
+        }
+
+        if (deafened) {
+            setIsSpeaking(false);
+        }
+
+        // 3. Sync deafen + mute state to CoValue so peers see correct icon
+        if (myPeerCoValueRef.current) {
+            try {
+                coSet(myPeerCoValueRef.current, "isDeafened", deafened);
+                coSet(myPeerCoValueRef.current, "isMuted", deafened ? true : isMuted);
+            } catch (err) {
+                console.warn("[useVoiceChat] Failed to update deafen state in Jazz:", err);
+            }
+        }
+    }, [remoteStreams, audioSettings?.isDeafened, isMuted]);
 
     /**
      * Live Audio Settings Update

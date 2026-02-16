@@ -3,5 +3,6 @@ export interface PeerInfo {
     peerId: string;
     peerName: string;
     isMuted: boolean;
+    isDeafened: boolean;
     isSpeaking: boolean;
 }

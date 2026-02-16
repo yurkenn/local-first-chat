@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import {
     Hash, Volume2, Plus, Settings, LogOut, ChevronDown,
-    Mic, MicOff, PhoneOff, UserPlus, SlidersHorizontal, Loader2, Headphones,
+    Mic, MicOff, PhoneOff, UserPlus, SlidersHorizontal, Loader2, Headphones, HeadphoneOff,
     Trash2, Copy
 } from "lucide-react";
 import {
@@ -486,6 +486,7 @@ function VoiceChannelItem({
                     peerId: "me",
                     peerName: userName || "You",
                     isMuted: voice.isMuted || isDeafened,
+                    isDeafened: isDeafened,
                     isSpeaking: voice.isSpeaking && !voice.isMuted && !isDeafened,
                     isSelf: true
                 },
@@ -495,6 +496,7 @@ function VoiceChannelItem({
                     peerId: p.peerId,
                     peerName: p.peerName,
                     isMuted: p.isMuted,
+                    isDeafened: p.isDeafened ?? false,
                     isSpeaking: p.isSpeaking,
                     isSelf: false
                 }))
@@ -513,6 +515,7 @@ function VoiceChannelItem({
                     peerId: p.peerId,
                     peerName: p.peerName,
                     isMuted: p.isMuted,
+                    isDeafened: p.isDeafened ?? false,
                     isSpeaking: false, // Unknown for remote channels
                     isSelf: false
                 }));
@@ -594,7 +597,11 @@ function VoiceChannelItem({
                                             </span>
                                             {/* Icons for status */}
                                             <div className="flex items-center gap-1">
-                                                {p.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
+                                                {p.isDeafened ? (
+                                                    <HeadphoneOff className="h-3 w-3 text-[hsl(var(--destructive))]" />
+                                                ) : p.isMuted ? (
+                                                    <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />
+                                                ) : null}
                                                 {isLocallyMuted && <Volume2 className="h-3 w-3 text-[hsl(var(--destructive))]" />}
                                             </div>
                                         </div>

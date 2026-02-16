@@ -62,6 +62,8 @@ export const VoicePeer = co.map({
   peerName: z.string(),
   /** Whether the peer's microphone is muted */
   isMuted: z.boolean(),
+  /** Whether the peer is deafened (mic + speakers muted) */
+  isDeafened: z.optional(z.boolean()),
   /** User ID of the peer (for identification and cleanup) */
   userId: z.string(),
 });
