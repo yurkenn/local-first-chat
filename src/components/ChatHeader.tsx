@@ -148,7 +148,7 @@ export const ChatHeader = memo(function ChatHeader({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div className="flex items-center justify-center h-6 w-6">
-                            <Shield className="h-4 w-4 text-[#23a559]" />
+                            <Shield className="h-4 w-4 text-[#5D8A3C]" />
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>End-to-End Encrypted via Jazz</TooltipContent>

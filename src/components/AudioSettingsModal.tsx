@@ -163,7 +163,7 @@ function VoiceVideoSettings({ audio }: { audio: AudioSettings }) {
                             "px-5 py-2 rounded text-sm font-medium transition-all min-w-[120px] h-[38px] flex items-center justify-center",
                             audio.isTesting
                                 ? "bg-[#da373c] hover:bg-[#a12829] text-white"
-                                : "bg-[#5865f2] hover:bg-[#4752c4] text-white"
+                                : "bg-[#E8789A] hover:bg-[#C4566F] text-white"
                         )}
                     >
                         {audio.isTesting ? "Stop Testing" : "Let's Check"}
@@ -175,7 +175,7 @@ function VoiceVideoSettings({ audio }: { audio: AudioSettings }) {
                                 className={cn(
                                     "flex-1 rounded-[1px] transition-all duration-75",
                                     audio.isTesting && (audio.micLevel / 100) * 50 > i
-                                        ? i > 40 ? "bg-[#fee75c]" : i > 35 ? "bg-[#57f287]" : "bg-[#23a559]"
+                                        ? i > 40 ? "bg-[#fee75c]" : i > 35 ? "bg-[#7DB356]" : "bg-[#5D8A3C]"
                                         : "bg-[#4e5058]"
                                 )}
                             />
@@ -226,19 +226,19 @@ function MyAccountSettings({ profileName }: { profileName: string }) {
             {/* Profile card */}
             <div className="rounded-lg overflow-hidden mb-6">
                 {/* Banner */}
-                <div className="h-[100px] bg-gradient-to-r from-[#5865f2] to-[#eb459e]" />
+                <div className="h-[100px] bg-gradient-to-r from-[#E8789A] to-[#D4A843]" />
 
                 {/* Profile row */}
                 <div className="bg-[#2b2d31] px-4 pb-4">
                     <div className="flex items-end gap-4 -mt-9">
-                        <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-[#5865f2] to-[#eb459e] border-[6px] border-[#2b2d31] flex items-center justify-center text-2xl font-bold text-white shrink-0">
+                        <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-[#E8789A] to-[#D4A843] border-[6px] border-[#2b2d31] flex items-center justify-center text-2xl font-bold text-white shrink-0">
                             {firstLetter}
                         </div>
                         <div className="flex-1 pt-5 pb-1">
                             <p className="text-xl font-semibold text-white">{profileName}</p>
                             <p className="text-sm text-[#b5bac1]">#{profileName.toLowerCase()}</p>
                         </div>
-                        <button className="px-4 py-1.5 mb-1 rounded text-sm font-medium bg-[#5865f2]/40 text-white/60 cursor-not-allowed" disabled title="Coming soon">
+                        <button className="px-4 py-1.5 mb-1 rounded text-sm font-medium bg-[#E8789A]/40 text-white/60 cursor-not-allowed" disabled title="Coming soon">
                             Edit User Profile
                         </button>
                     </div>
@@ -253,8 +253,8 @@ function MyAccountSettings({ profileName }: { profileName: string }) {
 
                 <div className="mt-4 pt-4 border-t border-[#3f4147]/50">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#5865f2]/10 flex items-center justify-center">
-                            <Key className="h-5 w-5 text-[#5865f2]" />
+                        <div className="w-10 h-10 rounded-lg bg-[#E8789A]/10 flex items-center justify-center">
+                            <Key className="h-5 w-5 text-[#E8789A]" />
                         </div>
                         <div className="flex-1">
                             <p className="text-[15px] text-[#dbdee1] font-medium">End-to-End Encrypted</p>
@@ -300,19 +300,19 @@ function AppearanceSettings({ theme, onThemeChange }: { theme?: Theme; onThemeCh
                     label="Dark"
                     active={theme === "dark"}
                     onClick={() => onThemeChange?.("dark")}
-                    colors={{ bg: "#313338", sidebar: "#2b2d31", text: "#dbdee1", accent: "#5865f2" }}
+                    colors={{ bg: "#313338", sidebar: "#2b2d31", text: "#dbdee1", accent: "#E8789A" }}
                 />
                 <ThemeCard
                     label="Light"
                     active={theme === "light"}
                     onClick={() => onThemeChange?.("light")}
-                    colors={{ bg: "#ffffff", sidebar: "#f2f3f5", text: "#313338", accent: "#5865f2" }}
+                    colors={{ bg: "#ffffff", sidebar: "#f2f3f5", text: "#313338", accent: "#E8789A" }}
                 />
                 <ThemeCard
                     label="AMOLED"
                     active={theme === "amoled"}
                     onClick={() => onThemeChange?.("amoled")}
-                    colors={{ bg: "#000000", sidebar: "#0a0a0a", text: "#dcddde", accent: "#5865f2" }}
+                    colors={{ bg: "#000000", sidebar: "#0a0a0a", text: "#dcddde", accent: "#E8789A" }}
                 />
             </div>
 
@@ -340,7 +340,7 @@ function ThemeCard({ label, active, onClick, colors }: { label: string; active?:
             className={cn(
                 "p-3 rounded-lg border-2 cursor-pointer transition-all text-left group",
                 active
-                    ? "border-[#5865f2] bg-[#5865f2]/10"
+                    ? "border-[#E8789A] bg-[#E8789A]/10"
                     : "border-[#3f4147] bg-[#2b2d31] hover:border-[#4e5058]"
             )}
         >
@@ -364,9 +364,9 @@ function ThemeCard({ label, active, onClick, colors }: { label: string; active?:
             <div className="flex items-center gap-2">
                 <div className={cn(
                     "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                    active ? "border-[#5865f2]" : "border-[#72767d]"
+                    active ? "border-[#E8789A]" : "border-[#72767d]"
                 )}>
-                    {active && <div className="w-2.5 h-2.5 rounded-full bg-[#5865f2]" />}
+                    {active && <div className="w-2.5 h-2.5 rounded-full bg-[#E8789A]" />}
                 </div>
                 <span className={cn("text-[14px] font-medium", active ? "text-white" : "text-[#b5bac1]")}>{label}</span>
             </div>
@@ -480,7 +480,7 @@ function SliderRow({ label, value, max, onChange, icon }: { label: string; value
                     value={value}
                     onChange={(e) => onChange(Number(e.target.value))}
                     className="w-full h-[6px] bg-[#4e5058] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125"
-                    style={{ background: `linear-gradient(to right, #5865f2 ${pct}%, #4e5058 ${pct}%)` }}
+                    style={{ background: `linear-gradient(to right, #E8789A ${pct}%, #4e5058 ${pct}%)` }}
                 />
             </div>
         </div>
@@ -527,8 +527,8 @@ function ToggleSwitch({ checked, onChange, disabled }: { checked: boolean; onCha
             onClick={disabled ? undefined : onChange}
             disabled={disabled}
             className={cn(
-                "relative w-[42px] min-w-[42px] h-[24px] rounded-full transition-colors duration-200 outline-none focus:ring-2 focus:ring-[#5865f2]/50",
-                checked ? "bg-[#23a559]" : "bg-[#80848e]",
+                "relative w-[42px] min-w-[42px] h-[24px] rounded-full transition-colors duration-200 outline-none focus:ring-2 focus:ring-[#E8789A]/50",
+                checked ? "bg-[#5D8A3C]" : "bg-[#80848e]",
                 disabled && "cursor-not-allowed"
             )}
         >
@@ -544,15 +544,15 @@ function RadioCard({ label, active, disabled }: { label: string; active?: boolea
     return (
         <div className={cn(
             "flex items-center gap-3 p-3.5 rounded-lg border transition-all",
-            active ? "border-[#5865f2] bg-[#5865f2]/5 cursor-default"
+            active ? "border-[#E8789A] bg-[#E8789A]/5 cursor-default"
                 : disabled ? "border-[#3f4147] opacity-50 cursor-not-allowed"
                     : "border-[#3f4147] hover:border-[#4e5058] cursor-pointer"
         )}>
             <div className={cn(
                 "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                active ? "border-[#5865f2]" : "border-[#72767d]"
+                active ? "border-[#E8789A]" : "border-[#72767d]"
             )}>
-                {active && <div className="w-2.5 h-2.5 rounded-full bg-[#5865f2]" />}
+                {active && <div className="w-2.5 h-2.5 rounded-full bg-[#E8789A]" />}
             </div>
             <span className={cn("text-[15px] font-medium", active ? "text-white" : disabled ? "text-[#72767d]" : "text-[#b5bac1]")}>{label}</span>
         </div>

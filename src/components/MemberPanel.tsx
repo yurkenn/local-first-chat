@@ -201,7 +201,7 @@ function MemberRow({
                 {(name || "?").charAt(0).toUpperCase()}
                 <div className={cn(
                     "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-[3px] border-[#2b2d31]",
-                    isCurrentUser ? "bg-[#23a559]" : "bg-[#a3a6aa]"
+                    isCurrentUser ? "bg-[#5D8A3C]" : "bg-[#a3a6aa]"
                 )} />
             </div>
             <div className="flex-1 min-w-0">

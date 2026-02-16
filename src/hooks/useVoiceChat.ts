@@ -200,6 +200,11 @@ export function useVoiceChat(channel: any, userName: string, userId: string, aud
 
         try {
             console.log("[useVoiceChat] join() starting — requesting mic...", selectedInputId);
+            if (!navigator.mediaDevices) {
+                console.warn("[useVoiceChat] navigator.mediaDevices not available");
+                isJoiningRef.current = false;
+                return;
+            }
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     deviceId: selectedInputId && selectedInputId !== "default"
@@ -472,6 +477,10 @@ export function useVoiceChat(channel: any, userName: string, userId: string, aud
             });
 
             try {
+                if (!navigator.mediaDevices) {
+                    console.warn("[useVoiceChat] navigator.mediaDevices not available for stream update");
+                    return;
+                }
                 let newStream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         deviceId: selectedInputId && selectedInputId !== "default"

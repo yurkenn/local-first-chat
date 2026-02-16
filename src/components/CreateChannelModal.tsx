@@ -64,7 +64,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                                 <div className={cn(
                                     "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
                                     type === "text"
-                                        ? "border-[#5865f2] bg-[#5865f2]"
+                                        ? "border-[#E8789A] bg-[#E8789A]"
                                         : "border-[#b5bac1] group-hover:border-[#dbdee1]"
                                 )}>
                                     {type === "text" && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
@@ -90,7 +90,7 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                                 <div className={cn(
                                     "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
                                     type === "voice"
-                                        ? "border-[#5865f2] bg-[#5865f2]"
+                                        ? "border-[#E8789A] bg-[#E8789A]"
                                         : "border-[#b5bac1] group-hover:border-[#dbdee1]"
                                 )}>
                                     {type === "voice" && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
@@ -153,8 +153,8 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
                         className={cn(
                             "px-7 py-2.5 rounded-[3px] text-sm font-medium transition-all",
                             !name.trim()
-                                ? "bg-[#5865f2] opacity-50 cursor-not-allowed text-white"
-                                : "bg-[#5865f2] hover:bg-[#4752c4] text-white"
+                                ? "bg-[#E8789A] opacity-50 cursor-not-allowed text-white"
+                                : "bg-[#E8789A] hover:bg-[#C4566F] text-white"
                         )}
                         onClick={handleSubmit}
                         disabled={!name.trim()}

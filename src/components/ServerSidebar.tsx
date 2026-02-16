@@ -33,7 +33,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                 className="flex flex-col items-center gap-1.5 py-3 overflow-hidden bg-[hsl(var(--sidebar))] border-r border-[rgba(255,255,255,0.06)]"
                 aria-label="Servers"
             >
-                {/* Home / DM icon */}
+                {/* Home / Lotus Icon — always visible at the top like Discord */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div className="relative flex items-center group">
@@ -44,22 +44,22 @@ export const ServerSidebar = memo(function ServerSidebar({
                             )} />
                             <div
                                 className={cn(
-                                    "w-[48px] h-[48px] rounded-2xl flex items-center justify-center text-lg cursor-pointer transition-all duration-200",
+                                    "w-[48px] h-[48px] rounded-2xl flex items-center justify-center cursor-pointer transition-all duration-200 overflow-hidden",
                                     !activeServerId
-                                        ? "rounded-xl bg-[hsl(var(--primary))] text-white shadow-[var(--shadow-md)]"
-                                        : "bg-[#313338] text-[#dbdee1] hover:rounded-xl hover:bg-[hsl(var(--primary))] hover:text-white"
+                                        ? "rounded-xl shadow-[var(--shadow-md)] ring-2 ring-[hsl(var(--primary))]"
+                                        : "bg-[#313338] hover:rounded-xl hover:ring-2 hover:ring-[hsl(var(--primary)/0.5)]"
                                 )}
                                 onClick={() => onSelectServer("")}
                                 onKeyDown={(e) => handleButtonKeyDown(e, () => onSelectServer(""))}
                                 role="button"
                                 tabIndex={0}
-                                aria-label="Direct Messages"
+                                aria-label="Home"
                             >
-                                💬
+                                <img src="/lotus-logo.png" alt="Lotus" className="w-full h-full object-cover" />
                             </div>
                         </div>
                     </TooltipTrigger>
-                    <TooltipContent side="right">Direct Messages</TooltipContent>
+                    <TooltipContent side="right">Home</TooltipContent>
                 </Tooltip>
 
                 <Separator className="w-8 bg-[#35363c] h-[2px] mx-auto rounded-full" />
@@ -107,7 +107,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                         <div className="relative flex items-center group">
                             <div className="absolute -left-[4px] w-[8px] h-2 rounded-r-full bg-white transition-all duration-200 origin-left scale-0 group-hover:scale-100" />
                             <button
-                                className="w-[48px] h-[48px] rounded-2xl flex items-center justify-center text-[#23a559] bg-[#313338] hover:rounded-xl hover:bg-[#23a559] hover:text-white transition-all duration-200 cursor-pointer"
+                                className="w-[48px] h-[48px] rounded-2xl flex items-center justify-center text-[var(--organic-green)] bg-[#313338] hover:rounded-xl hover:bg-[var(--organic-green)] hover:text-white transition-all duration-200 cursor-pointer"
                                 onClick={onCreateServer}
                                 aria-label="Create a server"
                             >
@@ -124,7 +124,7 @@ export const ServerSidebar = memo(function ServerSidebar({
                         <div className="relative flex items-center group">
                             <div className="absolute -left-[4px] w-[8px] h-2 rounded-r-full bg-white transition-all duration-200 origin-left scale-0 group-hover:scale-100" />
                             <button
-                                className="w-[48px] h-[48px] rounded-2xl flex items-center justify-center text-[#23a559] bg-[#313338] hover:rounded-xl hover:bg-[#23a559] hover:text-white transition-all duration-200 cursor-pointer"
+                                className="w-[48px] h-[48px] rounded-2xl flex items-center justify-center text-[var(--organic-green)] bg-[#313338] hover:rounded-xl hover:bg-[var(--organic-green)] hover:text-white transition-all duration-200 cursor-pointer"
                                 onClick={onJoinServer}
                                 aria-label="Join a server"
                             >

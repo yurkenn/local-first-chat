@@ -181,7 +181,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     sideOffset={0}
                 >
                     <DropdownMenuItem
-                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#949dfd] hover:text-white cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#F2A7B3] hover:text-white cursor-pointer focus:bg-[#E8789A] focus:text-white"
                         onClick={onInvite}
                     >
                         <UserPlus className="h-4 w-4" />
@@ -190,7 +190,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
 
                     {onServerSettings && (
                         <DropdownMenuItem
-                            className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                            className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#E8789A] focus:text-white"
                             onClick={onServerSettings}
                         >
                             <Settings className="h-4 w-4" />
@@ -199,7 +199,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                     )}
 
                     <DropdownMenuItem
-                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                        className="flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#E8789A] focus:text-white"
                         onClick={onCreateChannel}
                     >
                         <Plus className="h-4 w-4" />
@@ -423,7 +423,7 @@ function TextChannelItem({
                 </ContextMenuItem>
 
                 <ContextMenuItem
-                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#5865f2] focus:text-white"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm text-[13px] text-[#b5bac1] cursor-pointer focus:bg-[#E8789A] focus:text-white"
                     onClick={() => {
                         navigator.clipboard.writeText(channel.$jazz.id);
                         import("sonner").then(({ toast }) => toast.success("Channel ID copied"));
@@ -539,13 +539,13 @@ function VoiceChannelItem({
                     title="Click to join voice"
                 >
                     {isJoiningThis ? (
-                        <Loader2 className="h-5 w-5 shrink-0 text-[#23a559] animate-spin" />
+                        <Loader2 className="h-5 w-5 shrink-0 text-[#5D8A3C] animate-spin" />
                     ) : (
-                        <Volume2 className={cn("h-5 w-5 shrink-0", isConnected ? "text-[#23a559]" : "opacity-60")} />
+                        <Volume2 className={cn("h-5 w-5 shrink-0", isConnected ? "text-[#5D8A3C]" : "opacity-60")} />
                     )}
                     <span className="truncate flex-1 text-left">{channel.name}</span>
                     {isJoiningThis ? (
-                        <span className="text-[10px] text-[#23a559]">Joining…</span>
+                        <span className="text-[10px] text-[#5D8A3C]">Joining…</span>
                     ) : null}
                 </button>
             </div>
@@ -736,7 +736,7 @@ function VoiceStatusBar({
                                             "w-[3px] rounded-sm transition-all duration-300",
                                             isJoining
                                                 ? "bg-[#949ba4] animate-pulse"
-                                                : "bg-[#23a559]"
+                                                : "bg-[#5D8A3C]"
                                         )}
                                         style={{ height: `${bar * 3}px` }}
                                     />
@@ -748,7 +748,7 @@ function VoiceStatusBar({
                     <div className="flex flex-col min-w-0">
                         <div className={cn(
                             "text-[13px] font-bold leading-tight transition-colors duration-200",
-                            isJoining ? "text-[#949ba4]" : "text-[#23a559]"
+                            isJoining ? "text-[#949ba4]" : "text-[#5D8A3C]"
                         )}>
                             {isJoining ? "Connecting..." : "Voice Connected"}
                         </div>
@@ -805,7 +805,7 @@ function VoiceStatusBar({
 type UserStatus = 'online' | 'idle' | 'dnd' | 'invisible';
 
 const STATUS_CONFIG: Record<UserStatus, { color: string; label: string; emoji: string }> = {
-    online: { color: 'bg-[#23a559]', label: 'Online', emoji: '🟢' },
+    online: { color: 'bg-[#5D8A3C]', label: 'Online', emoji: '🟢' },
     idle: { color: 'bg-[#f0b232]', label: 'Idle', emoji: '🌙' },
     dnd: { color: 'bg-[#f23f42]', label: 'Do Not Disturb', emoji: '⛔' },
     invisible: { color: 'bg-[#80848e]', label: 'Invisible', emoji: '👻' },
@@ -860,7 +860,7 @@ function UserPanel({
                                 key={key}
                                 className={cn(
                                     "flex items-center gap-2 px-2 py-2 rounded-sm text-[13px] cursor-pointer",
-                                    status === key ? "text-white bg-[#5865f2]/20" : "text-[#b5bac1] focus:bg-[#5865f2] focus:text-white"
+                                    status === key ? "text-white bg-[#E8789A]/20" : "text-[#b5bac1] focus:bg-[#E8789A] focus:text-white"
                                 )}
                                 onClick={() => setStatus(key)}
                             >

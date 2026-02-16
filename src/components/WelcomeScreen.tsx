@@ -62,7 +62,7 @@ export const WelcomeScreen = memo(function WelcomeScreen({
                 />
                 <ActionCard
                     icon={<Image className="h-6 w-6" />}
-                    iconBg="bg-[#23a559]"
+                    iconBg="bg-[#5D8A3C]"
                     title="Personalise your server with an icon"
                     onClick={onPersonalise}
                 />
@@ -74,8 +74,9 @@ export const WelcomeScreen = memo(function WelcomeScreen({
                 />
                 <ActionCard
                     icon={<Download className="h-6 w-6" />}
-                    iconBg="bg-[#5865f2]"
-                    title="Download the App (Coming Soon!)"
+                    iconBg="bg-[#E8789A]"
+                    title="Download the Desktop App"
+                    onClick={() => window.open("https://github.com/yurkenn/local-first-chat/releases/latest", "_blank")}
                 />
             </div>
         </div>

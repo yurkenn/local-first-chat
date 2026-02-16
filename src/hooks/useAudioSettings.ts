@@ -130,6 +130,10 @@ export function useAudioSettings(): AudioSettings {
     // Enumerate audio devices
     const refreshDevices = useCallback(async () => {
         try {
+            if (!navigator.mediaDevices) {
+                console.warn('[AudioSettings] navigator.mediaDevices not available');
+                return;
+            }
             // Must request permission first to get labels
             await navigator.mediaDevices.getUserMedia({ audio: true }).then((s) => {
                 s.getTracks().forEach((t) => t.stop());
@@ -175,6 +179,7 @@ export function useAudioSettings(): AudioSettings {
         refreshDevices();
 
         // Listen for device changes (plugging in headset, etc.)
+        if (!navigator.mediaDevices) return;
         const handler = () => refreshDevices();
         navigator.mediaDevices.addEventListener("devicechange", handler);
         return () => navigator.mediaDevices.removeEventListener("devicechange", handler);
@@ -183,6 +188,10 @@ export function useAudioSettings(): AudioSettings {
     // Mic test — capture local audio, play it back, and show level meter
     const startMicTest = useCallback(async () => {
         try {
+            if (!navigator.mediaDevices) {
+                console.warn('[AudioSettings] navigator.mediaDevices not available for mic test');
+                return;
+            }
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     deviceId: selectedInputId !== "default" ? { exact: selectedInputId } : undefined,

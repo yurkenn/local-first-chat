@@ -22,9 +22,9 @@
     --animate-breathe: breathe 4s ease-in-out infinite;
 }
 
-/* ─── CSS Variables (Discord Dark) ─────────────────────────────────────────── */
+/* ─── CSS Variables (Lotus Dark) ──────────────────────────────────────────── */
 :root {
-    /* ── Core Colors (Discord System Dark) ── */
+    /* ── Core Colors (Lotus Dark) ── */
     --background: 220 7% 20%;
     /* #313338 — Chat Area */
     --foreground: 210 9% 87%;
@@ -38,9 +38,9 @@
     /* #1e1f22 — Floating Surface */
     --popover-foreground: 210 9% 87%;
 
-    --primary: 235 86% 65%;
-    /* #5865f2 — Discord Blurple */
-    --primary-foreground: 210 9% 87%;
+    --primary: 345 78% 65%;
+    /* #E8789A — Lotus Pink */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 228 6% 18%;
     /* #2b2d31 — Channel Sidebar */
@@ -51,33 +51,33 @@
     --muted-foreground: 214 7% 62%;
     /* #949ba4 — Subdued Text */
 
-    --accent: 235 86% 65%;
-    /* #5865f2 — Blurple */
+    --accent: 42 65% 55%;
+    /* #D4A843 — Golden Amber */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 359 67% 54%;
-    /* #da373c — Discord Red */
+    /* #da373c — Red */
     --destructive-foreground: 0 0% 100%;
 
     --border: 225 6% 13%;
     /* #1e1f22 — subtle divider */
     --input: 225 6% 13%;
-    --ring: 235 86% 65%;
-    /* matches blurple */
+    --ring: 345 78% 65%;
+    /* matches Lotus Pink */
 
     /* ── Sidebar ── */
     --sidebar: 228 6% 18%;
     /* #2b2d31 */
     --sidebar-foreground: 210 9% 87%;
-    --sidebar-primary: 235 86% 65%;
+    --sidebar-primary: 345 78% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 7% 24%;
     /* #34373c */
     --sidebar-accent-foreground: 210 9% 87%;
     --sidebar-border: 225 6% 13%;
-    --sidebar-ring: 235 86% 65%;
+    --sidebar-ring: 345 78% 65%;
 
-    /* ── Additional Discord Surfaces ── */
+    /* ── Additional Surfaces ── */
     --discord-server-sidebar: #1e1f22;
     --discord-channel-sidebar: #2b2d31;
     --discord-chat-bg: #313338;
@@ -85,16 +85,16 @@
     --discord-active: #3f4147;
     --discord-message-hover: #2e3035;
 
-    /* ── Radius (Discord Style) ── */
+    /* ── Radius ── */
     --radius: 0.25rem;
 
-    /* ── Semantic Colors (Discord Palette) ── */
-    --organic-sage: #23a55a;
-    /* Discord Green */
-    --organic-sage-muted: #1e8a4a;
-    --organic-orange: #f0b232;
-    /* Discord Idle */
-    --organic-green: #23a55a;
+    /* ── Semantic Colors (Lotus Palette) ── */
+    --organic-sage: #5D8A3C;
+    /* Lotus Leaf Green */
+    --organic-sage-muted: #4A7030;
+    --organic-orange: #D4A843;
+    /* Golden Amber */
+    --organic-green: #5D8A3C;
     --organic-red: #da373c;
 
 
@@ -124,7 +124,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 8%;
 
-    --primary: 152 45% 42%;
+    --primary: 345 68% 52%;
+    /* Deeper Lotus Pink for contrast on light bg */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 95%;
@@ -133,7 +134,8 @@
     --muted: 0 0% 95%;
     --muted-foreground: 0 0% 48%;
 
-    --accent: 30 100% 50%;
+    --accent: 42 75% 48%;
+    /* Darker Golden Amber for light bg */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 100% 55%;
@@ -141,21 +143,21 @@
 
     --border: 0 0% 90%;
     --input: 0 0% 92%;
-    --ring: 152 45% 42%;
+    --ring: 345 68% 52%;
 
     --sidebar: 0 0% 97%;
     --sidebar-foreground: 0 0% 8%;
-    --sidebar-primary: 152 45% 42%;
+    --sidebar-primary: 345 68% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 94%;
     --sidebar-accent-foreground: 0 0% 30%;
     --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 152 45% 42%;
+    --sidebar-ring: 345 68% 52%;
 
-    --organic-sage: #3B9B68;
-    --organic-sage-muted: #2D7A52;
-    --organic-orange: #FF9500;
-    --organic-green: #34C759;
+    --organic-sage: #5D8A3C;
+    --organic-sage-muted: #4A7030;
+    --organic-orange: #C49535;
+    --organic-green: #5D8A3C;
     --organic-red: #FF3B30;
 
 
@@ -180,7 +182,8 @@
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 93%;
 
-    --primary: 152 45% 42%;
+    --primary: 345 78% 65%;
+    /* Lotus Pink */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 8%;
@@ -189,7 +192,8 @@
     --muted: 0 0% 8%;
     --muted-foreground: 0 0% 42%;
 
-    --accent: 30 100% 50%;
+    --accent: 42 65% 55%;
+    /* Golden Amber */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 100% 62%;
@@ -197,21 +201,21 @@
 
     --border: 0 0% 10%;
     --input: 0 0% 10%;
-    --ring: 152 45% 42%;
+    --ring: 345 78% 65%;
 
     --sidebar: 0 0% 2%;
     --sidebar-foreground: 0 0% 93%;
-    --sidebar-primary: 152 45% 42%;
+    --sidebar-primary: 345 78% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 7%;
     --sidebar-accent-foreground: 0 0% 78%;
     --sidebar-border: 0 0% 8%;
-    --sidebar-ring: 152 45% 42%;
+    --sidebar-ring: 345 78% 65%;
 
-    --organic-sage: #3B9B68;
-    --organic-sage-muted: #2D7A52;
-    --organic-orange: #FF9F0A;
-    --organic-green: #30D158;
+    --organic-sage: #5D8A3C;
+    --organic-sage-muted: #4A7030;
+    --organic-orange: #D4A843;
+    --organic-green: #5D8A3C;
     --organic-red: #FF453A;
 
 
@@ -465,7 +469,7 @@ input[type="range"].range-green::-moz-range-thumb {
         border-top: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-    /* ── Text Gradient ── */
+    /* ── Text Gradient (Lotus Pink → Golden Amber) ── */
     .text-gradient {
         background: linear-gradient(135deg, hsl(var(--primary)), var(--organic-orange));
         -webkit-background-clip: text;
@@ -496,7 +500,7 @@ input[type="range"].range-green::-moz-range-thumb {
 
     .brand-logo:hover {
         transform: scale(1.05);
-        box-shadow: 0 8px 40px rgba(59, 155, 104, 0.12);
+        box-shadow: 0 8px 40px rgba(232, 120, 154, 0.2);
     }
 
     .brand-logo--sm {
@@ -524,13 +528,13 @@ input[type="range"].range-green::-moz-range-thumb {
         background-clip: text;
     }
 
-    /* ── Status Dots (Apple-style, clean) ── */
+    /* ── Status Dots (Lotus leaf green) ── */
     .status-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         background: var(--organic-green);
-        box-shadow: 0 0 6px rgba(48, 209, 88, 0.4);
+        box-shadow: 0 0 6px rgba(93, 138, 60, 0.5);
     }
 
     .status-dot--sm {
@@ -574,12 +578,12 @@ input[type="range"].range-green::-moz-range-thumb {
         height: 8px;
         border-radius: 50%;
         background: var(--organic-green);
-        box-shadow: 0 0 6px rgba(48, 209, 88, 0.4);
+        box-shadow: 0 0 6px rgba(93, 138, 60, 0.5);
     }
 
     .neon-dot-warning {
         background: var(--organic-orange);
-        box-shadow: 0 0 6px rgba(255, 149, 0, 0.4);
+        box-shadow: 0 0 6px rgba(212, 168, 67, 0.5);
     }
 
     .neon-dot-danger {
@@ -748,11 +752,11 @@ input[type="range"].range-green::-moz-range-thumb {
 
     0%,
     100% {
-        box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.3);
+        box-shadow: 0 0 0 0 rgba(93, 138, 60, 0.3);
     }
 
     50% {
-        box-shadow: 0 0 0 4px rgba(48, 209, 88, 0);
+        box-shadow: 0 0 0 4px rgba(93, 138, 60, 0);
     }
 }
 

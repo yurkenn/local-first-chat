@@ -90,7 +90,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                                 {/* Icon Upload Section */}
                                 <div className="space-y-4">
                                     <div className="relative group">
-                                        <div className="w-24 h-24 rounded-full bg-[#5865f2] flex items-center justify-center text-4xl shadow-lg border-2 border-transparent group-hover:border-white/10 transition-all cursor-pointer overflow-hidden">
+                                        <div className="w-24 h-24 rounded-full bg-[#E8789A] flex items-center justify-center text-4xl shadow-lg border-2 border-transparent group-hover:border-white/10 transition-all cursor-pointer overflow-hidden">
                                             {emoji}
                                             <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Plus className="h-6 w-6 text-white mb-1" />
@@ -115,7 +115,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="Server name"
-                                            className="w-full bg-[#1e1f22] text-[#dbdee1] border-none rounded-[3px] py-2.5 px-3 text-base focus:outline-none focus:ring-1 focus:ring-[#5865f2] transition-shadow shadow-inner"
+                                            className="w-full bg-[#1e1f22] text-[#dbdee1] border-none rounded-[3px] py-2.5 px-3 text-base focus:outline-none focus:ring-1 focus:ring-[#E8789A] transition-shadow shadow-inner"
                                         />
                                     </div>
 
@@ -130,7 +130,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                                                 className={cn(
                                                     "w-10 h-10 rounded-[8px] flex items-center justify-center text-xl transition-all cursor-pointer",
                                                     emoji === e
-                                                        ? "bg-[#5865f2] text-white shadow-lg"
+                                                        ? "bg-[#E8789A] text-white shadow-lg"
                                                         : "bg-[#1e1f22] text-[#b5bac1] hover:bg-[#35373c] hover:text-white"
                                                 )}
                                                 onClick={() => setEmoji(e)}
@@ -170,7 +170,7 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                             )}
 
                             {saved && (
-                                <div className="mt-4 flex items-center gap-2 text-[#23a559] text-sm font-medium animate-fade-in">
+                                <div className="mt-4 flex items-center gap-2 text-[#5D8A3C] text-sm font-medium animate-fade-in">
                                     <Check className="h-4 w-4" /> Changes saved successfully!
                                 </div>
                             )}
@@ -190,8 +190,8 @@ export function ServerSettingsModal({ server, onClose, onDeleteServer }: ServerS
                                 className={cn(
                                     "px-8 py-2.5 rounded-[3px] text-sm font-medium transition-all",
                                     (!name.trim() || (name === server?.name && emoji === server?.iconEmoji))
-                                        ? "bg-[#23a559] opacity-50 cursor-not-allowed text-white"
-                                        : "bg-[#23a559] hover:bg-[#1a7a42] text-white"
+                                        ? "bg-[#5D8A3C] opacity-50 cursor-not-allowed text-white"
+                                        : "bg-[#5D8A3C] hover:bg-[#4A7030] text-white"
                                 )}
                             >
                                 Save Changes
