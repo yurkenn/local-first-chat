@@ -24,8 +24,8 @@
     "security": {
       "csp": {
         "default-src": "'self'",
-        "connect-src": "ipc: http://ipc.localhost wss://cloud.jazz.tools wss://*.jazz.tools",
-        "script-src": "'self'",
+        "connect-src": "ipc: http://ipc.localhost https://cloud.jazz.tools https://*.jazz.tools wss://cloud.jazz.tools wss://*.jazz.tools https://fonts.googleapis.com https://fonts.gstatic.com",
+        "script-src": "'self' 'wasm-unsafe-eval'",
         "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src": "'self' https://fonts.gstatic.com",
         "img-src": "'self' asset: http://asset.localhost blob: data:",
