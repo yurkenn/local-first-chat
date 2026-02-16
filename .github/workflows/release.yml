@@ -1,57 +1,60 @@
 name: Release
 
 on:
-    push:
-        tags:
-            - "v*"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
-    build:
-        strategy:
-            fail-fast: false
-            matrix:
-                include:
-                    - platform: macos-latest
-                      target: aarch64-apple-darwin
-                    - platform: macos-latest
-                      target: x86_64-apple-darwin
-                    - platform: windows-latest
-                      target: x86_64-pc-windows-msvc
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
 
-        runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.platform }}
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20
-                  cache: npm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
 
-            - name: Install Rust stable
-              uses: dtolnay/rust-toolchain@stable
-              with:
-                  targets: ${{ matrix.target }}
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-            - name: Install dependencies
-              run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Build Tauri app
-              uses: tauri-apps/tauri-action@v0
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  tagName: ${{ github.ref_name }}
-                  releaseName: "Lotus ${{ github.ref_name }}"
-                  releaseBody: |
-                      ## 🪷 Lotus ${{ github.ref_name }}
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Lotus ${{ github.ref_name }}"
+          releaseBody: |
+            ## 🪷 Lotus ${{ github.ref_name }}
 
-                      ### Downloads
-                      - **macOS (Apple Silicon):** `Lotus_*_aarch64.dmg`
-                      - **macOS (Intel):** `Lotus_*_x64.dmg`
-                      - **Windows:** `Lotus_*_x64-setup.exe`
-                      - **Web:** [Open in Browser](https://local-first-chat.vercel.app/app)
-                  releaseDraft: false
-                  prerelease: false
-                  args: --target ${{ matrix.target }}
+            ### Downloads
+            - **macOS (Apple Silicon):** `Lotus_*_aarch64.dmg`
+            - **macOS (Intel):** `Lotus_*_x64.dmg`
+            - **Windows:** `Lotus_*_x64-setup.exe`
+            - **Web:** [Open in Browser](https://local-first-chat.vercel.app/app)
+          releaseDraft: false
+          prerelease: false
+          args: --target ${{ matrix.target }}
