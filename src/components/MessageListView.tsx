@@ -294,7 +294,7 @@ export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageLis
                                         <div className="flex-1 h-px bg-[#3f4147]" />
                                     </div>
                                 )}
-                                <div className={cn("flex gap-4", isGrouped && !showDateSep && "pl-[52px]")}
+                                <div className={cn("flex gap-4", isGrouped && !showDateSep && "pl-[56px]")}
                                 >
                                     {/* Hover timestamp for grouped messages */}
                                     {isGrouped && !showDateSep && (
