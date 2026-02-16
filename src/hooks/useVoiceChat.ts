@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useRnnoise } from './useRnnoise';
 import { VoicePeer, VoicePeerList, VoiceState } from "@/schema";
 import { getOwnerGroup, coSet, coPush, coSplice } from "@/lib/jazz-helpers";
 import { useAudioAnalysis } from "./useAudioAnalysis";
@@ -98,6 +99,13 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
     const [peers, setPeers] = useState<PeerInfo[]>([]);
     const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
 
+    // Destructure audio settings for easier access and dependency tracking
+    const selectedInputId = audioSettings?.selectedInputId;
+    const noiseSuppression = audioSettings?.noiseSuppression;
+    const echoCancellation = audioSettings?.echoCancellation;
+    const autoGainControl = audioSettings?.autoGainControl;
+    const aiNoiseCancellation = audioSettings?.aiNoiseCancellation;
+
     // Refs for stable references across renders
     const localStreamRef = useRef<MediaStream | null>(null);
     const myPeerIdRef = useRef<string>(crypto.randomUUID());
@@ -132,6 +140,7 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
     // Composed hooks
     const audioAnalysis = useAudioAnalysis();
     const peerConnections = usePeerConnections(audioAnalysis, addRemoteStream, removeRemoteStream);
+    const { processStream, isLoaded: isRnnoiseLoaded, cleanup: cleanupRnnoise } = useRnnoise();
 
     /**
      * Remove stale VoicePeer entries for a peerId from the channel's voice state.
@@ -161,24 +170,34 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
         isJoiningRef.current = true;
 
         try {
-            console.log("[useVoiceChat] join() starting — requesting mic...", audioSettings?.selectedInputId);
+            console.log("[useVoiceChat] join() starting — requesting mic...", selectedInputId);
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
-                    deviceId: audioSettings?.selectedInputId && audioSettings.selectedInputId !== "default"
-                        ? { exact: audioSettings.selectedInputId }
+                    deviceId: selectedInputId && selectedInputId !== "default"
+                        ? { exact: selectedInputId }
                         : undefined,
-                    echoCancellation: audioSettings?.echoCancellation ?? true,
-                    noiseSuppression: audioSettings?.noiseSuppression ?? true,
+                    // If AI Noise Cancellation is ON, disable native Noise Suppression to avoid double processing
+                    // However, Echo Cancellation should usually remain ON unless AI handles it (RNNoise is mostly NS)
+                    echoCancellation: echoCancellation ?? true,
+                    noiseSuppression: aiNoiseCancellation ? false : (noiseSuppression ?? true),
                     // Enable AGC if any processing is on, otherwise it might be too quiet
-                    autoGainControl: (audioSettings?.echoCancellation || audioSettings?.noiseSuppression) ?? true,
+                    autoGainControl: autoGainControl ?? true,
                 },
                 video: false,
             });
-            localStreamRef.current = stream;
-            console.log("[useVoiceChat] Got local stream, tracks:", stream.getAudioTracks().length);
+
+            // Apply AI Noise Cancellation if enabled and loaded
+            let processedStream = stream;
+            if (aiNoiseCancellation && isRnnoiseLoaded) {
+                console.log("[useVoiceChat] Applying AI Noise Cancellation...");
+                processedStream = await processStream(stream);
+            }
+
+            localStreamRef.current = processedStream;
+            console.log("[useVoiceChat] Got local stream, tracks:", processedStream.getAudioTracks().length);
 
             // Set up local audio analyser
-            audioAnalysis.setupLocalAnalyser(stream);
+            audioAnalysis.setupLocalAnalyser(processedStream);
 
             // Ensure voice state exists on channel
             const peersList = ensureVoiceState(currentChannel);
@@ -187,7 +206,7 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
 
             if (!peersList) {
                 console.warn("[useVoiceChat] Voice state peers still not available — giving up");
-                stream.getTracks().forEach((track) => track.stop());
+                processedStream.getTracks().forEach((track) => track.stop());
                 localStreamRef.current = null;
                 isJoiningRef.current = false;
                 return;
@@ -225,7 +244,7 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
         } finally {
             isJoiningRef.current = false;
         }
-    }, [userName, audioAnalysis, isConnected, audioSettings?.selectedInputId]);
+    }, [userName, audioAnalysis, isConnected, selectedInputId, autoGainControl, aiNoiseCancellation, isRnnoiseLoaded, processStream, echoCancellation, noiseSuppression]);
 
     /**
      * Start polling for peers and establishing WebRTC connections.
@@ -398,24 +417,33 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
 
         const handleAudioChange = async () => {
             console.log("[useVoiceChat] Audio settings changed, updating stream...", {
-                deviceId: audioSettings.selectedInputId,
-                echo: audioSettings.echoCancellation,
-                noise: audioSettings.noiseSuppression
+                deviceId: selectedInputId,
+                echo: echoCancellation,
+                noise: noiseSuppression,
+                agc: autoGainControl,
+                aiNoise: aiNoiseCancellation
             });
 
             try {
-                const newStream = await navigator.mediaDevices.getUserMedia({
+                let newStream = await navigator.mediaDevices.getUserMedia({
                     audio: {
-                        deviceId: audioSettings.selectedInputId && audioSettings.selectedInputId !== "default"
-                            ? { exact: audioSettings.selectedInputId }
+                        deviceId: selectedInputId && selectedInputId !== "default"
+                            ? { exact: selectedInputId }
                             : undefined,
-                        echoCancellation: audioSettings.echoCancellation ?? true,
-                        noiseSuppression: audioSettings.noiseSuppression ?? true,
+                        echoCancellation: echoCancellation ?? true,
+                        noiseSuppression: aiNoiseCancellation ? false : (noiseSuppression ?? true),
                         // Enable AGC if any processing is on, otherwise it might be too quiet
-                        autoGainControl: (audioSettings.echoCancellation || audioSettings.noiseSuppression),
+                        autoGainControl: autoGainControl ?? true,
                     },
                     video: false,
                 });
+
+                // Apply AI Noise Cancellation if enabled and loaded
+                if (aiNoiseCancellation && isRnnoiseLoaded) {
+                    newStream = await processStream(newStream);
+                } else {
+                    cleanupRnnoise();
+                }
 
                 const oldStream = localStreamRef.current;
 
@@ -450,9 +478,15 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
         // eslint-disable-next-line react-hooks/exhaustive-deps
         audioSettings?.selectedInputId,
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        audioSettings?.echoCancellation,
+        echoCancellation,
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        audioSettings?.noiseSuppression
+        noiseSuppression,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        autoGainControl,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        aiNoiseCancellation,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        isRnnoiseLoaded
     ]);
 
     return {

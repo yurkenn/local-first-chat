@@ -45,6 +45,10 @@ export interface AudioSettings {
     noiseSuppression: boolean;
     /** Enable echo cancellation */
     echoCancellation: boolean;
+    /** Enable auto gain control */
+    autoGainControl: boolean;
+    /** Enable AI-based noise cancellation (RNNoise) */
+    aiNoiseCancellation: boolean;
 
     // Actions
     setSelectedInputId: (id: string) => void;
@@ -55,6 +59,8 @@ export interface AudioSettings {
     toggleDeafen: () => void;
     setNoiseSuppression: (v: boolean) => void;
     setEchoCancellation: (v: boolean) => void;
+    setAutoGainControl: (v: boolean) => void;
+    setAiNoiseCancellation: (v: boolean) => void;
     startMicTest: () => void;
     stopMicTest: () => void;
     refreshDevices: () => void;
@@ -70,6 +76,8 @@ interface PersistedSettings {
     sensitivity: number;
     noiseSuppression: boolean;
     echoCancellation: boolean;
+    autoGainControl: boolean;
+    aiNoiseCancellation: boolean;
 }
 
 function loadPersistedSettings(): Partial<PersistedSettings> {
@@ -101,6 +109,8 @@ export function useAudioSettings(): AudioSettings {
     const [sensitivity, setSensitivity] = useState(persisted.current.sensitivity ?? 40);
     const [noiseSuppression, setNoiseSuppression] = useState(persisted.current.noiseSuppression ?? true);
     const [echoCancellation, setEchoCancellation] = useState(persisted.current.echoCancellation ?? true);
+    const [autoGainControl, setAutoGainControl] = useState(persisted.current.autoGainControl ?? true);
+    const [aiNoiseCancellation, setAiNoiseCancellation] = useState(persisted.current.aiNoiseCancellation ?? false);
     const [isDeafened, setIsDeafened] = useState(false);
     const [isTesting, setIsTesting] = useState(false);
     const [micLevel, setMicLevel] = useState(0);
@@ -114,8 +124,8 @@ export function useAudioSettings(): AudioSettings {
 
     // Persist settings on change
     useEffect(() => {
-        persistSettings({ selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity, noiseSuppression, echoCancellation });
-    }, [selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity, noiseSuppression, echoCancellation]);
+        persistSettings({ selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity, noiseSuppression, echoCancellation, autoGainControl, aiNoiseCancellation });
+    }, [selectedInputId, selectedOutputId, inputVolume, outputVolume, sensitivity, noiseSuppression, echoCancellation, autoGainControl, aiNoiseCancellation]);
 
     // Enumerate audio devices
     const refreshDevices = useCallback(async () => {
@@ -178,7 +188,7 @@ export function useAudioSettings(): AudioSettings {
                     deviceId: selectedInputId !== "default" ? { exact: selectedInputId } : undefined,
                     echoCancellation: echoCancellation,
                     noiseSuppression: noiseSuppression,
-                    autoGainControl: false,
+                    autoGainControl: autoGainControl,
                 },
             });
             testStreamRef.current = stream;
@@ -222,7 +232,7 @@ export function useAudioSettings(): AudioSettings {
         } catch (err) {
             handleError(err, { context: "useAudioSettings" });
         }
-    }, [selectedInputId, inputVolume, echoCancellation, noiseSuppression]);
+    }, [selectedInputId, inputVolume, echoCancellation, noiseSuppression, autoGainControl]);
 
     const stopMicTest = useCallback(() => {
         cancelAnimationFrame(testAnimFrameRef.current);
@@ -260,6 +270,8 @@ export function useAudioSettings(): AudioSettings {
         sensitivity,
         noiseSuppression,
         echoCancellation,
+        autoGainControl,
+        aiNoiseCancellation,
         isDeafened,
         isTesting,
         micLevel,
@@ -271,6 +283,8 @@ export function useAudioSettings(): AudioSettings {
         setSensitivity,
         setNoiseSuppression,
         setEchoCancellation,
+        setAutoGainControl,
+        setAiNoiseCancellation,
         toggleDeafen,
         startMicTest,
         stopMicTest,
@@ -285,6 +299,8 @@ export function useAudioSettings(): AudioSettings {
         sensitivity,
         noiseSuppression,
         echoCancellation,
+        autoGainControl,
+        aiNoiseCancellation,
         isDeafened,
         isTesting,
         micLevel,

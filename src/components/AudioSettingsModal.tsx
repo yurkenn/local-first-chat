@@ -98,6 +98,20 @@ export function AudioSettingsModal({ onClose, audio }: AudioSettingsModalProps) 
                             <SectionLabel icon={<Activity className="h-3.5 w-3.5" />} label="Advanced" />
 
                             <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="text-xs text-primary-color flex items-center gap-1.5">
+                                        AI Noise Cancellation
+                                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-indigo-500 to-purple-500 text-white">BETA</span>
+                                    </div>
+                                    <div className="text-[10px] text-muted-color">Removes background noise (keyboard, fans)</div>
+                                </div>
+                                <PremiumSwitch
+                                    checked={audio.aiNoiseCancellation}
+                                    onChange={() => audio.setAiNoiseCancellation(!audio.aiNoiseCancellation)}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between opacity-80">
                                 <span className="text-xs text-primary-color">Noise Suppression</span>
                                 <PremiumSwitch
                                     checked={audio.noiseSuppression}
@@ -110,6 +124,17 @@ export function AudioSettingsModal({ onClose, audio }: AudioSettingsModalProps) 
                                 <PremiumSwitch
                                     checked={audio.echoCancellation}
                                     onChange={() => audio.setEchoCancellation(!audio.echoCancellation)}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="text-xs text-primary-color">Auto Gain Control</div>
+                                    <div className="text-[10px] text-muted-color">Adjusts volume automatically</div>
+                                </div>
+                                <PremiumSwitch
+                                    checked={audio.autoGainControl}
+                                    onChange={() => audio.setAutoGainControl(!audio.autoGainControl)}
                                 />
                             </div>
                         </div>
