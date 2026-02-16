@@ -169,7 +169,8 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
                         : undefined,
                     echoCancellation: audioSettings?.echoCancellation ?? true,
                     noiseSuppression: audioSettings?.noiseSuppression ?? true,
-                    autoGainControl: false, // Disabled to reduce hissing/feedback
+                    // Enable AGC if any processing is on, otherwise it might be too quiet
+                    autoGainControl: (audioSettings?.echoCancellation || audioSettings?.noiseSuppression) ?? true,
                 },
                 video: false,
             });
@@ -353,7 +354,11 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
         }
 
         if (myPeerCoValueRef.current) {
-            coSet(myPeerCoValueRef.current, "isMuted", newMuted);
+            try {
+                coSet(myPeerCoValueRef.current, "isMuted", newMuted);
+            } catch (err) {
+                console.warn("[useVoiceChat] Failed to update mute state in Jazz:", err);
+            }
         }
     }, [isMuted]);
 
@@ -406,7 +411,8 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
                             : undefined,
                         echoCancellation: audioSettings.echoCancellation ?? true,
                         noiseSuppression: audioSettings.noiseSuppression ?? true,
-                        autoGainControl: false,
+                        // Enable AGC if any processing is on, otherwise it might be too quiet
+                        autoGainControl: (audioSettings.echoCancellation || audioSettings.noiseSuppression),
                     },
                     video: false,
                 });

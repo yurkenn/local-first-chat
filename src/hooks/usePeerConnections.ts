@@ -185,21 +185,41 @@ export function usePeerConnections(
      * Replace the audio track in all active peer connections.
      * Used for hot-swapping microphone (e.g. changing device or toggling noise cancellation).
      */
+    /**
+     * Replace the audio track in all active peer connections.
+     * Used for hot-swapping microphone (e.g. changing device or toggling noise cancellation).
+     */
     const replaceStream = useCallback((oldStream: MediaStream | null, newStream: MediaStream) => {
-        if (!oldStream) return;
-        const oldTrack = oldStream.getAudioTracks()[0];
         const newTrack = newStream.getAudioTracks()[0];
-
-        if (!oldTrack || !newTrack) {
-            console.warn("[usePeerConnections] replaceStream: Missing tracks", { oldTrack, newTrack });
+        if (!newTrack) {
+            console.warn("[usePeerConnections] replaceStream: New stream has no audio track");
             return;
         }
 
         peerConnectionsRef.current.forEach((peer, peerId) => {
             try {
-                // simple-peer replaceTrack signature: (oldTrack, newTrack, stream)
-                peer.replaceTrack(oldTrack, newTrack, oldStream);
-                console.log("[usePeerConnections] Replaced track for peer", peerId.slice(0, 8));
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const p = peer as any;
+                const pc = p._pc as RTCPeerConnection;
+
+                if (pc) {
+                    const sender = pc.getSenders().find(s => s.track?.kind === 'audio');
+                    if (sender && sender.track) {
+                        console.log(`[usePeerConnections] Found active audio sender for ${peerId.slice(0, 8)}, replacing track...`);
+                        sender.replaceTrack(newTrack)
+                            .then(() => console.log(`[usePeerConnections] Successfully replaced track for ${peerId.slice(0, 8)}`))
+                            .catch(err => console.error(`[usePeerConnections] Failed native replaceTrack for ${peerId}:`, err));
+                        return; // Done for this peer
+                    }
+                }
+
+                // Fallback to simple-peer method if native check fails (or if we couldn't find sender)
+                if (oldStream) {
+                    const oldTrack = oldStream.getAudioTracks()[0];
+                    if (oldTrack) {
+                        peer.replaceTrack(oldTrack, newTrack, oldStream);
+                    }
+                }
             } catch (err) {
                 console.error("[usePeerConnections] Failed to replace track for peer", peerId, err);
             }
