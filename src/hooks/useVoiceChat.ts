@@ -51,6 +51,42 @@ function cleanupStalePeers(voiceState: any, peerId: string) {
 }
 
 /**
+ * Remove any existing peers belonging to the same User ID.
+ * This handles the "refresh page" scenario where a user comes back with a new peerId
+ * but the old peer entry is still present.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function cleanupStaleUserPeers(voiceState: any, userId: string, currentPeerId: string) {
+    if (!voiceState?.peers || !userId) return;
+    try {
+        const peersList = voiceState.peers;
+        const items = Array.from(peersList).filter(Boolean);
+        let removedCount = 0;
+
+        for (let i = items.length - 1; i >= 0; i--) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const p = items[i] as any;
+
+            // Remove if SAME userId but DIFFERENT peerId
+            if (p?.userId === userId && p?.peerId !== currentPeerId) {
+                try {
+                    console.log("[useVoiceChat] Removing stale peer for user:", userId, "peerId:", p.peerId);
+                    coSplice(peersList, i, 1);
+                    removedCount++;
+                } catch (err) {
+                    console.warn("[useVoiceChat] Failed to remove stale user peer at index", i, err);
+                }
+            }
+        }
+        if (removedCount > 0) {
+            console.log(`[useVoiceChat] Cleaned up ${removedCount} stale peer(s) for user ${userId}`);
+        }
+    } catch (err) {
+        console.warn("[useVoiceChat] Error cleaning up stale user peers:", err);
+    }
+}
+
+/**
  * Ensure the channel has a valid VoiceState and PeerList.
  * Creates them if missing.
  */
@@ -92,7 +128,7 @@ function ensureVoiceState(channel: any) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useVoiceChat(channel: any, userName: string, audioSettings?: AudioSettings) {
+export function useVoiceChat(channel: any, userName: string, userId: string, audioSettings?: AudioSettings) {
     const [isConnected, setIsConnected] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -141,13 +177,6 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
     const audioAnalysis = useAudioAnalysis();
     const peerConnections = usePeerConnections(audioAnalysis, addRemoteStream, removeRemoteStream);
     const { processStream, isLoaded: isRnnoiseLoaded, cleanup: cleanupRnnoise } = useRnnoise();
-
-    /**
-     * Remove stale VoicePeer entries for a peerId from the channel's voice state.
-     * Prevents ghost/clone entries when re-joining after an unclean leave.
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
 
     /**
      * Join the voice channel.
@@ -215,7 +244,10 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
             // Generate a fresh peerId for this join session
             myPeerIdRef.current = crypto.randomUUID();
             console.log("[useVoiceChat] My peerId:", myPeerIdRef.current);
-            cleanupStalePeers({ peers: peersList }, myPeerIdRef.current);
+
+            // Clean up ANY stale peers for this user before adding new one
+            cleanupStalePeers({ peers: peersList }, myPeerIdRef.current); // safe check for ID collision
+            cleanupStaleUserPeers({ peers: peersList }, userId, myPeerIdRef.current); // Check for ghost sessions
 
             const voicePeer = VoicePeer.create(
                 {
@@ -224,6 +256,7 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
                     signalData: "",
                     peerName: userName,
                     isMuted: false,
+                    userId: userId,
                 },
                 { owner: ownerGroup },
             );
@@ -244,7 +277,7 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
         } finally {
             isJoiningRef.current = false;
         }
-    }, [userName, audioAnalysis, isConnected, selectedInputId, autoGainControl, aiNoiseCancellation, isRnnoiseLoaded, processStream, echoCancellation, noiseSuppression]);
+    }, [userName, userId, audioAnalysis, isConnected, selectedInputId, autoGainControl, aiNoiseCancellation, isRnnoiseLoaded, processStream, echoCancellation, noiseSuppression]);
 
     /**
      * Start polling for peers and establishing WebRTC connections.
@@ -354,6 +387,20 @@ export function useVoiceChat(channel: any, userName: string, audioSettings?: Aud
         setPeers([]);
         setIsMuted(false);
     }, [audioAnalysis, peerConnections]);
+
+    /**
+     * Handle page reload / close to clean up peer entry
+     */
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (isConnected) {
+                leave();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isConnected, leave]);
 
     /**
      * Toggle microphone mute state.

@@ -3,6 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users, Wifi, Radio, Crown, Shield, Pen } from "lucide-react";
 import { getOwnerGroup } from "@/lib/jazz-helpers";
 import type { LoadedServer } from "@/lib/jazz-types";
+import { cn } from "@/lib/utils";
 
 interface MemberPanelProps {
     server: LoadedServer | null;
@@ -79,16 +80,16 @@ export const MemberPanel = memo(function MemberPanel({
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-[hsl(var(--card))] border-l border-[rgba(255,255,255,0.06)]">
-            <div className="h-[52px] flex items-center px-4 label-section border-b border-[rgba(255,255,255,0.06)]">
+            <div className="h-[48px] flex items-center px-4 font-bold text-[14px] text-white border-b border-[rgba(255,255,255,0.06)]">
                 Members — {members.length}
             </div>
 
             <ScrollArea className="flex-1">
-                <div className="p-3">
+                <div className="p-2 space-y-0.5">
                     {/* Admins section */}
                     {admins.length > 0 && (
                         <>
-                            <div className="px-1 py-1.5 label-section">
+                            <div className="px-2 py-3 text-[11px] font-bold uppercase text-[#949ba4] tracking-wide">
                                 Admin — {admins.length}
                             </div>
                             {admins.map((member) => (
@@ -105,8 +106,8 @@ export const MemberPanel = memo(function MemberPanel({
                     {/* Members section */}
                     {writers.length > 0 && (
                         <>
-                            <div className="px-1 py-1.5 label-section mt-2">
-                                Members — {writers.length}
+                            <div className="px-2 py-3 text-[11px] font-bold uppercase text-[#949ba4] tracking-wide mt-2">
+                                Online — {writers.length}
                             </div>
                             {writers.map((member) => (
                                 <MemberRow
@@ -119,10 +120,10 @@ export const MemberPanel = memo(function MemberPanel({
                         </>
                     )}
 
-                    {/* Fallback: show current user if no members loaded */}
+                    {/* Fallback */}
                     {members.length === 0 && (
                         <>
-                            <div className="px-1 py-1.5 label-section">
+                            <div className="px-2 py-3 text-[11px] font-bold uppercase text-[#949ba4] tracking-wide">
                                 Online — 1
                             </div>
                             <MemberRow
@@ -169,21 +170,21 @@ function MemberRow({
     const BadgeIcon = badge?.icon;
 
     return (
-        <div className="group flex items-center gap-2.5 px-2.5 py-2 rounded-[10px] hover:bg-[rgba(255,255,255,0.04)] transition-colors cursor-default">
-            <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-semibold text-white shrink-0 transition-shadow group-hover:shadow-[var(--shadow-md)]">
+        <div className="group flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-[#34373c]/40 transition-all duration-75 cursor-pointer">
+            <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-[13px] font-semibold text-white shrink-0">
                 {(name || "?").charAt(0).toUpperCase()}
-                {isCurrentUser && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[var(--organic-green)] border-2 border-[hsl(var(--card))]" />
-                )}
+                <div className={cn(
+                    "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-[3px] border-[#2b2d31]",
+                    isCurrentUser ? "bg-[#23a559]" : "bg-[#80848e]"
+                )} />
             </div>
             <div className="flex-1 min-w-0">
-                <span className="text-[13px] truncate block">
+                <span className="text-[15px] text-[#949ba4] group-hover:text-[#dbdee1] truncate block">
                     {name}
-                    {isCurrentUser && <span className="text-[11px] text-muted-color ml-1">(you)</span>}
                 </span>
             </div>
             {BadgeIcon && (
-                <BadgeIcon className={`h-3 w-3 ${badge.color} opacity-60`} />
+                <BadgeIcon className={`h-4 w-4 ${badge.color} opacity-90 group-hover:opacity-100`} />
             )}
         </div>
     );

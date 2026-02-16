@@ -9,6 +9,7 @@ import { EmojiPicker, parseReactions, toggleReaction } from "@/components/EmojiP
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Smile, Pencil, Trash2, Reply, ChevronDown } from "lucide-react";
+import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { isValidImageDataUrl } from "@/lib/validators";
 import { coSet } from "@/lib/jazz-helpers";
 import type { LoadedChannel } from "@/lib/jazz-types";
@@ -40,12 +41,13 @@ function shouldGroup(prev: any, curr: any): boolean {
 
 interface MessageListViewProps {
     channel: LoadedChannel;
+    serverName: string;
     userName: string;
     /** Called when user clicks Reply on a message */
     onReply?: (msg: { senderName: string; content: string }) => void;
 }
 
-export const MessageListView = memo(function MessageListView({ channel, userName, onReply }: MessageListViewProps) {
+export const MessageListView = memo(function MessageListView({ channel, serverName, userName, onReply }: MessageListViewProps) {
     const messages = channel.messages;
     const parentRef = useRef<HTMLDivElement>(null);
     const msgArray = useMemo(
@@ -145,22 +147,8 @@ export const MessageListView = memo(function MessageListView({ channel, userName
 
     if (msgArray.length === 0) {
         return (
-            <div className="flex-1 flex items-center justify-center overflow-y-auto" ref={parentRef} role="status" aria-label="No messages in channel">
-                <div className="flex flex-col items-center gap-4 animate-fade-in max-w-[280px]">
-                    <div className="w-16 h-16 rounded-[18px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] flex items-center justify-center shadow-[var(--shadow-sm)]">
-                        <span className="text-3xl animate-[pulse_3s_ease-in-out_infinite]">🪷</span>
-                    </div>
-                    <div className="text-center space-y-1.5">
-                        <h3 className="text-[17px] font-semibold text-[hsl(var(--foreground))] tracking-[-0.01em]">Start the conversation</h3>
-                        <p className="text-[13px] text-[hsl(var(--muted-foreground))] leading-relaxed">
-                            Be the first to send a message in this channel. Your messages are end-to-end encrypted.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[rgba(48,209,88,0.08)] text-[11px] font-medium text-[var(--organic-green)]">
-                        <div className="w-[5px] h-[5px] rounded-full bg-[var(--organic-green)]" />
-                        End-to-End Encrypted
-                    </div>
-                </div>
+            <div className="flex-1 overflow-y-auto" ref={parentRef}>
+                <WelcomeScreen serverName={serverName} />
             </div>
         );
     }
@@ -217,7 +205,11 @@ export const MessageListView = memo(function MessageListView({ channel, userName
                             }}
                             ref={virtualizer.measureElement}
                             data-index={virtualItem.index}
-                            className={cn("group relative px-3 py-0.5 rounded-xl hover:bg-[rgba(255,255,255,0.03)] transition-colors", isDeleted && "opacity-50")}
+                            className={cn(
+                                "group relative px-4 py-0.5 transition-colors duration-75",
+                                "hover:bg-[#2e3338]/40", // Discord message hover
+                                isDeleted && "opacity-50"
+                            )}
                         >
                             <div className={cn("flex gap-3", isGrouped && "pl-[44px]")}>
                                 {/* Avatar — only for ungrouped (first message in group) */}

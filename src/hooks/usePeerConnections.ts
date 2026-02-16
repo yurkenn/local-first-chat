@@ -284,6 +284,7 @@ function createPeerConnection(
                 const signalEntry = VoicePeer.create(
                     {
                         peerId: myPeerId,
+                        userId: myPeerId,
                         targetPeerId: remotePeerId,
                         signalData: JSON.stringify(data),
                         peerName: "",

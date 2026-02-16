@@ -22,93 +22,95 @@
     --animate-breathe: breathe 4s ease-in-out infinite;
 }
 
-/* ─── CSS Variables (Apple Dark) ─────────────────────────────────────────── */
+/* ─── CSS Variables (Discord Dark) ─────────────────────────────────────────── */
 :root {
-    /* ── Core Colors (Apple System Dark) ── */
-    --background: 0 0% 6%;
-    /* #0F0F0F — near-black */
-    --foreground: 0 0% 93%;
-    /* #EDEDED — soft white */
+    /* ── Core Colors (Discord System Dark) ── */
+    --background: 220 7% 20%;
+    /* #313338 — Chat Area */
+    --foreground: 210 9% 87%;
+    /* #dbdee1 — Primary Text */
 
-    --card: 0 0% 10%;
-    /* #1A1A1A — elevated surface */
-    --card-foreground: 0 0% 93%;
+    --card: 223 7% 20%;
+    /* #313338 — Elevated Surface */
+    --card-foreground: 210 9% 87%;
 
-    --popover: 0 0% 12%;
-    /* #1F1F1F — floating surface */
-    --popover-foreground: 0 0% 93%;
+    --popover: 225 6% 13%;
+    /* #1e1f22 — Floating Surface */
+    --popover-foreground: 210 9% 87%;
 
-    --primary: 152 45% 42%;
-    /* #3B9B68 — Sage Green */
-    --primary-foreground: 0 0% 100%;
+    --primary: 235 86% 65%;
+    /* #5865f2 — Discord Blurple */
+    --primary-foreground: 210 9% 87%;
 
-    --secondary: 0 0% 12%;
-    /* #1E1E1E — muted surface */
-    --secondary-foreground: 0 0% 78%;
+    --secondary: 228 6% 18%;
+    /* #2b2d31 — Channel Sidebar */
+    --secondary-foreground: 214 7% 62%;
+    /* #949ba4 — Muted Text */
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 48%;
-    /* #7A7A7A — subdued text */
+    --muted: 228 6% 18%;
+    --muted-foreground: 214 7% 62%;
+    /* #949ba4 — Subdued Text */
 
-    --accent: 30 100% 50%;
-    /* #FF9500 — Apple Orange */
+    --accent: 235 86% 65%;
+    /* #5865f2 — Blurple */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 100% 62%;
-    /* #FF453A — Apple System Red */
+    --destructive: 359 67% 54%;
+    /* #da373c — Discord Red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%;
-    /* #262626 — subtle divider */
-    --input: 0 0% 14%;
-    --ring: 152 45% 42%;
-    /* matches primary (green) */
+    --border: 225 6% 13%;
+    /* #1e1f22 — subtle divider */
+    --input: 225 6% 13%;
+    --ring: 235 86% 65%;
+    /* matches blurple */
 
     /* ── Sidebar ── */
-    --sidebar: 0 0% 7%;
-    --sidebar-foreground: 0 0% 93%;
-    --sidebar-primary: 152 45% 42%;
+    --sidebar: 228 6% 18%;
+    /* #2b2d31 */
+    --sidebar-foreground: 210 9% 87%;
+    --sidebar-primary: 235 86% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 13%;
-    --sidebar-accent-foreground: 0 0% 78%;
-    --sidebar-border: 0 0% 13%;
-    --sidebar-ring: 152 45% 42%;
+    --sidebar-accent: 220 7% 24%;
+    /* #34373c */
+    --sidebar-accent-foreground: 210 9% 87%;
+    --sidebar-border: 225 6% 13%;
+    --sidebar-ring: 235 86% 65%;
 
-    /* ── Chart ── */
-    --chart-1: 152 45% 42%;
-    --chart-2: 30 100% 50%;
-    --chart-3: 142 71% 45%;
-    --chart-4: 328 73% 55%;
-    --chart-5: 45 93% 47%;
+    /* ── Additional Discord Surfaces ── */
+    --discord-server-sidebar: #1e1f22;
+    --discord-channel-sidebar: #2b2d31;
+    --discord-chat-bg: #313338;
+    --discord-hover: #34373c;
+    --discord-active: #3f4147;
+    --discord-message-hover: #2e3035;
 
-    /* ── Radius (Apple generously rounded) ── */
-    --radius: 0.75rem;
+    /* ── Radius (Discord Style) ── */
+    --radius: 0.25rem;
 
-    /* ── Semantic Colors (Apple System Palette) ── */
-    --organic-sage: #3B9B68;
-    --organic-sage-muted: #2D7A52;
-    --organic-orange: #FF9500;
-    --organic-green: #30D158;
-    --organic-red: #FF453A;
+    /* ── Semantic Colors (Discord Palette) ── */
+    --organic-sage: #23a55a;
+    /* Discord Green */
+    --organic-sage-muted: #1e8a4a;
+    --organic-orange: #f0b232;
+    /* Discord Idle */
+    --organic-green: #23a55a;
+    --organic-red: #da373c;
 
 
-    /* ── Shadow Depth System (Apple-calibrated) ── */
-    --shadow-sm: 0 0.5px 1px rgba(0, 0, 0, 0.12),
-        0 0 0.5px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2),
-        0 0.5px 1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.28),
-        0 2px 6px rgba(0, 0, 0, 0.12);
-    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.15);
+    /* ── Shadow Depth System (Discord-like) ── */
+    --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 4px rgba(0, 0, 0, 0.16);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.24);
+    --shadow-xl: 0 16px 24px rgba(0, 0, 0, 0.32);
 
-    /* ── Motion (Apple spring curves) ── */
-    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* ── Motion (Discord-like) ── */
+    --ease-spring: cubic-bezier(0.2, 0, 0.4, 1);
     --ease-smooth: cubic-bezier(0.2, 0, 0, 1);
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --transition-fast: 150ms cubic-bezier(0.2, 0, 0, 1);
-    --transition-normal: 250ms cubic-bezier(0.2, 0, 0, 1);
-    --transition-slow: 350ms cubic-bezier(0.2, 0, 0, 1);
+    --transition-fast: 100ms ease;
+    --transition-normal: 200ms ease;
+    --transition-slow: 300ms ease;
 }
 
 /* ─── Light Theme ────────────────────────────────────────────────────────── */
@@ -973,4 +975,17 @@ input[type="range"].range-green::-moz-range-thumb {
 
 .skip-nav:focus {
     top: 0;
+}
+
+/* ── Settings Page Animation ── */
+@keyframes settingsFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }

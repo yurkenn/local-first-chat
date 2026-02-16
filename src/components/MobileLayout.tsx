@@ -125,6 +125,7 @@ export const MobileLayout = memo(function MobileLayout({
                     <MobileChatPage
                         channel={activeChannel}
                         userName={userName}
+                        activeServer={activeServer}
                         onBack={onNavigateToChannels}
                         onToggleMemberPanel={onToggleMemberPanel}
                         memberPanelOpen={memberPanelOpen}
@@ -344,6 +345,7 @@ const MobileChannelPage = memo(function MobileChannelPage({
 /** Chat page — full-screen chat with back button */
 const MobileChatPage = memo(function MobileChatPage({
     channel,
+    activeServer,
     userName,
     onBack,
     onToggleMemberPanel,
@@ -355,6 +357,7 @@ const MobileChatPage = memo(function MobileChatPage({
 }: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     channel: any;
+    activeServer: any;
     userName: string;
     onBack: () => void;
     onToggleMemberPanel: () => void;
@@ -403,6 +406,7 @@ const MobileChatPage = memo(function MobileChatPage({
             <div className="flex-1 min-h-0">
                 <ChatArea
                     channel={channel}
+                    serverName={activeServer?.name || "Server"}
                     userName={userName}
                     sidebarOpen={sidebarOpen}
                     channelSidebarOpen={channelSidebarOpen}

@@ -4,12 +4,9 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Hash, Volume2 } from "lucide-react";
+import { Hash, Volume2, Lock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeName } from "@/lib/validators";
 
@@ -30,76 +27,134 @@ export function CreateChannelModal({ onClose, onCreate }: CreateChannelModalProp
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="dialog-base sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="text-lg font-heading">Create Channel</DialogTitle>
-                    <DialogDescription>
-                        Choose a type and name for your new channel.
-                    </DialogDescription>
+            <DialogContent className="bg-[#313338] border-none text-[#dbdee1] sm:max-w-[460px] p-0 overflow-hidden shadow-2xl">
+                <DialogHeader className="p-4 pt-5 relative">
+                    <DialogTitle className="text-xl font-bold text-white text-left">Create Channel</DialogTitle>
+                    <button
+                        onClick={onClose}
+                        className="absolute right-4 top-5 text-[#b5bac1] hover:text-[#dbdee1] transition-colors"
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
                 </DialogHeader>
 
-                <div className="space-y-4 py-2">
+                <div className="px-4 pb-4 space-y-6">
                     {/* Channel type selector */}
                     <div className="space-y-2">
-                        <label className="label-section">
+                        <label className="text-[12px] font-bold uppercase tracking-wider text-[#b5bac1]">
                             Channel Type
                         </label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-2">
+                            {/* Text Channel Option */}
                             <button
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-3 rounded-lg border transition-all cursor-pointer",
+                                    "w-full flex items-center gap-3 p-3 rounded-[4px] transition-colors group text-left",
                                     type === "text"
-                                        ? "bg-[hsl(var(--primary))/0.1] border-[hsl(var(--primary))] text-[hsl(var(--primary))]"
-                                        : "input-base text-muted-color hover:border-[hsl(var(--muted-foreground))]"
+                                        ? "bg-[#3f4147]"
+                                        : "bg-[#2b2d31] hover:bg-[#35373c]"
                                 )}
                                 onClick={() => setType("text")}
                                 type="button"
                             >
-                                <Hash className="h-5 w-5" />
-                                <span className="text-sm font-medium">Text</span>
+                                <Hash className="h-6 w-6 text-[#80848e] shrink-0" />
+                                <div className="flex-1">
+                                    <div className="text-base font-medium text-white">Text</div>
+                                    <div className="text-[12px] text-[#b5bac1]">Send messages, images, GIFs, emoji, opinions and puns</div>
+                                </div>
+                                <div className={cn(
+                                    "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                                    type === "text"
+                                        ? "border-[#5865f2] bg-[#5865f2]"
+                                        : "border-[#b5bac1] group-hover:border-[#dbdee1]"
+                                )}>
+                                    {type === "text" && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                                </div>
                             </button>
+
+                            {/* Voice Channel Option */}
                             <button
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-3 rounded-lg border transition-all cursor-pointer",
+                                    "w-full flex items-center gap-3 p-3 rounded-[4px] transition-colors group text-left",
                                     type === "voice"
-                                        ? "bg-[hsl(var(--primary))/0.1] border-[hsl(var(--primary))] text-[hsl(var(--primary))]"
-                                        : "input-base text-muted-color hover:border-[hsl(var(--muted-foreground))]"
+                                        ? "bg-[#3f4147]"
+                                        : "bg-[#2b2d31] hover:bg-[#35373c]"
                                 )}
                                 onClick={() => setType("voice")}
                                 type="button"
                             >
-                                <Volume2 className="h-5 w-5" />
-                                <span className="text-sm font-medium">Voice</span>
+                                <Volume2 className="h-6 w-6 text-[#80848e] shrink-0" />
+                                <div className="flex-1">
+                                    <div className="text-base font-medium text-white">Voice</div>
+                                    <div className="text-[12px] text-[#b5bac1]">Hang out together with voice, video and screen share</div>
+                                </div>
+                                <div className={cn(
+                                    "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                                    type === "voice"
+                                        ? "border-[#5865f2] bg-[#5865f2]"
+                                        : "border-[#b5bac1] group-hover:border-[#dbdee1]"
+                                )}>
+                                    {type === "voice" && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                                </div>
                             </button>
                         </div>
                     </div>
 
+                    {/* Channel Name */}
                     <div className="space-y-2">
-                        <label className="label-section">
+                        <label className="text-[12px] font-bold uppercase tracking-wider text-[#b5bac1]">
                             Channel Name
                         </label>
-                        <Input
-                            type="text"
-                            placeholder={type === "text" ? "new-channel" : "voice-chat"}
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                            autoFocus
-                            maxLength={30}
-                            className="input-base"
-                        />
+                        <div className="relative">
+                            {type === "text" && (
+                                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#80848e]" />
+                            )}
+                            <input
+                                type="text"
+                                placeholder="new-channel"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                                autoFocus
+                                maxLength={30}
+                                className={cn(
+                                    "w-full bg-[#1e1f22] text-[#dbdee1] border-none rounded-[3px] py-2 px-3 text-sm focus:outline-none placeholder-[#80848e]",
+                                    type === "text" && "pl-8"
+                                )}
+                            />
+                        </div>
                     </div>
+
+                    {/* Private Channel Toggle */}
+                    <div className="flex items-center justify-between pb-2">
+                        <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4 text-[#b5bac1]" />
+                            <span className="text-base font-medium text-white">Private Channel</span>
+                        </div>
+                    </div>
+                    <p className="text-[12px] text-[#b5bac1] -mt-5">
+                        Only selected members and roles will be able to view this channel.
+                    </p>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="ghost" onClick={onClose}>Cancel</Button>
-                    <Button
-                        className="bg-[var(--organic-sage)] hover:bg-[var(--organic-sage-muted)] text-white"
+                <DialogFooter className="bg-[#2b2d31] p-4 flex items-center justify-end gap-2">
+                    <button
+                        onClick={onClose}
+                        className="text-sm font-medium text-white hover:underline px-4 py-2 transition-all"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className={cn(
+                            "px-7 py-2.5 rounded-[3px] text-sm font-medium transition-all",
+                            !name.trim()
+                                ? "bg-[#5865f2] opacity-50 cursor-not-allowed text-white"
+                                : "bg-[#5865f2] hover:bg-[#4752c4] text-white"
+                        )}
                         onClick={handleSubmit}
                         disabled={!name.trim()}
                     >
                         Create Channel
-                    </Button>
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

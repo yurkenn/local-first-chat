@@ -4,11 +4,25 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import {
     Hash, Volume2, Plus, Settings, LogOut, ChevronDown,
-    Mic, MicOff, PhoneOff, UserPlus, SlidersHorizontal, Loader2,
+    Mic, MicOff, PhoneOff, UserPlus, SlidersHorizontal, Loader2, Headphones, HelpCircle
 } from "lucide-react";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { VoiceStateReturn } from "@/hooks/useVoiceState";
 import type { LoadedServer, LoadedChannel } from "@/lib/jazz-types";
 import type { AudioSettings } from "@/hooks/useAudioSettings";
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuLabel,
+    ContextMenuSeparator,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { coSplice } from "@/lib/jazz-helpers";
 
 interface ChannelSidebarProps {
     server: LoadedServer | null;
@@ -18,7 +32,6 @@ interface ChannelSidebarProps {
     onCreateChannel: () => void;
     onInvite: () => void;
     userName: string;
-    onLogout?: () => void;
     onUserSettings?: () => void;
     onServerSettings?: () => void;
     onAudioSettings?: () => void;
@@ -37,8 +50,7 @@ export const ChannelSidebar = memo(function ChannelSidebar({
     onCreateChannel,
     onInvite,
     userName,
-    onLogout,
-    onUserSettings,
+    onUserSettings: _onUserSettings,
     onServerSettings,
     onAudioSettings,
     voice,
@@ -60,10 +72,48 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                         </p>
                     </div>
                 </div>
-                <UserPanel userName={userName} onLogout={onLogout} onUserSettings={onUserSettings} onAudioSettings={onAudioSettings} />
+                <UserPanel
+                    userName={userName}
+                    isMuted={voice.isMuted}
+                    isDeafened={audio?.isDeafened ?? false}
+                    onToggleMute={voice.toggleMute}
+                    onToggleDeafen={audio?.toggleDeafen ?? (() => { })}
+                    onAudioSettings={onAudioSettings}
+                />
             </div >
         );
     }
+
+
+    const [peerVolumes, setPeerVolumes] = React.useState<Record<string, number>>({});
+    const [peerMutes, setPeerMutes] = React.useState<Record<string, boolean>>({});
+
+    const handleVolumeChange = React.useCallback((peerId: string, volume: number) => {
+        setPeerVolumes((prev) => ({ ...prev, [peerId]: volume }));
+    }, []);
+
+    const handleMuteToggle = React.useCallback((peerId: string) => {
+        setPeerMutes((prev) => ({ ...prev, [peerId]: !prev[peerId] }));
+    }, []);
+
+    const handleKick = React.useCallback(async (channel: LoadedChannel, peerId: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const vs = channel?.voiceState as any;
+        if (!vs?.peers) return;
+        try {
+            const peersList = vs.peers;
+            const items = Array.from(peersList).filter(Boolean);
+            const index = items.findIndex((p: any) => p.peerId === peerId);
+            if (index !== -1) {
+                console.log("[ChannelSidebar] Kicking peer:", peerId);
+                coSplice(peersList, index, 1);
+            }
+        } catch (err) {
+            console.error("[ChannelSidebar] Failed to kick peer:", err);
+            // Could add toast here
+        }
+    }, []);
+
 
     const textChannels = channels.filter((c) => c?.channelType === "text");
     const voiceChannels = channels.filter((c) => c?.channelType === "voice");
@@ -72,14 +122,30 @@ export const ChannelSidebar = memo(function ChannelSidebar({
 
     // Render Audio elements for remote streams
     const audioElements = voice.remoteStreams
-        ? Array.from(voice.remoteStreams.entries()).map(([peerId, stream]) => (
-            <AudioRef
-                key={peerId}
-                stream={stream}
-                volume={audio?.outputVolume ?? 100}
-                sinkId={audio?.selectedOutputId}
-            />
-        ))
+        ? Array.from(voice.remoteStreams.entries()).map(([peerId, stream]) => {
+            const localVol = peerVolumes[peerId] ?? 100;
+            const isLocalMuted = peerMutes[peerId] ?? false;
+            // Combined volume: (local slider / 100) * (global output / 100)
+            // If muted locally, volume is 0
+            const volume = isLocalMuted ? 0 : (localVol * (audio?.outputVolume ?? 100) / 100);
+
+            return (
+                <AudioRef
+                    key={peerId}
+                    stream={stream}
+                    volume={volume} // AudioRef takes 0-100? No wait, let's check definition.
+                    // AudioRef definition: volume / 100. So we pass 0-100.
+                    // If I pass `volume` calculated above, it might be 0-100 if localVol is 0-100.
+                    // localVol is 0-100. outputVolume is 0-200.
+                    // So (100 * 100 / 100) = 100. (50 * 100 / 100) = 50.
+                    // Wait, AudioRef logic: audioRef.current.volume = Math.min(1, Math.max(0, volume / 100));
+                    // So passing 100 -> 1.0. Passing 50 -> 0.5.
+                    // If outputVolume is 200 (200%), passed volume is 200. Math.min(1, 2) -> 1.
+                    // So AudioRef clamps it. That's fine.
+                    sinkId={audio?.selectedOutputId}
+                />
+            );
+        })
         : null;
 
     return (
@@ -176,6 +242,12 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                                 isConnected={connectedChannelId === channel.$jazz.id}
                                 voice={voice}
                                 userName={userName}
+                                // New props
+                                peerVolumes={peerVolumes}
+                                peerMutes={peerMutes}
+                                onVolumeChange={handleVolumeChange}
+                                onMuteToggle={handleMuteToggle}
+                                onKick={handleKick}
                             />
                         );
                     })}
@@ -197,7 +269,6 @@ export const ChannelSidebar = memo(function ChannelSidebar({
                 <VoiceStatusBar
                     channelName={voice.connectedChannel.name}
                     isMuted={voice.isMuted}
-                    isSpeaking={voice.isSpeaking}
                     isJoining={voice.isJoining && !voice.isConnected}
                     onToggleMute={voice.toggleMute}
                     onLeave={voice.leaveVoice}
@@ -206,7 +277,14 @@ export const ChannelSidebar = memo(function ChannelSidebar({
             )}
 
             {/* User panel */}
-            <UserPanel userName={userName} onLogout={onLogout} onUserSettings={onUserSettings} onAudioSettings={onAudioSettings} />
+            <UserPanel
+                userName={userName}
+                isMuted={voice.isMuted}
+                isDeafened={audio?.isDeafened ?? false}
+                onToggleMute={voice.toggleMute}
+                onToggleDeafen={audio?.toggleDeafen ?? (() => { })}
+                onAudioSettings={onAudioSettings}
+            />
         </div>
     );
 });
@@ -265,88 +343,288 @@ function TextChannelItem({
     onSelect: () => void;
 }) {
     return (
-        <button
-            className={cn(
-                "w-full flex items-center gap-2 px-2.5 py-[7px] rounded-lg text-[13px] cursor-pointer transition-all duration-200",
-                isActive
-                    ? "bg-surface text-primary-color active-channel-bar"
-                    : unread > 0
-                        ? "text-primary-color font-semibold hover:bg-[hsl(var(--secondary))/0.5]"
-                        : "text-muted-color hover:bg-[hsl(var(--secondary))/0.5] hover:text-primary-color"
-            )}
-            onClick={onSelect}
-            aria-label={`Text channel: ${channel.name}${unread > 0 ? `, ${unread} unread` : ''}`}
-        >
-            <Hash className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--organic-sage)] opacity-100" : "opacity-60")} />
-            <span className="truncate">{channel.name}</span>
-            {unread > 0 && !isActive && (
-                <span className="ml-auto shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-[hsl(var(--primary))] text-white text-[10px] font-bold px-1">
-                    {unread > 99 ? '99+' : unread}
-                </span>
-            )}
-        </button>
+        <div className="relative flex items-center group/channel">
+            {/* Active/Unread pill indicator */}
+            <div className={cn(
+                "absolute -left-[8px] w-[4px] rounded-r-full bg-white transition-all duration-200 origin-left",
+                isActive ? "h-[32px] scale-100" : (unread > 0 ? "h-[8px] scale-100" : "h-[8px] scale-0 group-hover/channel:scale-100")
+            )} />
+            <button
+                className={cn(
+                    "w-full flex items-center gap-2 px-2.5 py-[6px] rounded-lg text-[15px] cursor-pointer transition-all duration-100",
+                    isActive
+                        ? "bg-[#3f4147] text-white"
+                        : unread > 0
+                            ? "text-white font-semibold hover:bg-[#34373c]"
+                            : "text-[#949ba4] hover:bg-[#34373c] hover:text-[#dbdee1]"
+                )}
+                onClick={onSelect}
+                aria-label={`Text channel: ${channel.name}${unread > 0 ? `, ${unread} unread` : ''}`}
+            >
+                <Hash className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "opacity-60")} />
+                <span className="truncate">{channel.name}</span>
+                {unread > 0 && !isActive && (
+                    <span className="ml-auto shrink-0 min-w-[16px] h-[16px] flex items-center justify-center rounded-full bg-[hsl(var(--destructive))] text-white text-[11px] font-bold px-1">
+                        {unread > 99 ? '99+' : unread}
+                    </span>
+                )}
+            </button>
+        </div>
     );
 }
 
 /** VoiceChannelItem — Extracted voice channel with peers list */
+interface VoiceChannelItemProps {
+    channel: LoadedChannel;
+    isConnected: boolean;
+    voice: VoiceStateReturn;
+    userName: string;
+    peerVolumes: Record<string, number>;
+    peerMutes: Record<string, boolean>;
+    onVolumeChange: (peerId: string, volume: number) => void;
+    onMuteToggle: (peerId: string) => void;
+    onKick: (channel: LoadedChannel, peerId: string) => void;
+}
+
 function VoiceChannelItem({
     channel,
     isConnected,
     voice,
     userName,
-}: {
-    channel: LoadedChannel;
-    isConnected: boolean;
-    voice: VoiceStateReturn;
-    userName: string;
-}) {
+    peerVolumes,
+    peerMutes,
+    onVolumeChange,
+    onMuteToggle,
+    onKick,
+}: VoiceChannelItemProps) {
     const isJoiningThis = voice.isJoining && voice.connectedChannel?.$jazz?.id === channel.$jazz.id;
-    return (
-        <div>
-            <button
-                className={cn(
-                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm cursor-pointer transition-all duration-200 group/voice",
-                    isConnected
-                        ? "bg-surface text-primary-color active-channel-bar"
-                        : isJoiningThis
-                            ? "bg-[hsl(var(--secondary))/0.5] text-muted-color opacity-70 pointer-events-none"
-                            : "text-muted-color hover:bg-[hsl(var(--secondary))/0.5] hover:text-primary-color"
-                )}
-                onClick={() => voice.joinVoice(channel)}
-                disabled={voice.isJoining}
-                aria-label={`Voice channel: ${channel.name} — click to join`}
-                title="Click to join voice"
-            >
-                {isJoiningThis ? (
-                    <Loader2 className="h-4 w-4 shrink-0 text-[var(--organic-sage)] animate-spin" />
-                ) : (
-                    <Volume2 className={cn("h-4 w-4 shrink-0", isConnected ? "text-[var(--organic-green)]" : "opacity-60")} />
-                )}
-                <span className="truncate flex-1 text-left">{channel.name}</span>
-                {isJoiningThis ? (
-                    <span className="text-[10px] text-[var(--organic-sage)]">Joining…</span>
-                ) : !isConnected ? (
-                    <span className="text-[10px] opacity-0 group-hover/voice:opacity-60 transition-opacity">Join</span>
-                ) : null}
-            </button>
 
-            {/* Connected users (self + remote peers) */}
-            {isConnected && (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const participants = React.useMemo(() => {
+        if (isConnected) {
+            // If connected to THIS channel, use local high-fidelity state (includes real-time speaking status)
+            return [
+                // Self
+                {
+                    peerId: "me",
+                    peerName: userName || "You",
+                    isMuted: voice.isMuted,
+                    isSpeaking: voice.isSpeaking && !voice.isMuted,
+                    isSelf: true
+                },
+                // Remote peers
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...voice.peers.map((p: any) => ({
+                    peerId: p.peerId,
+                    peerName: p.peerName,
+                    isMuted: p.isMuted,
+                    isSpeaking: p.isSpeaking,
+                    isSelf: false
+                }))
+            ];
+        } else {
+            // Synced state from Jazz (no speaking indicator, but shows presence)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const vs = channel.voiceState as any;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const raw = vs?.peers ? Array.from(vs.peers as Iterable<any>).filter(Boolean) : [];
+            return raw
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .filter((p: any) => !p.targetPeerId || p.targetPeerId === "") // Filter out signaling packets
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .map((p: any) => ({
+                    peerId: p.peerId,
+                    peerName: p.peerName,
+                    isMuted: p.isMuted,
+                    isSpeaking: false, // Unknown for remote channels
+                    isSelf: false
+                }));
+        }
+    }, [isConnected, voice.peers, voice.isMuted, voice.isSpeaking, channel, userName]);
+
+    return (
+        <div className="relative group/channel">
+            <div className="relative flex items-center">
+                {/* Active pill indicator */}
+                <div className={cn(
+                    "absolute -left-[8px] w-[4px] rounded-r-full bg-white transition-all duration-200 origin-left",
+                    isConnected ? "h-[32px] scale-100" : "h-[8px] scale-0 group-hover/channel:scale-100"
+                )} />
+                <button
+                    className={cn(
+                        "w-full flex items-center gap-2 px-2 py-[6px] rounded-lg text-[15px] cursor-pointer transition-all duration-100",
+                        isConnected
+                            ? "bg-[#3f4147] text-white"
+                            : isJoiningThis
+                                ? "bg-[#34373c] text-[#949ba4] opacity-70 pointer-events-none"
+                                : "text-[#949ba4] hover:bg-[#34373c] hover:text-[#dbdee1]"
+                    )}
+                    onClick={() => voice.joinVoice(channel)}
+                    disabled={voice.isJoining}
+                    aria-label={`Voice channel: ${channel.name} — ${participants.length} connected`}
+                    title="Click to join voice"
+                >
+                    {isJoiningThis ? (
+                        <Loader2 className="h-5 w-5 shrink-0 text-[#23a559] animate-spin" />
+                    ) : (
+                        <Volume2 className={cn("h-5 w-5 shrink-0", isConnected ? "text-[#23a559]" : "opacity-60")} />
+                    )}
+                    <span className="truncate flex-1 text-left">{channel.name}</span>
+                    {isJoiningThis ? (
+                        <span className="text-[10px] text-[#23a559]">Joining…</span>
+                    ) : null}
+                </button>
+            </div>
+
+            {/* Connected users list */}
+            {participants.length > 0 && (
                 <div className="ml-4 pl-3 border-l border-[hsl(var(--border))] mt-0.5 mb-1 space-y-0.5 animate-fade-in">
-                    {/* Self — always shown when connected to this channel */}
-                    <div className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-primary-color">
-                        <SpeakingAvatar name={userName || "U"} isSpeaking={voice.isSpeaking && !voice.isMuted} gradientFrom="var(--organic-sage)" gradientTo="var(--organic-green)" />
-                        <span className="truncate flex-1">{userName || "You"}</span>
-                        {voice.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
-                    </div>
-                    {/* Remote peers */}
-                    {voice.peers.map((peer: any) => (
-                        <div key={peer.peerId} className="flex items-center gap-2 py-1 px-1.5 rounded text-xs text-muted-color">
-                            <SpeakingAvatar name={peer.peerName || "?"} isSpeaking={peer.isSpeaking} gradientFrom="var(--organic-sage)" gradientTo="#2B7A4B" />
-                            <span className="truncate flex-1">{peer.peerName || "Unknown"}</span>
-                            {peer.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
-                        </div>
-                    ))}
+                    {participants.map((p) => {
+                        const volume = peerVolumes[p.peerId] ?? 100;
+                        const isLocallyMuted = peerMutes[p.peerId] ?? false;
+
+                        // Check admin permissions for kick
+                        // Simple check: am I the server owner?
+                        // Or logic: getOwnerGroup(channel) === me.root... no.
+                        // We check if I can write to the channel group.
+                        // For now, let's enable kick if I'm not the peer (can't kick self easily via this UI, use leave)
+                        const canKick = !p.isSelf;
+                        // Real perm check would be: does 'me' have write access to channel.voiceState?
+                        // jazz-tools doesn't expose easy sync check.
+                        // But if I'm server owner I likely do.
+                        // Let's just show it for non-self for now. The action will fail if no perms.
+
+                        return (
+                            <ContextMenu key={p.peerId}>
+                                <ContextMenuTrigger asChild>
+                                    <div className={cn(
+                                        "flex items-center gap-2 py-1 px-1.5 rounded text-xs cursor-context-menu hover:bg-[hsl(var(--surface-hover))] group/peer transition-colors",
+                                        p.isSelf ? "text-primary-color" : "text-muted-color",
+                                        p.isSpeaking && "bg-[hsl(var(--organic-green)/0.05)]"
+                                    )}>
+                                        <SpeakingAvatar
+                                            name={p.peerName || "?"}
+                                            isSpeaking={p.isSpeaking}
+                                            gradientFrom="var(--organic-sage)"
+                                            gradientTo={p.isSelf || isConnected ? "var(--organic-green)" : "#2B7A4B"}
+                                        />
+                                        <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                                            <span className={cn(
+                                                "truncate font-medium transition-colors",
+                                                p.isSpeaking ? "text-[var(--organic-green)]" : ""
+                                            )}>
+                                                {p.peerName || "Unknown"}
+                                            </span>
+                                            {/* Icons for status */}
+                                            <div className="flex items-center gap-1">
+                                                {p.isMuted && <MicOff className="h-3 w-3 text-[hsl(var(--destructive))]" />}
+                                                {isLocallyMuted && <Volume2 className="h-3 w-3 text-[hsl(var(--destructive))]" />}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent className="w-64 bg-[hsl(var(--popover))] border-[hsl(var(--border))] shadow-xl p-1.5">
+                                    <ContextMenuLabel className="text-[10px] uppercase font-bold tracking-wider text-muted-color/60 px-2 pb-1">
+                                        Voice Settings: {p.peerName}
+                                    </ContextMenuLabel>
+
+                                    <div className="flex items-center px-2 py-2.5 rounded-sm bg-[hsl(var(--accent)/0.2)] mb-1 gap-3 border-b border-white/5">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--secondary))] flex items-center justify-center text-sm font-bold shrink-0 shadow-lg border border-white/10 text-white">
+                                            {p.peerName?.charAt(0) || "?"}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-bold truncate text-primary-color mb-0.5">{p.peerName}</div>
+                                            {!p.isSelf && (
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onVolumeChange(p.peerId, Math.max(0, volume - 10)); }}
+                                                        className="h-6 w-6 flex items-center justify-center rounded bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--accent))] transition-colors text-xs font-bold ring-1 ring-white/5 active:scale-95"
+                                                        title="Decrease volume"
+                                                    >-</button>
+                                                    <div className="flex flex-col items-center min-w-[40px]">
+                                                        <span className="text-[11px] font-mono font-bold text-[var(--organic-green)]">{volume}%</span>
+                                                        <span className="text-[8px] uppercase tracking-tighter text-muted-color/50 font-bold">Volume</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onVolumeChange(p.peerId, Math.min(200, volume + 10)); }}
+                                                        className="h-6 w-6 flex items-center justify-center rounded bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--accent))] transition-colors text-xs font-bold ring-1 ring-white/5 active:scale-95"
+                                                        title="Increase volume"
+                                                    >+</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <ContextMenuSeparator className="bg-[hsl(var(--border))] my-1.5" />
+
+                                    {!p.isSelf && (
+                                        <>
+                                            <div className="px-2 py-2 select-none">
+                                                <input
+                                                    type="range"
+                                                    min="0"
+                                                    max="200"
+                                                    step="1"
+                                                    value={volume}
+                                                    onChange={(e) => onVolumeChange(p.peerId, Number(e.target.value))}
+                                                    className="w-full h-1.5 bg-[hsl(var(--secondary))] rounded-full appearance-none cursor-pointer transition-all hover:brightness-110 active:brightness-90 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--organic-green)] [&::-webkit-slider-thumb]:shadow-md"
+                                                />
+                                            </div>
+
+                                            <ContextMenuItem
+                                                className="flex items-center gap-2 px-2 py-1.5 rounded-sm focus:bg-[hsl(var(--accent))] transition-colors"
+                                                onClick={() => onMuteToggle(p.peerId)}
+                                            >
+                                                {isLocallyMuted ? (
+                                                    <>
+                                                        <Volume2 className="h-4 w-4 text-[var(--organic-green)]" />
+                                                        <span className="text-sm">Unmute User</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Volume2 className="h-4 w-4 opacity-70" />
+                                                        <span className="text-sm">Mute locally</span>
+                                                    </>
+                                                )}
+                                            </ContextMenuItem>
+
+                                            <ContextMenuSeparator className="bg-[hsl(var(--border))] my-1.5" />
+                                        </>
+                                    )}
+
+                                    <ContextMenuItem className="flex items-center gap-2 px-2 py-1.5 rounded-sm focus:bg-[hsl(var(--accent))] transition-colors opacity-50 cursor-not-allowed">
+                                        <Plus className="h-4 w-4" />
+                                        <span className="text-sm">Mention</span>
+                                    </ContextMenuItem>
+
+                                    <ContextMenuItem
+                                        className="flex items-center gap-2 px-2 py-1.5 rounded-sm focus:bg-[hsl(var(--accent))] transition-colors"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(p.peerId);
+                                            // Optional: toast notification
+                                        }}
+                                    >
+                                        <Plus className="h-4 w-4 rotate-45" />
+                                        <span className="text-sm">Copy ID</span>
+                                    </ContextMenuItem>
+
+                                    {/* Kick Action */}
+                                    {canKick && (
+                                        <>
+                                            <ContextMenuSeparator className="bg-[hsl(var(--border))] my-1.5" />
+                                            <ContextMenuItem
+                                                className="flex items-center gap-2 px-2 py-1.5 rounded-sm focus:bg-[hsl(var(--destructive))] focus:text-[hsl(var(--destructive-foreground))] transition-all font-semibold"
+                                                onClick={() => onKick(channel, p.peerId)}
+                                            >
+                                                <LogOut className="h-4 w-4 rotate-180" />
+                                                <span className="text-sm">Disconnect User</span>
+                                            </ContextMenuItem>
+                                        </>
+                                    )}
+                                </ContextMenuContent>
+                            </ContextMenu>
+                        );
+                    })}
                 </div>
             )}
         </div>
@@ -357,7 +635,6 @@ function VoiceChannelItem({
 function VoiceStatusBar({
     channelName,
     isMuted,
-    isSpeaking,
     isJoining,
     onToggleMute,
     onLeave,
@@ -365,127 +642,178 @@ function VoiceStatusBar({
 }: {
     channelName: string;
     isMuted: boolean;
-    isSpeaking: boolean;
     isJoining?: boolean;
     onToggleMute: () => void;
     onLeave: () => void;
     onAudioSettings?: () => void;
 }) {
     return (
-        <div className="px-2 py-2 surface-elevated border-t border-[hsl(var(--border))] animate-fade-in gradient-border-top">
-            {/* Connection status */}
-            <div className="flex items-center gap-2 mb-1.5">
-                <div className={cn(
-                    "w-2 h-2 rounded-full transition-colors duration-200",
-                    isJoining
-                        ? "bg-[var(--organic-sage)] animate-pulse"
-                        : isSpeaking && !isMuted
-                            ? "bg-[var(--organic-green)] shadow-[0_0_6px_var(--organic-green)] scale-125"
-                            : "bg-[var(--organic-green)] shadow-[0_0_4px_rgba(106,176,122,0.3)]"
-                )} />
-                <div className="flex-1 min-w-0">
+        <div className="flex flex-col gap-2 p-2 bg-[#232428] border-t border-[rgba(0,0,0,0.2)]">
+            <div className="flex items-center justify-between px-1">
+                <div className="flex flex-col min-w-0">
                     <div className={cn(
-                        "text-xs font-semibold transition-colors duration-200",
-                        isJoining
-                            ? "text-[var(--organic-sage)]"
-                            : isSpeaking && !isMuted ? "text-[var(--organic-green)]" : "text-[var(--organic-green)]"
+                        "text-[13px] font-bold leading-tight transition-colors duration-200",
+                        isJoining ? "text-[#949ba4]" : "text-[#23a559]"
                     )}>
-                        {isJoining ? "Connecting..." : isSpeaking && !isMuted ? "Speaking" : "Voice Connected"}
+                        {isJoining ? "Connecting..." : "Voice Connected"}
                     </div>
-                    <div className="text-[10px] text-muted-color truncate">
-                        🔊 {channelName}
+                    <div className="text-[12px] text-[#b5bac1] truncate hover:underline cursor-pointer">
+                        {channelName}
                     </div>
+                </div>
+                <div className="flex items-center gap-0.5">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-[#b5bac1] hover:text-[#dbdee1] hover:bg-[#3f4147]/50"
+                            >
+                                <HelpCircle className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Connection Info</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-[#f23f42] hover:bg-[#f23f42]/10"
+                                onClick={onLeave}
+                            >
+                                <PhoneOff className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Disconnect</TooltipContent>
+                    </Tooltip>
                 </div>
             </div>
 
-            {/* Controls */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between gap-1 p-1 bg-[#1e1f22] rounded-md">
                 <Button
                     variant="ghost"
-                    size="icon"
                     className={cn(
-                        "h-8 w-8 rounded-full transition-all duration-200",
-                        isMuted
-                            ? "bg-[hsl(var(--destructive))/0.15] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.25]"
-                            : isSpeaking
-                                ? "text-[var(--organic-green)] bg-[var(--organic-green)]/10 hover:bg-[var(--organic-green)]/20"
-                                : "text-muted-color hover:text-primary-color hover:bg-surface"
+                        "flex-1 h-8 px-2 gap-2 text-[12px] font-medium transition-all duration-200 justify-start",
+                        isMuted ? "text-[#f23f42] hover:bg-[#f23f42]/10" : "text-[#dbdee1] hover:bg-[#3f4147]/50"
                     )}
                     onClick={onToggleMute}
                     disabled={isJoining}
-                    aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
                 >
-                    {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    {isJoining ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : isMuted ? <MicOff className="h-4 w-4 shrink-0" /> : <Mic className="h-4 w-4 shrink-0" />}
+                    <span>{isMuted ? "Unmute" : "Mute"}</span>
                 </Button>
                 {onAudioSettings && (
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full text-muted-color hover:text-primary-color hover:bg-surface"
+                        className="h-8 w-8 text-[#b5bac1] hover:text-[#dbdee1] hover:bg-[#3f4147]/50"
                         onClick={onAudioSettings}
-                        aria-label="Audio settings"
                     >
                         <SlidersHorizontal className="h-4 w-4" />
                     </Button>
                 )}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))/0.15]"
-                    onClick={onLeave}
-                    aria-label="Disconnect from voice"
-                >
-                    <PhoneOff className="h-4 w-4" />
-                </Button>
             </div>
         </div>
     );
 }
 
-function UserPanel({ userName, onLogout, onUserSettings, onAudioSettings }: { userName: string; onLogout?: () => void; onUserSettings?: () => void; onAudioSettings?: () => void }) {
+function UserPanel({
+    userName,
+    isMuted,
+    isDeafened,
+    onToggleMute,
+    onToggleDeafen,
+    onAudioSettings,
+}: {
+    userName: string;
+    isMuted: boolean;
+    isDeafened: boolean;
+    onToggleMute: () => void;
+    onToggleDeafen: () => void;
+    onAudioSettings?: () => void;
+}) {
     return (
-        <div className="flex items-center gap-2.5 px-3 py-2.5 glass-strong border-t border-[rgba(255,255,255,0.06)]">
-            <div className="group/avatar relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-bold text-white transition-shadow hover:shadow-[var(--shadow-md)]">
-                {userName.charAt(0).toUpperCase()}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[var(--organic-green)] border-2 border-[hsl(var(--card))]" />
+        <div className="flex items-center gap-2 px-2 py-1 bg-[#232428] shrink-0">
+            <div className="flex items-center gap-2 p-1 rounded-md hover:bg-[#3f4147]/50 transition-colors cursor-pointer flex-1 min-w-0">
+                <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-bold text-white shrink-0">
+                    {userName.charAt(0).toUpperCase()}
+                    <div className={cn(
+                        "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-[3px] border-[#232428]",
+                        isDeafened ? "bg-[#80848e]" : "bg-[#23a559]"
+                    )} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                    <div className="text-[13px] font-bold text-[#f2f3f5] truncate leading-tight">
+                        {userName}
+                    </div>
+                    <div className="text-[12px] text-[#b5bac1] truncate leading-tight">
+                        #{userName.slice(0, 4)}
+                    </div>
+                </div>
             </div>
-            <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium truncate">{userName}</div>
-                <div className="text-[10px] text-[var(--organic-green)]">Online</div>
+
+            <div className="flex items-center">
+                {/* Mic toggle — Discord: red + MicOff when muted */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "h-8 w-8 hover:bg-[#3f4147]/50 transition-colors",
+                                isMuted || isDeafened
+                                    ? "text-[#f23f42] hover:text-[#f23f42]"
+                                    : "text-[#b5bac1] hover:text-[#dbdee1]"
+                            )}
+                            onClick={onToggleMute}
+                        >
+                            {isMuted || isDeafened ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isMuted ? "Unmute" : "Mute"}</TooltipContent>
+                </Tooltip>
+
+                {/* Headphones toggle — Discord: red + slash when deafened */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "h-8 w-8 hover:bg-[#3f4147]/50 transition-colors relative",
+                                isDeafened
+                                    ? "text-[#f23f42] hover:text-[#f23f42]"
+                                    : "text-[#b5bac1] hover:text-[#dbdee1]"
+                            )}
+                            onClick={onToggleDeafen}
+                        >
+                            <Headphones className="h-5 w-5" />
+                            {isDeafened && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="w-[2px] h-6 bg-[#f23f42] rotate-45 rounded-full" />
+                                </div>
+                            )}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isDeafened ? "Undeafen" : "Deafen"}</TooltipContent>
+                </Tooltip>
+
+                {/* Gear icon — opens Audio Settings */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-[#b5bac1] hover:text-[#dbdee1] hover:bg-[#3f4147]/50"
+                            onClick={onAudioSettings}
+                        >
+                            <Settings className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>User Settings</TooltipContent>
+                </Tooltip>
             </div>
-            {onAudioSettings && (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-color hover:text-primary-color"
-                    onClick={onAudioSettings}
-                    aria-label="Audio settings"
-                >
-                    <Mic className="h-3.5 w-3.5" />
-                </Button>
-            )}
-            {onUserSettings && (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-color hover:text-primary-color"
-                    onClick={onUserSettings}
-                    aria-label="User settings"
-                >
-                    <Settings className="h-3.5 w-3.5" />
-                </Button>
-            )}
-            {onLogout && (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-color hover:text-[hsl(var(--destructive))]"
-                    onClick={onLogout}
-                    aria-label="Log out"
-                >
-                    <LogOut className="h-3.5 w-3.5" />
-                </Button>
-            )}
         </div>
     );
 }

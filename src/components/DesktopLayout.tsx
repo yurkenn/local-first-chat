@@ -17,6 +17,7 @@ interface DesktopLayoutProps {
     serverSidebar: ReactNode;
     channelSidebar: ReactNode;
     memberPanel: ReactNode;
+    serverName: string;
 }
 
 /**
@@ -35,6 +36,7 @@ export const DesktopLayout = memo(function DesktopLayout({
     serverSidebar,
     channelSidebar,
     memberPanel,
+    serverName,
 }: DesktopLayoutProps) {
     return (
         <div
@@ -58,6 +60,7 @@ export const DesktopLayout = memo(function DesktopLayout({
                     onToggleSidebar={onToggleSidebar}
                     onToggleChannelSidebar={onToggleChannelSidebar}
                     onToggleMemberPanel={onToggleMemberPanel}
+                    serverName={serverName}
                 />
             ) : (
                 <EmptyState

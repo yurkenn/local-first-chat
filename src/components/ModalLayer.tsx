@@ -96,6 +96,9 @@ export function ModalLayer({
                 <AudioSettingsModal
                     onClose={() => closeModal("audioSettings")}
                     audio={audio}
+                    me={me}
+                    theme={theme}
+                    onThemeChange={setTheme}
                 />
             )}
 

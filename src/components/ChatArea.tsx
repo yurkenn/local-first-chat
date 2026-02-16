@@ -10,6 +10,7 @@ interface ChatAreaProps {
     sidebarOpen: boolean;
     channelSidebarOpen: boolean;
     memberPanelOpen: boolean;
+    serverName: string;
     onToggleSidebar: () => void;
     onToggleChannelSidebar: () => void;
     onToggleMemberPanel: () => void;
@@ -28,6 +29,7 @@ export const ChatArea = memo(function ChatArea({
     sidebarOpen,
     channelSidebarOpen,
     memberPanelOpen,
+    serverName,
     onToggleSidebar,
     onToggleChannelSidebar,
     onToggleMemberPanel,
@@ -64,6 +66,7 @@ export const ChatArea = memo(function ChatArea({
             )}
             <MessageListView
                 channel={channel}
+                serverName={serverName}
                 userName={userName}
                 onReply={(msg) => setReplyTarget(msg)}
             />

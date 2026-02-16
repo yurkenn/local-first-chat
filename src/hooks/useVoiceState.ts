@@ -32,13 +32,13 @@ export interface VoiceStateReturn {
     toggleMute: () => void;
 }
 
-export function useVoiceState(userName: string, audioSettings?: AudioSettings): VoiceStateReturn {
+export function useVoiceState(userName: string, userId: string, audioSettings?: AudioSettings): VoiceStateReturn {
     const [connectedChannel, setConnectedChannel] = useState<any | null>(null);
     const [isJoining, setIsJoining] = useState(false);
     const joiningRef = useRef(false); // Ref mirror to avoid stale closures
 
     const { isConnected, isMuted, isSpeaking, peers, remoteStreams, join, leave, toggleMute } =
-        useVoiceChat(connectedChannel, userName, audioSettings);
+        useVoiceChat(connectedChannel, userName, userId, audioSettings);
 
     // Keep ref in sync
     joiningRef.current = isJoining;

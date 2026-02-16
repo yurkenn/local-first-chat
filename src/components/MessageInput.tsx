@@ -1,13 +1,20 @@
 import { useState, useCallback, useRef, KeyboardEvent, ClipboardEvent } from "react";
 import { toast } from "sonner";
 import { ChatMessage, MessageList } from "@/schema";
-import { Button } from "@/components/ui/button";
-import { Send, X, Image as ImageIcon, Reply } from "lucide-react";
+import {
+    X,
+    Reply,
+    PlusCircle,
+    Gift,
+    Sticker,
+    Smile
+} from "lucide-react";
 import { messageRateLimiter } from "@/lib/rate-limiter";
 import { getOwnerGroup, coPush, coSet } from "@/lib/jazz-helpers";
 import { MAX_MESSAGE_LENGTH, isValidImageDataUrl } from "@/lib/validators";
 import type { LoadedChannel } from "@/lib/jazz-types";
 import { handleError } from "@/lib/error-utils";
+import { cn } from "@/lib/utils";
 
 export interface ReplyTarget {
     senderName: string;
@@ -169,56 +176,61 @@ export function MessageInput({
     }, [processImageFile]);
 
     return (
-        <div className="px-4 pb-4 pt-1">
-            {/* Reply banner */}
+        <div className="px-4 pb-6 pt-0">
+            {/* Reply banner - Discord style */}
             {replyTarget && (
-                <div className="flex items-center gap-2 px-3 py-1.5 mb-1.5 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] text-xs">
-                    <Reply className="h-3 w-3 text-[var(--organic-sage)] shrink-0" />
-                    <span className="text-muted-color">
+                <div className="flex items-center gap-2 px-4 py-2 mb-[-8px] rounded-t-lg bg-[#2b2d31] border-x border-t border-[rgba(0,0,0,0.2)] text-[12px]">
+                    <Reply className="h-3 w-3 text-[#b5bac1] shrink-0" />
+                    <span className="text-[#b5bac1]">
                         Replying to{" "}
-                        <span className="font-semibold text-primary-color">
+                        <span className="font-bold text-[#dbdee1]">
                             {replyTarget.senderName}
                         </span>
                     </span>
-                    <span className="truncate text-muted-color flex-1">
+                    <span className="truncate text-[#b5bac1] flex-1">
                         {replyTarget.content.slice(0, 80)}
                     </span>
                     <button
                         onClick={onClearReply}
-                        className="text-muted-color hover:text-primary-color transition-colors shrink-0"
+                        className="text-[#dbdee1] hover:text-white transition-colors shrink-0 p-1"
                         aria-label="Cancel reply"
                     >
-                        <X className="h-3 w-3" />
+                        <PlusCircle className="h-4 w-4 rotate-45" />
                     </button>
                 </div>
             )}
 
-            {/* Image preview */}
+            {/* Image preview - Discord style */}
             {pendingImage && (
-                <div className="relative inline-block mb-1.5">
-                    <img
-                        src={pendingImage}
-                        alt="Pending attachment"
-                        className="h-20 rounded-lg border border-[hsl(var(--border))] object-cover"
-                    />
-                    <button
-                        onClick={() => setPendingImage(null)}
-                        className="absolute -top-1.5 -right-1.5 h-5 w-5 flex items-center justify-center rounded-full bg-[hsl(var(--destructive))] text-white text-xs"
-                        aria-label="Remove image"
-                    >
-                        <X className="h-3 w-3" />
-                    </button>
+                <div className="inline-block p-4 mb-[-8px] rounded-t-lg bg-[#2b2d31] border-x border-t border-[rgba(0,0,0,0.2)]">
+                    <div className="relative">
+                        <img
+                            src={pendingImage}
+                            alt="Pending attachment"
+                            className="h-48 rounded-md border border-[#1e1f22] object-cover"
+                        />
+                        <button
+                            onClick={() => setPendingImage(null)}
+                            className="absolute top-1 right-1 h-6 w-6 flex items-center justify-center rounded-md bg-[#2b2d31] text-[#dbdee1] hover:text-[#f23f42] shadow-md transition-colors"
+                            aria-label="Remove image"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             )}
 
-            <div className="flex items-end gap-2 rounded-[22px] bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] p-1.5 focus-glow transition-all duration-200">
-                {/* Image upload button */}
+            <div className={cn(
+                "flex items-center gap-1 bg-[#383a40] p-1 shadow-sm transition-all duration-200",
+                (replyTarget || pendingImage) ? "rounded-b-lg" : "rounded-lg"
+            )}>
+                {/* Upload button - Discord style on the left */}
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="h-9 w-9 flex items-center justify-center rounded-full text-muted-color hover:text-primary-color hover:bg-[rgba(255,255,255,0.06)] transition-colors shrink-0"
-                    aria-label="Attach image"
+                    className="h-8 w-8 flex items-center justify-center rounded-full text-[#b5bac1] hover:text-[#dbdee1] transition-colors shrink-0 ml-2"
+                    aria-label="Upload file"
                 >
-                    <ImageIcon className="h-4 w-4" />
+                    <PlusCircle className="h-6 w-6" />
                 </button>
                 <input
                     ref={fileInputRef}
@@ -229,7 +241,7 @@ export function MessageInput({
                 />
 
                 <textarea
-                    className="flex-1 min-h-[40px] max-h-[120px] bg-transparent border-none outline-none resize-none text-[15px] text-primary-color placeholder:text-muted-color px-3 py-2.5"
+                    className="flex-1 min-h-[44px] max-h-[144px] bg-transparent border-none outline-none resize-none text-[16px] text-[#dbdee1] placeholder:text-[#80848e] px-2 py-[11px] leading-tight"
                     value={text}
                     onChange={(e) => {
                         setText(e.target.value);
@@ -244,20 +256,25 @@ export function MessageInput({
                     aria-label="Message input"
                     maxLength={MAX_MESSAGE_LENGTH}
                 />
-                {text.length > MAX_MESSAGE_LENGTH * 0.9 && (
-                    <span className={`text-[10px] self-end shrink-0 tabular-nums ${text.length > MAX_MESSAGE_LENGTH ? "text-[hsl(var(--destructive))]" : "text-muted-color"}`}>
-                        {text.length}/{MAX_MESSAGE_LENGTH}
-                    </span>
-                )}
-                <Button
-                    size="icon"
-                    className="h-9 w-9 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.85)] hover:scale-105 shrink-0 disabled:opacity-25 disabled:hover:scale-100 transition-all duration-200 text-white press-effect shadow-[var(--shadow-sm)]"
-                    onClick={handleSend}
-                    disabled={!text.trim() && !pendingImage}
-                    aria-label="Send message"
-                >
-                    <Send className="h-4 w-4" />
-                </Button>
+
+                {/* Counter & Action buttons on the right */}
+                <div className="flex items-center gap-2 pr-2">
+                    {text.length > MAX_MESSAGE_LENGTH * 0.9 && (
+                        <span className={`text-[11px] tabular-nums ${text.length > MAX_MESSAGE_LENGTH ? "text-[#f23f42]" : "text-[#80848e]"}`}>
+                            {MAX_MESSAGE_LENGTH - text.length}
+                        </span>
+                    )}
+
+                    <button className="h-8 w-8 flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors hidden sm:flex">
+                        <Gift className="h-5 w-5" />
+                    </button>
+                    <button className="h-8 w-8 flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors hidden sm:flex">
+                        <Sticker className="h-5 w-5" />
+                    </button>
+                    <button className="h-8 w-8 flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors">
+                        <Smile className="h-5 w-5" />
+                    </button>
+                </div>
             </div>
         </div>
     );

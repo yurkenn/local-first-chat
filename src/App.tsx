@@ -9,7 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useVoiceState } from "@/hooks/useVoiceState";
 import { useAudioSettings } from "@/hooks/useAudioSettings";
 import { useServerActions } from "@/hooks/useServerActions";
-import { useLogOut, useAcceptInvite } from "jazz-tools/react";
+import { useAcceptInvite } from "jazz-tools/react";
 import { useAccount } from "jazz-tools/react";
 import { ChatAccount, ChatServer } from "@/schema";
 import { coPush, getCoId, getServerArray } from "@/lib/jazz-helpers";
@@ -18,6 +18,7 @@ import type { PendingInvite } from "@/components/InviteAcceptModal";
 import { ServerSidebar } from "@/components/ServerSidebar";
 import { ChannelSidebar } from "@/components/ChannelSidebar";
 import { MemberPanel } from "@/components/MemberPanel";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ModalLayer } from "@/components/ModalLayer";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { MobileLayout } from "@/components/MobileLayout";
@@ -57,7 +58,7 @@ export default function App() {
   // ── Navigation State ──
   const [activeServerId, setActiveServerId] = useState<string | null>(null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
-  const logOut = useLogOut();
+
 
   // ── Pending invite (sessionStorage-backed to survive re-renders) ──
   const [pendingInvite, setPendingInvite] = useState<PendingInvite | null>(() => {
@@ -172,7 +173,7 @@ export default function App() {
 
   // ── Voice State (app-level, survives navigation) ──
   const audio = useAudioSettings();
-  const voice = useVoiceState(profileName, audio);
+  const voice = useVoiceState(profileName, getCoId(me) || "", audio);
 
   // ── Server & Channel CRUD (extracted hook) ──
   const { createServer, createChannel } = useServerActions({
@@ -296,7 +297,6 @@ export default function App() {
         onCreateChannel={() => openModal("createChannel")}
         onInvite={() => openModal("invite")}
         userName={profileName}
-        onLogout={logOut}
         onUserSettings={() => openModal("userSettings")}
         onServerSettings={() => openModal("serverSettings")}
         onAudioSettings={() => openModal("audioSettings")}
@@ -321,6 +321,7 @@ export default function App() {
     onToggleChannelSidebar: toggleChannelSidebar,
     onToggleMemberPanel: toggleMemberPanel,
     activeChannel,
+    serverName: activeServer?.name || "Server",
     userName: profileName,
     serverSidebar: serverSidebarJsx,
     channelSidebar: channelSidebarJsx,
@@ -328,7 +329,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <TooltipProvider>
       <OfflineBanner />
 
       {isMobile ? (
@@ -391,6 +392,6 @@ export default function App() {
         me={me as any}
         audio={audio}
       />
-    </>
+    </TooltipProvider>
   );
 }
