@@ -124,13 +124,13 @@ export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageLis
             const prev = index > 0 ? msgArray[index - 1] : null;
             const curr = msgArray[index] as any;
             const isGrouped = shouldGroup(prev, curr);
-            let height = isGrouped ? 28 : 52;
+            let height = isGrouped ? 32 : 58;
             // Account for images in messages
             if (curr?.imageDataUrl) height += 220;
             // Account for reply quote block
-            if (curr?.replyToContent) height += 40;
+            if (curr?.replyToContent) height += 44;
             // Account for date separator
-            if (shouldShowDateSeparator(prev, curr)) height += 40;
+            if (shouldShowDateSeparator(prev, curr)) height += 44;
             return height;
         },
         overscan: 5,
@@ -278,32 +278,33 @@ export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageLis
                                 ref={virtualizer.measureElement}
                                 data-index={virtualItem.index}
                                 className={cn(
-                                    "group relative px-4 py-0.5 transition-colors duration-75",
-                                    "hover:bg-[#2e3338]/40", // Discord message hover
+                                    "group relative px-4 py-[3px] transition-colors duration-75",
+                                    !isGrouped && "mt-[2px]",
+                                    "hover:bg-[#2e3338]/40",
                                     isDeleted && "opacity-50"
                                 )}
                             >
                                 {/* Date separator */}
                                 {showDateSep && (
-                                    <div className="flex items-center gap-3 py-2 px-4">
+                                    <div className="flex items-center gap-3 py-3 px-4">
                                         <div className="flex-1 h-px bg-[#3f4147]" />
-                                        <span className="text-[11px] font-semibold text-muted-color uppercase tracking-wide shrink-0">
+                                        <span className="text-xs font-semibold text-muted-color uppercase tracking-wide shrink-0">
                                             {formatDateLabel(msg.createdAt)}
                                         </span>
                                         <div className="flex-1 h-px bg-[#3f4147]" />
                                     </div>
                                 )}
-                                <div className={cn("flex gap-3", isGrouped && !showDateSep && "pl-[44px]")}
+                                <div className={cn("flex gap-4", isGrouped && !showDateSep && "pl-[52px]")}
                                 >
                                     {/* Hover timestamp for grouped messages */}
                                     {isGrouped && !showDateSep && (
-                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-color opacity-0 group-hover:opacity-100 transition-opacity duration-100 font-mono pointer-events-none select-none">
+                                        <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[11px] text-muted-color opacity-0 group-hover:opacity-100 transition-opacity duration-100 font-mono pointer-events-none select-none">
                                             {formatCompactTime(msg.createdAt)}
                                         </span>
                                     )}
                                     {/* Avatar — only for ungrouped (first message in group) */}
                                     {!isGrouped && (
-                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-xs font-semibold text-white shrink-0 mt-0.5">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--organic-sage)] to-[#2B7A4B] flex items-center justify-center text-sm font-semibold text-white shrink-0 mt-0.5">
                                             {(msg.senderName || "?").charAt(0).toUpperCase()}
                                         </div>
                                     )}
@@ -312,8 +313,8 @@ export const MessageListView = memo(forwardRef<MessageListViewHandle, MessageLis
                                         {/* Sender name + timestamp — only for ungrouped */}
                                         {!isGrouped && (
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-[13px] font-semibold text-primary-color">{msg.senderName || "Unknown"}</span>
-                                                <span className="text-[11px] text-muted-color">{formatTimestamp(msg.createdAt)}</span>
+                                                <span className="text-[15px] font-semibold text-primary-color leading-snug">{msg.senderName || "Unknown"}</span>
+                                                <span className="text-xs text-muted-color">{formatTimestamp(msg.createdAt)}</span>
                                             </div>
                                         )}
 
@@ -403,9 +404,9 @@ function MessageContent({
 
     return (
         <>
-            <div className="text-[13px] prose prose-invert prose-sm max-w-none [&_p]:m-0 [&_a]:text-[hsl(var(--primary))]">
+            <div className="text-[15px] leading-[1.375rem] prose prose-invert prose-base max-w-none [&_p]:m-0 [&_a]:text-[hsl(var(--primary))] [&_code]:text-[13px] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[#2b2d31]">
                 {msg.replyToSender && (
-                    <div className="flex items-center gap-1.5 mb-1 pl-2 border-l-2 border-[hsl(var(--primary))] text-xs text-muted-color">
+                    <div className="flex items-center gap-1.5 mb-1.5 pl-2.5 border-l-2 border-[hsl(var(--primary))] text-[13px] text-muted-color">
                         <Reply className="h-3 w-3 shrink-0" />
                         <span className="font-semibold">{msg.replyToSender}</span>
                         <span className="truncate">{(msg.replyToContent || '').slice(0, 80)}</span>
@@ -426,7 +427,7 @@ function MessageContent({
                                     children={String(children).replace(/\n$/, "")}
                                     language={match[1]}
                                     style={vscDarkPlus}
-                                    customStyle={{ margin: 0, borderRadius: "0.5rem", fontSize: "12px" }}
+                                    customStyle={{ margin: 0, borderRadius: "0.5rem", fontSize: "13px", padding: "0.75rem 1rem" }}
                                 />
                             ) : (
                                 <code {...rest} className={className}>
@@ -439,7 +440,7 @@ function MessageContent({
                     {msg.content}
                 </ReactMarkdown>
                 {msg.imageDataUrl && isValidImageDataUrl(msg.imageDataUrl) && (
-                    <img src={msg.imageDataUrl} alt="Attachment" className="mt-1 max-w-[300px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:brightness-110 transition-all" onClick={() => onImageClick?.(msg.imageDataUrl)} />
+                    <img src={msg.imageDataUrl} alt="Attachment" className="mt-1.5 max-w-[340px] max-h-[220px] rounded-lg object-cover cursor-pointer hover:brightness-110 transition-all" onClick={() => onImageClick?.(msg.imageDataUrl)} />
                 )}
             </div>
             {msg.editedAt && (
