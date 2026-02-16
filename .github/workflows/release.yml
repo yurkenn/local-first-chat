@@ -38,12 +38,13 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_JAZZ_API_KEY: ${{ secrets.VITE_JAZZ_API_KEY }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Lotus ${{ github.ref_name }}"
@@ -54,7 +55,7 @@ jobs:
             - **macOS (Apple Silicon):** `Lotus_*_aarch64.dmg`
             - **macOS (Intel):** `Lotus_*_x64.dmg`
             - **Windows:** `Lotus_*_x64-setup.exe`
-            - **Web:** [Open in Browser](https://local-first-chat.vercel.app/app)
+            - **Web:** [Open in Browser](https://trylotus.vercel.app/app)
           releaseDraft: false
           prerelease: false
           args: --target ${{ matrix.target }}
