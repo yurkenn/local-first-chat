@@ -31,18 +31,21 @@
             ]
         }
     ],
-    "rewrites": [
+    "routes": [
         {
-            "source": "/app",
-            "destination": "/index.html"
+            "handle": "filesystem"
         },
         {
-            "source": "/app/(.*)",
-            "destination": "/index.html"
+            "src": "^/$",
+            "dest": "/landing.html"
         },
         {
-            "source": "/",
-            "destination": "/landing.html"
+            "src": "^/app(.*)",
+            "dest": "/index.html"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
         }
     ]
 }
